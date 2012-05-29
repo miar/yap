@@ -376,28 +376,34 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
 #ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
-#define LOCK_SUBGOAL_NODE(NODE)       LOCK(TrNode_lock(NODE))
-#define UNLOCK_SUBGOAL_NODE(NODE)     UNLOCK(TrNode_lock(NODE))
-#define SgNode_init_lock_field(NODE)  INIT_LOCK(TrNode_lock(NODE))
+#define TRYLOCK_SUBGOAL_NODE(NODE)      TRY_LOCK(TrNode_lock(NODE))
+#define LOCK_SUBGOAL_NODE(NODE)         LOCK(TrNode_lock(NODE))
+#define UNLOCK_SUBGOAL_NODE(NODE)       UNLOCK(TrNode_lock(NODE))
+#define SgNode_init_lock_field(NODE)    INIT_LOCK(TrNode_lock(NODE))
 #elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
-#define LOCK_SUBGOAL_NODE(NODE)       LOCK(HASH_TRIE_LOCK(NODE))
-#define UNLOCK_SUBGOAL_NODE(NODE)     UNLOCK(HASH_TRIE_LOCK(NODE))
+#define TRYLOCK_SUBGOAL_NODE(NODE)      TRY_LOCK(HASH_TRIE_LOCK(NODE))
+#define LOCK_SUBGOAL_NODE(NODE)         LOCK(HASH_TRIE_LOCK(NODE))
+#define UNLOCK_SUBGOAL_NODE(NODE)       UNLOCK(HASH_TRIE_LOCK(NODE))
 #define SgNode_init_lock_field(NODE)
 #else
+#define TRYLOCK_SUBGOAL_NODE(NODE)
 #define LOCK_SUBGOAL_NODE(NODE)
 #define UNLOCK_SUBGOAL_NODE(NODE)
 #define SgNode_init_lock_field(NODE)
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
 
 #ifdef ANSWER_TRIE_LOCK_USING_NODE_FIELD
-#define LOCK_ANSWER_NODE(NODE)         LOCK(TrNode_lock(NODE))
-#define UNLOCK_ANSWER_NODE(NODE)       UNLOCK(TrNode_lock(NODE))
-#define AnsNode_init_lock_field(NODE)  INIT_LOCK(TrNode_lock(NODE))
+#define TRYLOCK_ANSWER_NODE(NODE)        TRY_LOCK(TrNode_lock(NODE))
+#define LOCK_ANSWER_NODE(NODE)           LOCK(TrNode_lock(NODE))
+#define UNLOCK_ANSWER_NODE(NODE)         UNLOCK(TrNode_lock(NODE))
+#define AnsNode_init_lock_field(NODE)    INIT_LOCK(TrNode_lock(NODE))
 #elif defined(ANSWER_TRIE_LOCK_USING_GLOBAL_ARRAY)
-#define LOCK_ANSWER_NODE(NODE)         LOCK(HASH_TRIE_LOCK(NODE))
-#define UNLOCK_ANSWER_NODE(NODE)       UNLOCK(HASH_TRIE_LOCK(NODE))
+#define TRYLOCK_ANSWER_NODE(NODE)        TRY_LOCK(HASH_TRIE_LOCK(NODE))
+#define LOCK_ANSWER_NODE(NODE)           LOCK(HASH_TRIE_LOCK(NODE))
+#define UNLOCK_ANSWER_NODE(NODE)         UNLOCK(HASH_TRIE_LOCK(NODE))
 #define AnsNode_init_lock_field(NODE)
 #else
+#define TRYLOCK_ANSWER_NODE(NODE)
 #define LOCK_ANSWER_NODE(NODE)
 #define UNLOCK_ANSWER_NODE(NODE)
 #define AnsNode_init_lock_field(NODE)
@@ -744,7 +750,7 @@ static inline sg_node_ptr get_subgoal_trie_for_abolish(tab_ent_ptr tab_ent USES_
   sg_node_ptr *sg_node_addr = (sg_node_ptr *) get_thread_bucket((void **) &TabEnt_subgoal_trie(tab_ent));
   sg_node_ptr sg_node = *sg_node_addr;
   *sg_node_addr = NULL;
-  if (GLOBAL_NOfThreads == 1)
+  if (worker_id == 0)
     abolish_thread_buckets((void **) &TabEnt_subgoal_trie(tab_ent));
   return sg_node;
 #else
@@ -804,7 +810,7 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
 #if defined(THREADS_SUBGOAL_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   sg_fr_ptr sg_fr = *sg_fr_addr;
-  if (GLOBAL_NOfThreads == 1)
+  if (worker_id == 0)
     abolish_thread_buckets((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   else
     *sg_fr_addr = NULL;
@@ -812,7 +818,7 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   sg_fr_ptr sg_fr = *sg_fr_addr;
-  if (GLOBAL_NOfThreads == 1)
+  if (worker_id == 0)
     abolish_thread_buckets((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   else
     *sg_fr_addr = NULL;

@@ -37,7 +37,7 @@
 /****************************************************************
 **      use shared pages memory alloc scheme ? (optional)      **
 ****************************************************************/
-/* #define USE_PAGES_MALLOC 1 */
+#define USE_PAGES_MALLOC 1
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **
@@ -48,9 +48,9 @@
 /************************************************************************
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
-#define THREADS_NO_SHARING 1
-/* #define THREADS_SUBGOAL_SHARING 1 */
-/* #define THREADS_FULL_SHARING 1 */
+//#define THREADS_NO_SHARING 1
+//#define THREADS_SUBGOAL_SHARING 1
+#define THREADS_FULL_SHARING 1
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 /*************************************************************************
@@ -70,17 +70,19 @@
 ** a node before checking if it will be necessary.                      **
 *************************************************************************/
 /* #define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
-#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-/* #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 */
+//#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1 
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 /* #define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
-#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-/* #define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 */
+//#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1
-/* #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1 */
+/* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
+#define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
 /* #define GLOBAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 /*******************************************************************
@@ -90,7 +92,7 @@
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
 #define TRIE_LOCK_USING_NODE_FIELD   1
-/* #define TRIE_LOCK_USING_GLOBAL_ARRAY 1 */
+//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **

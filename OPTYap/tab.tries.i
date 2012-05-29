@@ -149,7 +149,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_SUBGOAL_NODE(parent_node);
     return child_node;
@@ -163,13 +163,24 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   sg_node_ptr child_node;
   sg_hash_ptr hash;
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+  sg_node_ptr first_node = NULL; 
+  int num_buckets = -1;
+  sg_node_ptr *bucket = NULL;
+ subgoal_trie_check_1:
+#endif 
 
   child_node = TrNode_child(parent_node);
   if (child_node == NULL) {
 #ifdef SUBGOAL_TRIE_ALLOC_BEFORE_CHECK
     NEW_SUBGOAL_TRIE_NODE(child_node, t, NULL, parent_node, NULL);
 #endif /* SUBGOAL_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_SUBGOAL_NODE(parent_node) != 0)
+      goto subgoal_trie_check_1; 
+#else
     LOCK_SUBGOAL_NODE(parent_node);
+#endif
     if (TrNode_child(parent_node)) {
       sg_node_ptr chain_node = TrNode_child(parent_node);
       if (IS_SUBGOAL_TRIE_HASH(chain_node)) {
@@ -203,19 +214,41 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     return child_node;
   } 
 
-  if (! IS_SUBGOAL_TRIE_HASH(child_node)) {
-    sg_node_ptr first_node = child_node;
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+ subgoal_trie_check_2:
+#endif 
+
+  if (! IS_SUBGOAL_TRIE_HASH(TrNode_child(parent_node))) {
     int count_nodes = 0;
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    sg_node_ptr first_node_tmp = child_node;    
+    while (child_node && child_node != first_node) {
+      if (TrNode_entry(child_node) == t)
+        return child_node;
+      count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    first_node = first_node_tmp;
+#else
+    sg_node_ptr first_node = child_node;
     do {
       if (TrNode_entry(child_node) == t)
         return child_node;
       count_nodes++;
       child_node = TrNode_next(child_node);
     } while (child_node);
+#endif
 #ifdef SUBGOAL_TRIE_ALLOC_BEFORE_CHECK
     NEW_SUBGOAL_TRIE_NODE(child_node, t, NULL, parent_node, first_node);
 #endif /* SUBGOAL_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_SUBGOAL_NODE(parent_node) != 0) {
+      child_node = TrNode_child(parent_node);
+      goto subgoal_trie_check_2; 
+    }
+#else
     LOCK_SUBGOAL_NODE(parent_node);
+#endif
     if (first_node != TrNode_child(parent_node)) {
       sg_node_ptr chain_node = TrNode_child(parent_node);
       if (IS_SUBGOAL_TRIE_HASH(chain_node)) {
@@ -269,6 +302,25 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
   hash = (sg_hash_ptr) child_node;
 subgoal_trie_hash:
   { /* trie nodes with hashing */
+
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    int count_nodes = 0;
+    while (num_buckets != Hash_num_buckets(hash)) {
+      num_buckets = Hash_num_buckets(hash);
+      //      __sync_synchronize();
+      bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
+      child_node = *bucket;
+      first_node = NULL;
+    } 
+    sg_node_ptr first_node_tmp = child_node;
+    while (child_node && child_node != first_node) {
+      if (TrNode_entry(child_node) == t)
+        return child_node;
+      count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    first_node = first_node_tmp;
+#else
     sg_node_ptr *bucket, first_node;
     int num_buckets, count_nodes = 0;
 
@@ -284,10 +336,18 @@ subgoal_trie_hash:
       count_nodes++;
       child_node = TrNode_next(child_node);
     }
+#endif
 #ifdef SUBGOAL_TRIE_ALLOC_BEFORE_CHECK
     NEW_SUBGOAL_TRIE_NODE(child_node, t, NULL, parent_node, first_node);
 #endif /* SUBGOAL_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_SUBGOAL_NODE(parent_node) != 0){
+      child_node = *bucket;	    
+      goto subgoal_trie_hash; 
+    }
+#else
     LOCK_SUBGOAL_NODE(parent_node);
+#endif
     if (num_buckets != Hash_num_buckets(hash)) {
       /* the hash has been expanded */ 
 #ifdef SUBGOAL_TRIE_ALLOC_BEFORE_CHECK
@@ -341,7 +401,7 @@ subgoal_trie_hash:
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_SUBGOAL_NODE(parent_node);
     return child_node;
@@ -449,7 +509,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_ANSWER_NODE(parent_node);
     return child_node;
@@ -463,14 +523,24 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   ans_node_ptr child_node;
   ans_hash_ptr hash;
-
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+  ans_node_ptr first_node = NULL; 
+  int num_buckets = -1;
+  ans_node_ptr *bucket = NULL;
+ answer_trie_check_1:
+#endif 
   TABLING_ERROR_CHECKING(answer_trie_check_insert_(gt)_entry, IS_ANSWER_LEAF_NODE(parent_node));
   child_node = TrNode_child(parent_node);
   if (child_node == NULL) {
 #ifdef ANSWER_TRIE_ALLOC_BEFORE_CHECK
     NEW_ANSWER_TRIE_NODE(child_node, instr, t, NULL, parent_node, NULL);
 #endif /* ANSWER_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_ANSWER_NODE(parent_node) != 0)
+      goto answer_trie_check_1; 
+#else
     LOCK_ANSWER_NODE(parent_node);
+#endif
     if (TrNode_child(parent_node)) {
       ans_node_ptr chain_node = TrNode_child(parent_node);
       if (IS_ANSWER_TRIE_HASH(chain_node)) {
@@ -504,19 +574,41 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     return child_node;
   } 
 
-  if (! IS_ANSWER_TRIE_HASH(child_node)) {
-    ans_node_ptr first_node = child_node;
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+ answer_trie_check_2:
+#endif 
+
+  if (! IS_ANSWER_TRIE_HASH(TrNode_child(parent_node))) {
     int count_nodes = 0;
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    ans_node_ptr first_node_tmp = child_node;    
+    while (child_node && child_node != first_node) {
+      if (TrNode_entry(child_node) == t)
+        return child_node;
+      count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    first_node = first_node_tmp;
+#else
+    ans_node_ptr first_node = child_node;
     do {
       if (TrNode_entry(child_node) == t)
         return child_node;
       count_nodes++;
       child_node = TrNode_next(child_node);
     } while (child_node);
+#endif
 #ifdef ANSWER_TRIE_ALLOC_BEFORE_CHECK
     NEW_ANSWER_TRIE_NODE(child_node, instr, t, NULL, parent_node, first_node);
 #endif /* ANSWER_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_ANSWER_NODE(parent_node) != 0) {
+      child_node = TrNode_child(parent_node);
+      goto answer_trie_check_2; 
+    }
+#else
     LOCK_ANSWER_NODE(parent_node);
+#endif
     if (first_node != TrNode_child(parent_node)) {
       ans_node_ptr chain_node = TrNode_child(parent_node);
       if (IS_ANSWER_TRIE_HASH(chain_node)) {
@@ -570,6 +662,25 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   hash = (ans_hash_ptr) child_node;
 answer_trie_hash:
   { /* trie nodes with hashing */
+
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    int count_nodes = 0;
+    while (num_buckets != Hash_num_buckets(hash)) {
+      num_buckets = Hash_num_buckets(hash);
+      //      __sync_synchronize();
+      bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
+      child_node = *bucket;
+      first_node = NULL;
+    } 
+    ans_node_ptr first_node_tmp = child_node;
+    while (child_node && child_node != first_node) {
+      if (TrNode_entry(child_node) == t)
+        return child_node;
+      count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    first_node = first_node_tmp;
+#else
     ans_node_ptr *bucket, first_node;
     int num_buckets, count_nodes = 0;
 
@@ -585,10 +696,18 @@ answer_trie_hash:
       count_nodes++;
       child_node = TrNode_next(child_node);
     }
+#endif
 #ifdef ANSWER_TRIE_ALLOC_BEFORE_CHECK
     NEW_ANSWER_TRIE_NODE(child_node, instr, t, NULL, parent_node, first_node);
 #endif /* ANSWER_TRIE_ALLOC_BEFORE_CHECK */
+#ifdef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS
+    if (TRYLOCK_ANSWER_NODE(parent_node) != 0) {
+      child_node = *bucket;	    
+      goto answer_trie_hash; 
+    }
+#else
     LOCK_ANSWER_NODE(parent_node);
+#endif 
     if (num_buckets != Hash_num_buckets(hash)) {
       /* the hash has been expanded */ 
 #ifdef ANSWER_TRIE_ALLOC_BEFORE_CHECK
@@ -642,7 +761,7 @@ answer_trie_hash:
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_ANSWER_NODE(parent_node);
     return child_node;
@@ -749,7 +868,7 @@ static inline gt_node_ptr global_trie_check_insert_entry(gt_node_ptr parent_node
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_GLOBAL_NODE(parent_node);
     return child_node;
@@ -941,7 +1060,7 @@ global_trie_hash:
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_GLOBAL_NODE(parent_node);
     return child_node;
@@ -1526,7 +1645,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
       Hash_next(Hash_previous(hash)) = Hash_next(hash);
     else
       SgFr_hash_chain(sg_fr) = Hash_next(hash);
-    FREE_BUCKETS(Hash_buckets(hash));
+    //    FREE_BUCKETS(Hash_buckets(hash));
     FREE_ANSWER_TRIE_HASH(hash);
   } else {
     if (position == TRAVERSE_POSITION_FIRST) {

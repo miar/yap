@@ -267,6 +267,10 @@ typedef struct subgoal_entry {
   int active_workers;
   struct subgoal_frame *subgoal_frame[THREADS_NUM_BUCKETS];
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#ifdef USE_PAGES_MALLOC
+  struct subgoal_entry *next;
+#endif /*USE_PAGES_MALLOC */
+
 }* sg_ent_ptr;
 
 #define SgEnt_lock(X)            ((X)->lock)

@@ -127,13 +127,13 @@ static struct trie_statistics{
 #endif /*THREADS */
 
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-#define IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES  if (GLOBAL_NOfThreads == 1)
+#define IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES  if (worker_id == 0)
 #else
 #define IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-#define IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES  if (GLOBAL_NOfThreads == 1)
+#define IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES  if (worker_id == 0)
 #else
 #define IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
@@ -1485,9 +1485,7 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 
 
 void free_answer_hash_chain(ans_hash_ptr hash) {
-#if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING)
   CACHE_REGS
-#endif /* THREADS_NO_SHARING || THREADS_SUBGOAL_SHARING */
 
   while (hash) {
     ans_node_ptr chain_node, *bucket, *last_bucket;
@@ -1518,14 +1516,14 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 
 /*****************************************************************************************
 ** all threads abolish their local data structures, and the main thread also abolishes  **
-** all shared data structures, if no other thread is running (GLOBAL_NOfThreads == 1).  **
+** all shared data structures, if no other thread is running (worker_id == 0).  **
 *****************************************************************************************/
 void abolish_table(tab_ent_ptr tab_ent) {
   CACHE_REGS
   sg_node_ptr sg_node;
 
 #ifdef THREADS
-  if (GLOBAL_NOfThreads == 1) {
+  if (worker_id == 0) {
     ATTACH_PAGES(_pages_tab_ent);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     ATTACH_PAGES(_pages_sg_ent);

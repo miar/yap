@@ -361,7 +361,6 @@
 #endif /* TABLING_INNER_CUTS */
 
 
-
 /************************************************************************
 **                          table_load_answer                          **
 ************************************************************************/
@@ -461,6 +460,7 @@
 
 
 
+
 /************************************************************************
 **                          table_try_single                           **
 ************************************************************************/
@@ -475,16 +475,17 @@
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-    if (SgFr_state(sg_fr) <= ready) {
+        if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
       if (SgFr_sg_ent_state(sg_fr) >= complete)
-	SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
+      	SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
       else
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
-    }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-    LOCK_SG_FR(sg_fr);
+      }
+#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+//LOCK_SG_FR(sg_fr);
+//    INFO_THREADS("table_try_single sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
@@ -498,7 +499,7 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //    UNLOCK_SG_FR(sg_fr);
 #ifdef DETERMINISTIC_TABLING
       if (IsMode_Batched(TabEnt_mode(tab_ent))) {
 	store_deterministic_generator_node(tab_ent, sg_fr);
@@ -517,7 +518,7 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
@@ -531,7 +532,7 @@
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       find_leader_node(leader_cp, leader_dep_on_stack);
       store_consumer_node(tab_ent, sg_fr, leader_cp, leader_dep_on_stack);
 #ifdef DEBUG_OPTYAP
@@ -553,11 +554,11 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;
@@ -572,6 +573,7 @@
 	}
 #endif /* LIMIT_TABLING */
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
@@ -591,7 +593,7 @@
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	  if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
-	  if (SgFr_state(sg_fr) < compiled)
+	    if (SgFr_state(sg_fr) < compiled)
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 	    update_answer_trie(sg_fr);
 	  UNLOCK_SG_FR(sg_fr);
@@ -628,13 +630,14 @@
       else
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
-    }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-    LOCK_SG_FR(sg_fr);
+      }
+#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+    //    LOCK_SG_FR(sg_fr);
+    // INFO_THREADS("table_try_me sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      // UNLOCK_SG_FR(sg_fr);
       store_generator_consumer_node(tab_ent, sg_fr, TRUE, PREG->u.Otapl.s);
       PREFETCH_OP(PREG);
       allocate_environment();
@@ -645,7 +648,7 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG->u.Otapl.d);
       PREG = NEXTOP(PREG, Otapl);
       PREFETCH_OP(PREG);
@@ -657,7 +660,7 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
@@ -671,7 +674,7 @@
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       find_leader_node(leader_cp, leader_dep_on_stack);
       store_consumer_node(tab_ent, sg_fr, leader_cp, leader_dep_on_stack);
 #ifdef DEBUG_OPTYAP
@@ -693,11 +696,11 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;
@@ -712,6 +715,7 @@
 	}
 #endif /* LIMIT_TABLING */
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
@@ -768,13 +772,14 @@
       else
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
-    }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-    LOCK_SG_FR(sg_fr);
+    } 
+#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+    //LOCK_SG_FR(sg_fr);
+    //    INFO_THREADS("table_try sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       store_generator_consumer_node(tab_ent, sg_fr, TRUE , PREG->u.Otapl.s);
       PREFETCH_OP(PREG);
       allocate_environment();
@@ -785,7 +790,7 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
       PREG = PREG->u.Otapl.d;
       PREFETCH_OP(PREG);
@@ -797,7 +802,7 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
@@ -811,7 +816,7 @@
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
-      UNLOCK_SG_FR(sg_fr);
+      //UNLOCK_SG_FR(sg_fr);
       find_leader_node(leader_cp, leader_dep_on_stack);
       store_consumer_node(tab_ent, sg_fr, leader_cp, leader_dep_on_stack);
 #ifdef DEBUG_OPTYAP
@@ -833,11 +838,11 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	UNLOCK_SG_FR(sg_fr);
+	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;
@@ -852,6 +857,7 @@
 	}
 #endif /* LIMIT_TABLING */
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
@@ -874,6 +880,7 @@
 	  if (SgFr_state(sg_fr) < compiled)
 #endif /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 	    update_answer_trie(sg_fr);
+	  
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
 	  PREFETCH_OP(PREG);
@@ -1036,6 +1043,11 @@
     } else
 #endif /* MODE_DIRECTED_TABLING */
       ans_node = answer_search(sg_fr, subs_ptr);
+
+    /*    if (IS_ANSWER_LEAF_NODE(ans_node))
+	  goto fail; */
+    
+
     LOCK_ANSWER_NODE(ans_node);
     if (! IS_ANSWER_LEAF_NODE(ans_node)) {
       /* new answer */
@@ -1157,8 +1169,8 @@
 #endif /* TABLING_INNER_CUTS */
       TAG_AS_ANSWER_LEAF_NODE(ans_node);
 #ifdef THREADS_FULL_SHARING
-      INFO_THREADS("new answer  (1)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
-      if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {
+      //      INFO_THREADS("new answer  (1)  sg_ent=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
+      if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {	
 	ANSWER_LEAF_NODE_INSTR_RELATIVE(ans_node);
 	if (worker_id < ANSWER_LEAF_NODE_MAX_THREADS)
 	  ANSWER_LEAF_NODE_SET_WID(ans_node,worker_id);
@@ -1168,7 +1180,7 @@
 #ifndef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
       LOCK_SG_FR(sg_fr);
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
-      if (SgFr_first_answer(sg_fr) == NULL)
+      if (SgFr_last_answer(sg_fr) == NULL)
 	SgFr_first_answer(sg_fr) = ans_node;
       else
         TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
@@ -1182,7 +1194,9 @@
         }
       }
 #endif /* DEBUG_TABLING */
+
       UNLOCK_SG_FR(sg_fr);
+
       if (IS_BATCHED_GEN_CP(gcp)) {
 #ifdef THREADS_FULL_SHARING
         if (worker_id >= ANSWER_LEAF_NODE_MAX_THREADS)
@@ -1236,9 +1250,9 @@
 	  UNLOCK_ANSWER_NODE(ans_node);
 	  UNLOCK_ANSWER_TRIE(sg_fr);
 	  SgFr_batched_cached_answers_check_insert(sg_fr,NULL); 
-	  INFO_THREADS("new      answer  (2)   sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
+	  //	  INFO_THREADS("new      answer  (2)   sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
 	  if (SgFr_batched_cached_answers_check_remove(sg_fr , ans_node) == 1){
-	    INFO_THREADS("ans_node=%p not found", ans_node);
+	    //	    INFO_THREADS("ans_node=%p not found", ans_node);
 	    goto fail;
 	  }
 	  /* deallocate and procceed */
@@ -1257,7 +1271,7 @@
 	    UNLOCK_ANSWER_NODE(ans_node);
 	    UNLOCK_ANSWER_TRIE(sg_fr);
 	    /* deallocate and procceed */
-	    INFO_THREADS("new      answer  (2)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
+	    //	    INFO_THREADS("new      answer  (2)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
 	    PREG = (yamop *) YENV[E_CP];
 	    PREFETCH_OP(PREG);
 	    CPREG = PREG;
@@ -1270,19 +1284,18 @@
 	  }
 	}
       }
-#else
+#endif /* THREADS_FULL_SHARING */
       UNLOCK_ANSWER_NODE(ans_node);
       UNLOCK_ANSWER_TRIE(sg_fr);
-#endif /* THREADS_FULL_SHARING */
+
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-      INFO_THREADS("new      answer(rep)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
+      //      INFO_THREADS("new      answer(rep)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
 #else
-      INFO_THREADS("new      answer(rep)  sgfr=%p ans_node=%p",sg_fr,ans_node);
+      //      INFO_THREADS("new      answer(rep)  sgfr=%p ans_node=%p",sg_fr,ans_node);
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
       goto fail;
     }
   ENDPBOp();
-
 
 
 /************************************************************************
@@ -1552,7 +1565,6 @@
     }
     END_PREFETCH()
   ENDBOp();
-
 
 
 /************************************************************************
@@ -1934,7 +1946,7 @@ complete_all:
 	    LOCK_SG_FR(sg_fr);
 	    if (SgFr_state(sg_fr) < compiled)
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-	      update_answer_trie(sg_fr);
+	      update_answer_trie(sg_fr);	    
 	    UNLOCK_SG_FR(sg_fr);
 	    PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
 	    PREFETCH_OP(PREG);
@@ -1947,7 +1959,6 @@ complete_all:
     }
     END_PREFETCH()
   ENDBOp();
-
 
 
 /************************************************************************
