@@ -818,9 +818,15 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   sg_fr_ptr sg_fr = *sg_fr_addr;
-  if (worker_id == 0)
+  if (worker_id == 0){
     abolish_thread_buckets((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
-  else
+    /* just creating a dummy sg_fr to get the information of the answer trie */
+    /* this sg_fr is remove during the abolish operation */
+    if (sg_fr == NULL){
+      new_subgoal_frame(sg_fr, (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
+      *sg_fr_addr= sg_fr;
+    }    
+  } else
     *sg_fr_addr = NULL;
   return sg_fr;
 #else

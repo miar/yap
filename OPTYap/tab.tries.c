@@ -1522,7 +1522,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
   CACHE_REGS
   sg_node_ptr sg_node;
 
-#ifdef THREADS
+#if defined(THREADS)
   if (worker_id == 0) {
     ATTACH_PAGES(_pages_tab_ent);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)

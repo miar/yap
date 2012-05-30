@@ -307,7 +307,7 @@ subgoal_trie_hash:
     int count_nodes = 0;
     while (num_buckets != Hash_num_buckets(hash)) {
       num_buckets = Hash_num_buckets(hash);
-      //      __sync_synchronize();
+      __sync_synchronize();
       bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
       child_node = *bucket;
       first_node = NULL;
@@ -326,7 +326,7 @@ subgoal_trie_hash:
 
     do {
       num_buckets = Hash_num_buckets(hash);
-      // __sync_synchronize();
+      __sync_synchronize();
       bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
       first_node = child_node = *bucket;
     } while (num_buckets != Hash_num_buckets(hash));
@@ -667,7 +667,7 @@ answer_trie_hash:
     int count_nodes = 0;
     while (num_buckets != Hash_num_buckets(hash)) {
       num_buckets = Hash_num_buckets(hash);
-      //      __sync_synchronize();
+      __sync_synchronize();
       bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
       child_node = *bucket;
       first_node = NULL;
@@ -686,7 +686,7 @@ answer_trie_hash:
 
     do {
       num_buckets = Hash_num_buckets(hash);
-      // __sync_synchronize();
+      __sync_synchronize();
       bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
       first_node = child_node = *bucket;
     } while (num_buckets != Hash_num_buckets(hash));
@@ -993,7 +993,7 @@ global_trie_hash:
 
     do {
       num_buckets = Hash_num_buckets(hash);
-      // __sync_synchronize();
+      __sync_synchronize();
       bucket = Hash_buckets(hash) + HASH_ENTRY(t, num_buckets);
       first_node = child_node = *bucket;
     } while (num_buckets != Hash_num_buckets(hash));
