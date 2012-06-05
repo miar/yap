@@ -170,6 +170,10 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
 #ifdef EXTRA_STATISTICS
   Stats_new_answers = 0;
   Stats_repeated_answers = 0;
+  Stats_subgoal_trie_depth_min_all = LONG_MAX;
+  Stats_subgoal_trie_depth_max_all = 0;
+  Stats_subgoal_trie_nr_paths = 0;
+  Stats_subgoal_trie_depth_all = 0;
   Stats_answer_trie_depth_min_all = LONG_MAX;
   Stats_answer_trie_depth_max_all = 0;
   Stats_answer_trie_nr_paths = 0;

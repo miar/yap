@@ -30,7 +30,17 @@
     Stats_answer_trie_depth_max_all = NEW_DEPTH;			\
   if (NEW_DEPTH < Stats_answer_trie_depth_min_all)		        \
     Stats_answer_trie_depth_min_all = NEW_DEPTH
+
+#define Extra_stats_sg_trie(NEW_DEPTH)			                \
+  Stats_subgoal_trie_nr_paths++;					\
+  Stats_subgoal_trie_depth_all += NEW_DEPTH;				\
+  if (NEW_DEPTH > Stats_subgoal_trie_depth_max_all)		        \
+    Stats_subgoal_trie_depth_max_all = NEW_DEPTH;			\
+  if (NEW_DEPTH < Stats_subgoal_trie_depth_min_all)		        \
+    Stats_subgoal_trie_depth_min_all = NEW_DEPTH
+
 #else
+#define Extra_stats_sg_trie(NEW_DEPTH)
 #define Extra_stats_ans_trie(NEW_DEPTH)
 #endif /* EXTRA_STATISTICS */
 

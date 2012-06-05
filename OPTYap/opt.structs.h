@@ -15,6 +15,10 @@
 #include <limits.h>
 long Stats_new_answers;
 long Stats_repeated_answers;
+long Stats_subgoal_trie_depth_min_all;
+long Stats_subgoal_trie_depth_max_all;
+long Stats_subgoal_trie_nr_paths;
+long Stats_subgoal_trie_depth_all;
 long Stats_answer_trie_depth_min_all;
 long Stats_answer_trie_depth_max_all;
 long Stats_answer_trie_nr_paths;

@@ -584,12 +584,19 @@ static Int p_show_statistics_table( USES_REGS1 ) {
   }
   show_table(tab_ent, SHOW_MODE_STATISTICS, out);
 #ifdef EXTRA_STATISTICS
-  Sfprintf(out, "Extra Statistics Answer Trie\n");
+  Sfprintf(out, "Extra Statistics Table New Answer\n");
   Sfprintf(out, "  New Answers : %10ld \n", Stats_new_answers);
   Sfprintf(out, "  Rep Answers : %10ld \n", Stats_repeated_answers);
-  Sfprintf(out, "  Dep MIN ans trie : %10ld \n", Stats_answer_trie_depth_min_all);
-  Sfprintf(out, "  Dep AVG ans trie : %10ld \n",lroundf((float)Stats_answer_trie_depth_all / (float)Stats_answer_trie_nr_paths));
-  Sfprintf(out, "  Dep MAX ans trie : %10ld \n", Stats_answer_trie_depth_max_all);
+
+  Sfprintf(out, "Extra Statistics Subgoal Trie\n");
+  Sfprintf(out, "  Depth MIN : %10ld \n", Stats_subgoal_trie_depth_min_all);
+  Sfprintf(out, "  Depth AVG : %10ld \n",lroundf((float)Stats_subgoal_trie_depth_all / (float)Stats_subgoal_trie_nr_paths));
+  Sfprintf(out, "  Depth MAX : %10ld \n", Stats_subgoal_trie_depth_max_all);
+
+  Sfprintf(out, "Extra Statistics Answer Trie\n");
+  Sfprintf(out, "  Depth MIN : %10ld \n", Stats_answer_trie_depth_min_all);
+  Sfprintf(out, "  Depth AVG : %10ld \n",lroundf((float)Stats_answer_trie_depth_all / (float)Stats_answer_trie_nr_paths));
+  Sfprintf(out, "  Depth MAX : %10ld \n", Stats_answer_trie_depth_max_all);
 #endif /* EXTRA_STATISTICS */
   PL_release_stream(out);
   return (TRUE);
