@@ -63,7 +63,7 @@ static void free_global_trie_branch(gt_node_ptr, int USES_REGS);
 static void free_global_trie_branch(gt_node_ptr USES_REGS);
 #endif /* GLOBAL_TRIE_FOR_SUBTERMS */
 static void traverse_subgoal_trie(sg_node_ptr, char *, int, int *, int, int USES_REGS);
-static void traverse_answer_trie(ans_node_ptr, char *, int, int *, int, int, int USES_REGS);
+static void traverse_answer_trie(long, ans_node_ptr, char *, int, int *, int, int, int USES_REGS);
 static void traverse_global_trie(gt_node_ptr, char *, int, int *, int, int USES_REGS);
 static void traverse_global_trie_for_term(gt_node_ptr, char *, int *, int *, int *, int USES_REGS);
 static inline void traverse_trie_node(Term, char *, int *, int *, int *, int USES_REGS);
@@ -631,6 +631,10 @@ static void traverse_subgoal_trie(sg_node_ptr current_node, char *str, int str_i
       str[str_index] = 0;
       SHOW_TABLE_STRUCTURE("%s.\n", str);
       TrStat_ans_nodes++;
+
+#ifdef EXTRA_STATISTICS
+      long ans_dep = 1;
+#endif /* EXTRA_STATISTICS */
       if (SgFr_first_answer(sg_fr) == NULL) {
 	if (SgFr_state(sg_fr) < complete) {
 	  TrStat_sg_incomplete++;
@@ -644,7 +648,7 @@ static void traverse_subgoal_trie(sg_node_ptr current_node, char *str, int str_i
 	SHOW_TABLE_STRUCTURE("    TRUE\n");
       } else {
 	arity[0] = 0;
-	traverse_answer_trie(TrNode_child(SgFr_answer_trie(sg_fr)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+	traverse_answer_trie(ans_dep, TrNode_child(SgFr_answer_trie(sg_fr)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
 	if (SgFr_state(sg_fr) < complete) {
 	  TrStat_sg_incomplete++;
 	  SHOW_TABLE_STRUCTURE("    ---> INCOMPLETE\n");
@@ -677,7 +681,7 @@ static void traverse_subgoal_trie(sg_node_ptr current_node, char *str, int str_i
 }
 
 
-static void traverse_answer_trie(ans_node_ptr current_node, char *str, int str_index, int *arity, int var_index, int mode, int position USES_REGS) {
+ static void traverse_answer_trie(long ans_dep, ans_node_ptr current_node, char *str, int str_index, int *arity, int var_index, int mode, int position USES_REGS) {
   int *current_arity = NULL, current_str_index = 0, current_var_index = 0, current_mode = 0;
 
   /* test if hashing */
@@ -691,7 +695,7 @@ static void traverse_answer_trie(ans_node_ptr current_node, char *str, int str_i
     memcpy(current_arity, arity, sizeof(int) * (arity[0] + 1));
     do {
       if (*bucket) {
-        traverse_answer_trie(*bucket, str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
+        traverse_answer_trie(ans_dep, *bucket, str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
 	memcpy(arity, current_arity, sizeof(int) * (current_arity[0] + 1));
 #ifdef TRIE_COMPACT_PAIRS
 	if (arity[arity[0]] == -2 && str[str_index - 1] != '[')
@@ -727,6 +731,7 @@ static void traverse_answer_trie(ans_node_ptr current_node, char *str, int str_i
 
   /* show answer .... */
   if (IS_ANSWER_LEAF_NODE(current_node)) {
+    Extra_stats_ans_trie(ans_dep);    
     TrStat_answers++;
     str[str_index] = 0;
     SHOW_TABLE_STRUCTURE("%s\n", str);
@@ -740,7 +745,7 @@ static void traverse_answer_trie(ans_node_ptr current_node, char *str, int str_i
 #endif /* TABLING_INNER_CUTS */
   /* ... or continue with child node */
   else
-    traverse_answer_trie(TrNode_child(current_node), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
+    traverse_answer_trie(ans_dep + 1 , TrNode_child(current_node), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
 
   /* restore the initial state and continue with sibling nodes */
   if (position == TRAVERSE_POSITION_FIRST) {
@@ -757,7 +762,7 @@ static void traverse_answer_trie(ans_node_ptr current_node, char *str, int str_i
       if (arity[arity[0]] == -1)
 	str[str_index - 1] = '|';
 #endif /* TRIE_COMPACT_PAIRS */
-      traverse_answer_trie(current_node, str, str_index, arity, var_index, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
+      traverse_answer_trie(ans_dep, current_node, str, str_index, arity, var_index, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
       current_node = TrNode_next(current_node);
     }
     free(current_arity);
@@ -1573,8 +1578,8 @@ void abolish_table(tab_ent_ptr tab_ent) {
 
 void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
   CACHE_REGS
-  sg_node_ptr sg_node;
 
+  sg_node_ptr sg_node;
   TrStat_out = out;
   TrStat_show = show_mode;
   TrStat_subgoals = 0;

@@ -22,6 +22,18 @@
 #endif /* HAVE_STRING_H */
 #include "opt.mavar.h"
 
+#ifdef EXTRA_STATISTICS
+#define Extra_stats_ans_trie(NEW_DEPTH)			                \
+  Stats_answer_trie_nr_paths++;						\
+  Stats_answer_trie_depth_all += NEW_DEPTH;				\
+  if (NEW_DEPTH > Stats_answer_trie_depth_max_all)		        \
+    Stats_answer_trie_depth_max_all = NEW_DEPTH;			\
+  if (NEW_DEPTH < Stats_answer_trie_depth_min_all)		        \
+    Stats_answer_trie_depth_min_all = NEW_DEPTH
+#else
+#define Extra_stats_ans_trie(NEW_DEPTH)
+#endif /* EXTRA_STATISTICS */
+
 #ifdef THREADS
 static inline void **get_insert_thread_bucket(void **, lockvar *);
 static inline void **get_thread_bucket(void **);

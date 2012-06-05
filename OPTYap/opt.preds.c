@@ -572,11 +572,6 @@ static Int p_show_statistics_table( USES_REGS1 ) {
     return FALSE;
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t1))))
     return FALSE;
-#ifdef EXTRA_STATISTICS
-  Sfprintf(out, "Table New Answer Statistics\n");
-  Sfprintf(out, "  New Answers : %10ld \n", Stats_new_answers);
-  Sfprintf(out, "  Rep Answers : %10ld \n", Stats_repeated_answers);
-#endif /* EXTRA_STATISTICS */
   mod = Deref(ARG2);
   t = Deref(ARG3);
   if (IsAtomTerm(t))
@@ -588,6 +583,14 @@ static Int p_show_statistics_table( USES_REGS1 ) {
     return (FALSE);
   }
   show_table(tab_ent, SHOW_MODE_STATISTICS, out);
+#ifdef EXTRA_STATISTICS
+  Sfprintf(out, "Extra Statistics Answer Trie\n");
+  Sfprintf(out, "  New Answers : %10ld \n", Stats_new_answers);
+  Sfprintf(out, "  Rep Answers : %10ld \n", Stats_repeated_answers);
+  Sfprintf(out, "  Dep MIN ans trie : %10ld \n", Stats_answer_trie_depth_min_all);
+  Sfprintf(out, "  Dep AVG ans trie : %10ld \n",lroundf((float)Stats_answer_trie_depth_all / (float)Stats_answer_trie_nr_paths));
+  Sfprintf(out, "  Dep MAX ans trie : %10ld \n", Stats_answer_trie_depth_max_all);
+#endif /* EXTRA_STATISTICS */
   PL_release_stream(out);
   return (TRUE);
 }
