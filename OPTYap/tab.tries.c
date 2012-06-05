@@ -76,6 +76,7 @@ static inline void traverse_update_arity(char *, int *, int *);
 *******************************/
 
 static struct trie_statistics{
+
   IOSTREAM *out;
   int show;
   long subgoals;
@@ -1432,50 +1433,47 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 
 void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
   CACHE_REGS
-
+  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 #ifdef TABLING_INNER_CUTS
-  if (! IS_ANSWER_LEAF_NODE(current_node) && TrNode_child(current_node)) {
+    if (! IS_ANSWER_LEAF_NODE(current_node) && TrNode_child(current_node)) {
 #else
-  if (! IS_ANSWER_LEAF_NODE(current_node)) {
+    if (! IS_ANSWER_LEAF_NODE(current_node)) {
 #endif /* TABLING_INNER_CUTS */
-    int child_mode;
-    if (mode == TRAVERSE_MODE_NORMAL) {
-      Term t = TrNode_entry(current_node);
-      if (IsApplTerm(t)) {
-	Functor f = (Functor) RepAppl(t);
-	if (f == FunctorDouble)
-	  child_mode = TRAVERSE_MODE_DOUBLE;
-	else if (f == FunctorLongInt)
-	  child_mode = TRAVERSE_MODE_LONGINT;
-	else
+      int child_mode;
+      if (mode == TRAVERSE_MODE_NORMAL) {
+        Term t = TrNode_entry(current_node);
+        if (IsApplTerm(t)) {
+    	  Functor f = (Functor) RepAppl(t);
+	  if (f == FunctorDouble)
+	    child_mode = TRAVERSE_MODE_DOUBLE;
+	  else if (f == FunctorLongInt)
+	    child_mode = TRAVERSE_MODE_LONGINT;
+	  else
+	    child_mode = TRAVERSE_MODE_NORMAL;
+	} else
 	  child_mode = TRAVERSE_MODE_NORMAL;
-      } else
-	child_mode = TRAVERSE_MODE_NORMAL;
-    } else if (mode == TRAVERSE_MODE_LONGINT)
-      child_mode = TRAVERSE_MODE_LONGINT_END;
-    else if (mode == TRAVERSE_MODE_DOUBLE)
+      } else if (mode == TRAVERSE_MODE_LONGINT)
+	child_mode = TRAVERSE_MODE_LONGINT_END;
+      else if (mode == TRAVERSE_MODE_DOUBLE)
 #if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
-      child_mode = TRAVERSE_MODE_DOUBLE2;
-    else if (mode == TRAVERSE_MODE_DOUBLE2)
+	child_mode = TRAVERSE_MODE_DOUBLE2;
+      else if (mode == TRAVERSE_MODE_DOUBLE2)
 #endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
-      child_mode = TRAVERSE_MODE_DOUBLE_END;
-    else
-      child_mode = TRAVERSE_MODE_NORMAL;
-    free_answer_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
-  }
-  if (position == TRAVERSE_POSITION_FIRST) {
-    ans_node_ptr next_node = TrNode_next(current_node);
-    IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+	child_mode = TRAVERSE_MODE_DOUBLE_END;
+      else
+	child_mode = TRAVERSE_MODE_NORMAL;
+      free_answer_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
+    }
+    if (position == TRAVERSE_POSITION_FIRST) {
+      ans_node_ptr next_node = TrNode_next(current_node);
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
       FREE_ANSWER_TRIE_NODE(current_node);
-    }
-    while (next_node) {
-      current_node = next_node;
-      next_node = TrNode_next(current_node);
-      free_answer_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
-    }
-  } else {
-    IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+      while (next_node) {
+	current_node = next_node;
+	next_node = TrNode_next(current_node);
+	free_answer_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
+      }
+    } else {
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
       FREE_ANSWER_TRIE_NODE(current_node);
     }
@@ -1486,29 +1484,30 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 
 void free_answer_hash_chain(ans_hash_ptr hash) {
   CACHE_REGS
-
-  while (hash) {
-    ans_node_ptr chain_node, *bucket, *last_bucket;
-    ans_hash_ptr next_hash;
-
-    bucket = Hash_buckets(hash);
-    last_bucket = bucket + Hash_num_buckets(hash);
-    while (! *bucket)
-      bucket++;
-    chain_node = *bucket;
-    TrNode_child((ans_node_ptr) UNTAG_ANSWER_NODE(TrNode_parent(chain_node))) = chain_node;
-    while (++bucket != last_bucket) {
-      if (*bucket) {
-        while (TrNode_next(chain_node))
-          chain_node = TrNode_next(chain_node);
-        TrNode_next(chain_node) = *bucket;
-        chain_node = *bucket;
+  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+    while (hash) {
+      ans_node_ptr chain_node, *bucket, *last_bucket;
+      ans_hash_ptr next_hash;
+      
+      bucket = Hash_buckets(hash);
+      last_bucket = bucket + Hash_num_buckets(hash);
+      while (! *bucket)
+	bucket++;
+      chain_node = *bucket;
+      TrNode_child((ans_node_ptr) UNTAG_ANSWER_NODE(TrNode_parent(chain_node))) = chain_node;
+      while (++bucket != last_bucket) {
+	if (*bucket) {
+	  while (TrNode_next(chain_node))
+	    chain_node = TrNode_next(chain_node);
+	  TrNode_next(chain_node) = *bucket;
+	  chain_node = *bucket;
+	}
       }
+      next_hash = Hash_next(hash);
+      FREE_BUCKETS(Hash_buckets(hash));
+      FREE_ANSWER_TRIE_HASH(hash);
+      hash = next_hash;
     }
-    next_hash = Hash_next(hash);
-    FREE_BUCKETS(Hash_buckets(hash));
-    FREE_ANSWER_TRIE_HASH(hash);
-    hash = next_hash;
   }
   return;
 }

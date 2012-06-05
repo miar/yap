@@ -572,6 +572,11 @@ static Int p_show_statistics_table( USES_REGS1 ) {
     return FALSE;
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t1))))
     return FALSE;
+#ifdef EXTRA_STATISTICS
+  Sfprintf(out, "Table New Answer Statistics\n");
+  Sfprintf(out, "  New Answers : %10ld \n", Stats_new_answers);
+  Sfprintf(out, "  Rep Answers : %10ld \n", Stats_repeated_answers);
+#endif /* EXTRA_STATISTICS */
   mod = Deref(ARG2);
   t = Deref(ARG3);
   if (IsAtomTerm(t))
@@ -596,7 +601,6 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
 #endif /* USE_PAGES_MALLOC */
   IOSTREAM *out;
   Term t = Deref(ARG1);
-
   if (IsVarTerm(t) || !IsAtomTerm(t))
     return FALSE;
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))

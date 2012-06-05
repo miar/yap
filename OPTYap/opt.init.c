@@ -166,8 +166,16 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
   for (i = 0; i < TRIE_LOCK_BUCKETS; i++)
     INIT_LOCK(GLOBAL_trie_locks(i));
 #endif /* TRIE_LOCK_USING_GLOBAL_ARRAY */
-#endif /* TABLING */
 
+#ifdef EXTRA_STATISTICS
+  Stats_new_answers = 0;
+  Stats_repeated_answers = 0;
+  Stats_answer_trie_depth_min = LONG_MAX;
+  Stats_answer_trie_depth_average = 0;
+  Stats_answer_trie_depth_max = 0;
+#endif /* EXTRA_STATISTICS */
+
+#endif /* TABLING */
   return;
 }
 
@@ -232,6 +240,7 @@ void Yap_init_local_optyap_data(int wid) {
   ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;
   INIT_LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid)));
 #endif /* THREADS_CONSUMER_SHARING */
+
 #endif /* TABLING */
   return;
 }

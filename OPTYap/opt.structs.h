@@ -11,6 +11,18 @@
 **                                                                     **
 ************************************************************************/
 
+#ifdef EXTRA_STATISTICS
+#include <limits.h>
+long Stats_new_answers;
+long Stats_repeated_answers;
+long Stats_answer_trie_depth_min;
+long Stats_answer_trie_depth_average;
+long Stats_answer_trie_depth_max;
+#endif /* EXTRA_STATISTICS */
+
+
+
+
 /**********************
 **      typedefs     **
 **********************/
@@ -62,6 +74,7 @@ typedef struct {
   struct ma_h_entry val;
 } ma_hash_entry;
 #endif /* (TABLING || !YAPOR_COW) && MULTI_ASSIGNMENT_VARIABLES */
+
 
 
 

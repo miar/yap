@@ -1049,8 +1049,11 @@
     
 
     LOCK_ANSWER_NODE(ans_node);
-    if (! IS_ANSWER_LEAF_NODE(ans_node)) {
+    if (! IS_ANSWER_LEAF_NODE(ans_node)) {      
       /* new answer */
+#ifdef EXTRA_STATISTICS
+      Stats_new_answers++;
+#endif
 #ifdef TABLING_INNER_CUTS
       /* check for potencial prunings */
       if (! BITMAP_empty(GLOBAL_bm_pruning_workers)) {
@@ -1244,6 +1247,10 @@
       }
     } else {
       /* repeated answer */
+#ifdef EXTRA_STATISTICS
+      Stats_repeated_answers++;
+#endif
+
 #ifdef THREADS_FULL_SHARING
       if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))){
 	if (worker_id >= ANSWER_LEAF_NODE_MAX_THREADS) {

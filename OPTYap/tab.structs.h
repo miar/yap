@@ -11,6 +11,8 @@
 **                                                                     **
 ************************************************************************/
 
+
+
 /************************************************************************
 **                     Table Space Data Structures                     **
 ************************************************************************/
@@ -266,11 +268,10 @@ typedef struct subgoal_entry {
   subgoal_state_flag state_flag;
   int active_workers;
   struct subgoal_frame *subgoal_frame[THREADS_NUM_BUCKETS];
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 #ifdef USE_PAGES_MALLOC
-  struct subgoal_entry *next;
+  struct subgoal_entry * next; //missing initialization --NEW
 #endif /*USE_PAGES_MALLOC */
-
+#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 }* sg_ent_ptr;
 
 #define SgEnt_lock(X)            ((X)->lock)
@@ -290,6 +291,7 @@ typedef struct subgoal_entry {
 #define SgEnt_sg_ent_state(X)    ((X)->state_flag)
 #define SgEnt_active_workers(X)  ((X)->active_workers)
 #define SgEnt_sg_fr(X)           ((X)->subgoal_frame)
+#define SgEnt_next(X)            ((X)->next)
 
 
 
