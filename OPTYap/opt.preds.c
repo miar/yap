@@ -562,18 +562,27 @@ static Int p_show_global_trie( USES_REGS1 ) {
 }
 
 
+
+
+
+
+
+
+
 static Int p_show_statistics_table( USES_REGS1 ) {
   IOSTREAM *out;
   Term mod, t;
   tab_ent_ptr tab_ent;
   Term t1 = Deref(ARG1);
 
+#ifndef EXTRA_STATISTICS
   if (IsVarTerm(t1) || !IsAtomTerm(t1))
     return FALSE;
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t1))))
     return FALSE;
   mod = Deref(ARG2);
   t = Deref(ARG3);
+
   if (IsAtomTerm(t))
     tab_ent = RepPredProp(PredPropByAtom(AtomOfTerm(t), mod))->TableOfPred;
   else if (IsApplTerm(t))
@@ -582,8 +591,19 @@ static Int p_show_statistics_table( USES_REGS1 ) {
     PL_release_stream(out);
     return (FALSE);
   }
+
   show_table(tab_ent, SHOW_MODE_STATISTICS, out);
-#ifdef EXTRA_STATISTICS
+#else  /* EXTRA_STATISTICS */
+
+  if (!(out = Yap_GetStreamHandle(AtomOfTerm(t1))))
+    return FALSE;
+
+  tab_ent = GLOBAL_root_tab_ent;
+  while(tab_ent) {
+    show_table(tab_ent, SHOW_MODE_STATISTICS, out);
+    tab_ent = TabEnt_next(tab_ent);
+  }
+
   Sfprintf(out, "Extra Statistics Table New Answer\n");
   Sfprintf(out, "  New Answers : %10ld \n", Stats_new_answers);
   Sfprintf(out, "  Rep Answers : %10ld \n", Stats_repeated_answers);

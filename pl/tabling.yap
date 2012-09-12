@@ -329,8 +329,15 @@ table_statistics(Pred) :-
    current_output(Stream),
    table_statistics(Stream,Pred).
 
+table_statistics(Pred) :-
+   current_output(Stream),
+   table_statistics(Stream,Pred).
+
 table_statistics(Stream,Pred) :-
    '$current_module'(Mod),
+%   '$c_table_statistics'(Stream,Mod,Pred).
+
+%%%%%%%%%%%%%%%
    '$do_table_statistics'(Stream,Mod,Pred).
 
 '$do_table_statistics'(_,Mod,Pred) :-
@@ -357,5 +364,5 @@ table_statistics(Stream,Pred) :-
    ).
 '$do_table_statistics'(_,Mod,Pred) :-
    '$do_error'(type_error(callable,Mod:Pred),table_statistics(Mod:Pred)).
-
+%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
