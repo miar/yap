@@ -447,11 +447,6 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* GLOBAL_TRIE_LOCK_LEVEL */
 
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
-#define BOOL_CAS(PTR, OLD, NEW)   __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
-
-
 
 #ifdef THREADS_NO_SHARING
 #define TabEnt_init_subgoal_trie_field(TAB_ENT)                           \
@@ -643,12 +638,33 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
         ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);   \
         Hash_num_nodes(HASH) = NUM_NODES
 
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+
+#define ALLOC_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS)	         \
+  void **alloc_bucket_ptr;					 	         \
+  ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
+  HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
+  ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
+  INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                 \
+  BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
+  HashBkts_buckets(HASH_BUCKETS) = (struct answer_trie_node **) alloc_bucket_ptr
+
+#define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)          \
+  ALLOC_ANSWER_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS); \
+  Hash_num_nodes(HASH) = NUM_NODES << 1
+
+#else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+#define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                     \
+  Hash_num_buckets(HASH) = BASE_HASH_BUCKETS;				      \
+  ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);                       \
+  Hash_num_nodes(HASH) = NUM_NODES
+
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
 #define new_answer_trie_hash(HASH, NUM_NODES, SG_FR)            \
         ALLOC_ANSWER_TRIE_HASH(HASH);                           \
         Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;                \
-        Hash_num_buckets(HASH) = BASE_HASH_BUCKETS;             \
-        ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);   \
-        Hash_num_nodes(HASH) = NUM_NODES;                       \
+        init_atomic_new_answer_trie_hash(HASH, NUM_NODES);      \
         AnsHash_init_chain_fields(HASH, SG_FR)
 
 #define new_global_trie_hash(HASH, NUM_NODES)                   \

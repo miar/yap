@@ -139,12 +139,31 @@ typedef struct subgoal_trie_hash {
 #endif /* USE_PAGES_MALLOC */
 } *sg_hash_ptr;
 
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+typedef struct answer_trie_hash_buckets {
+  int number_of_buckets;
+  struct answer_trie_node **buckets;
+} *ans_hash_bkts_ptr;
+
+#define HashBkts_number_of_buckets(X) ((X)->number_of_buckets)
+#define HashBkts_buckets(X)           ((X)->buckets)
+/* answer_trie_hash */
+#define AnsHash_num_buckets(X)        (HashBkts_number_of_buckets(((X)->hash_bkts)))
+#define AnsHash_buckets(X)            (HashBkts_buckets(((X)->hash_bkts)))
+#define AnsHash_hash_bkts(X)          ((X)->hash_bkts)
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
 typedef struct answer_trie_hash {
   /* the first field is used for compatibility **
   ** with the answer_trie_node data structure  */
   OPCODE mark;
   int number_of_buckets;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+  ans_hash_bkts_ptr hash_bkts;
+#else
   struct answer_trie_node **buckets;
+#endif
   int number_of_nodes;
 #ifdef MODE_DIRECTED_TABLING
   struct answer_trie_hash *previous;	
@@ -170,8 +189,6 @@ typedef struct global_trie_hash {
 #define Hash_num_nodes(X)    ((X)->number_of_nodes)
 #define Hash_previous(X)     ((X)->previous)
 #define Hash_next(X)         ((X)->next)
-
-
 
 /************************************************************************
 **                      Execution Data Structures                      **
