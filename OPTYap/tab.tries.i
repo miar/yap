@@ -417,7 +417,7 @@ subgoal_trie_hash:
 ************************************************************************/
 
 #ifdef INCLUDE_ANSWER_TRIE_CHECK_INSERT
-#ifndef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL /* ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL || ANSWER_TRIE_LOCK_AT_NODE_LEVEL || ! YAPOR */
+#if !defined(ANSWER_TRIE_LOCK_AT_WRITE_LEVEL) && !defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL) /* ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL || ANSWER_TRIE_LOCK_AT_NODE_LEVEL || ! YAPOR */
 #ifdef MODE_GLOBAL_TRIE_ENTRY
 static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #else
@@ -768,7 +768,7 @@ answer_trie_hash:
   }
 }
 
-#else  /* ANSWER_TRIE_ATOMIC_LOCKS_LEVEL */
+#else  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 #ifdef MODE_GLOBAL_TRIE_ENTRY
 static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #else
@@ -776,7 +776,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   ans_node_ptr child_node, first_node, new_child_node = NULL;
   int count_nodes = 0;
-  child_node = first_node = TrNode_child(parent_node);
+  first_node = child_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
   if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
     while (child_node) {
       if (TrNode_entry(child_node) == t)
@@ -785,8 +785,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       child_node = TrNode_next(child_node);
     }
     NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, first_node);
-    while (!BOOL_CAS(TrNode_child(parent_node), first_node, new_child_node)) {
-      ans_node_ptr first_node_tmp = child_node = TrNode_child(parent_node);
+    while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
+      ans_node_ptr first_node_tmp ; 
+      first_node_tmp = child_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
       if (IS_ANSWER_TRIE_HASH(child_node))
 	goto answer_trie_hash;      
       count_nodes = 0;
@@ -802,35 +803,37 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     }
     child_node = new_child_node;    
     count_nodes++;
-    // under construction - begin
-
     if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
-      /* alloc a new hash */
-      ans_node_ptr chain_node, next_node, *bucket;
-      new_answer_trie_hash(hash, count_nodes, sg_fr);
-      chain_node = child_node;
-      do {
-        bucket = Hash_buckets(hash) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
-        next_node = TrNode_next(chain_node);
-        TrNode_next(chain_node) = *bucket;
-        *bucket = chain_node;
-        chain_node = next_node;
-      } while (chain_node);
-      TrNode_child(parent_node) = (ans_node_ptr) hash;
+      if (BOOL_CAS(&(TrNode_child(parent_node)), (long) TrNode_child(parent_node) & (long)0xfffffffffffffff0, (long) TrNode_child(parent_node) | (long)0x0000000000000001)) {
+	/* alloc a new hash */
+	ans_node_ptr chain_node, next_node, *bucket;
+	ans_hash_ptr hash;
+	new_answer_trie_hash(hash, count_nodes, sg_fr);
+	chain_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
+	do {
+	  bucket = Hash_buckets(hash) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+	  next_node = TrNode_next(chain_node);
+	  TrNode_next(chain_node) = *bucket;
+	  *bucket = chain_node;
+	  chain_node = next_node;
+	} while (chain_node);
+	TrNode_child(parent_node) = (ans_node_ptr) hash;
+      }
     }
     return child_node;
   }
-  
+
+  // under construction - begin  
  answer_trie_hash:
   {
-
-  /////////////////////// hash code
-
-
-
+    /////////////////////// hash code
+    
+    
+    
   }
   // under construction - end
-
+}
+  
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */
 

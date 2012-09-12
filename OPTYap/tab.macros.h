@@ -446,6 +446,13 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define GtNode_init_lock_field(NODE)
 #endif /* GLOBAL_TRIE_LOCK_LEVEL */
 
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#define BOOL_CAS(PTR, OLD, NEW)   __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
+
+
 #ifdef THREADS_NO_SHARING
 #define TabEnt_init_subgoal_trie_field(TAB_ENT)                           \
         INIT_BUCKETS(&TabEnt_subgoal_trie(TAB_ENT), THREADS_NUM_BUCKETS)
