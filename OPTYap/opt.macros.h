@@ -501,9 +501,9 @@ extern int Yap_page_size;
 #define NEW_HASH_REF(BUCKET,NEW_HASH) ((*BUCKET) = (ans_node_ptr) ((long)(NEW_HASH) | (long)0x0000000000000003))
 #define IS_NEW_HASH_REF(BUCKET)          ((long)(BUCKET) & (long)0x0000000000000002)
 #define CLOSE_HASH(HASH_NUM_NODES)  ((HASH_NUM_NODES << 1) | (int) 1)
-#define OPEN_HASH(HASH)                __sync_add_and_fetch(&(HashNode_num_nodes(HASH)), (int)-1)
+#define OPEN_HASH(HASH)                __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)-1)
 
-#define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(HashNode_num_nodes(HASH)), (int)2)
+#define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)2)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 

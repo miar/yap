@@ -720,8 +720,14 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
     ans_node_ptr *bucket, *last_bucket;
     ans_hash_ptr hash;
     hash = (ans_hash_ptr) current_node;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+    bucket = AnsHash_buckets(hash);
+    last_bucket = bucket + AnsHash_num_buckets(hash);
+#else
     bucket = Hash_buckets(hash);
     last_bucket = bucket + Hash_num_buckets(hash);
+#endif
+
     current_arity = (int *) malloc(sizeof(int) * (arity[0] + 1));
     memcpy(current_arity, arity, sizeof(int) * (arity[0] + 1));
     do {
@@ -1536,9 +1542,14 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
       ans_hash_ptr next_hash;
-      
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+      bucket = AnsHash_buckets(hash);
+      last_bucket = bucket + AnsHash_num_buckets(hash);
+#else      
       bucket = Hash_buckets(hash);
       last_bucket = bucket + Hash_num_buckets(hash);
+#endif
       while (! *bucket)
 	bucket++;
       chain_node = *bucket;
@@ -1552,7 +1563,13 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 	}
       }
       next_hash = Hash_next(hash);
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+      FREE_BUCKETS(AnsHash_hash_bkts(hash));
+#else
       FREE_BUCKETS(Hash_buckets(hash));
+#endif
+      
+
       FREE_ANSWER_TRIE_HASH(hash);
       hash = next_hash;
     }

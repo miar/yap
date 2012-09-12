@@ -774,7 +774,7 @@ static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, an
 #else
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
-  ans_node_ptr child_node, first_node, new_child_node = NULL;
+  ans_node_ptr child_node, first_node, new_child_node = NULL, *bucket;
   int count_nodes = 0;
   first_node = child_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
   if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
@@ -806,18 +806,18 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
       if (BOOL_CAS(&(TrNode_child(parent_node)), (long) TrNode_child(parent_node) & (long)0xfffffffffffffff0, (long) TrNode_child(parent_node) | (long)0x0000000000000001)) {
 	/* alloc a new hash */
-	ans_node_ptr chain_node, next_node, *bucket;
-	ans_hash_ptr hash;
-	new_answer_trie_hash(hash, count_nodes, sg_fr);
+	ans_node_ptr chain_node, next_node;
+	ans_hash_ptr hash_node;
+	new_answer_trie_hash(hash_node, count_nodes, sg_fr);
 	chain_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
 	do {
-	  bucket = Hash_buckets(hash) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+	  bucket = AnsHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
 	  next_node = TrNode_next(chain_node);
 	  TrNode_next(chain_node) = *bucket;
 	  *bucket = chain_node;
 	  chain_node = next_node;
 	} while (chain_node);
-	TrNode_child(parent_node) = (ans_node_ptr) hash;
+	TrNode_child(parent_node) = (ans_node_ptr) ((long)hash_node | (long)0x0000000000000001);
       }
     }
     return child_node;
@@ -831,13 +831,14 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     num_buckets = HashBkts_number_of_buckets(hash);
     bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
     child_node = *bucket; 
-    
+
     while (IS_NEW_HASH_REF(child_node)){
       hash = (ans_hash_bkts_ptr) ((long)(*bucket) & (long)0xfffffffffffffff0);
       num_buckets = HashBkts_number_of_buckets(hash);
       bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
       child_node = *bucket; 
     }
+
     child_node  = (ans_node_ptr)((long) child_node & (long) 0xfffffffffffffff0);
     while (child_node) {
       if (TrNode_entry(child_node) == t)
@@ -882,16 +883,16 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     count_nodes++; 
     Inc_HashNode_num_nodes(hash_node);   
     
-    int hash_num_nodes = HashNode_num_nodes(hash_node) >> 1;
-    if (count_nodes >= MAX_NODES_PER_BUCKET && hash_num_nodes > HashNode_num_buckets(hash_node)) {
-      if (BOOL_CAS(&(HashNode_num_nodes(hash_node)), (hash_num_nodes << 1), CLOSE_HASH(hash_num_nodes))) {
+    int hash_num_nodes = Hash_num_nodes(hash_node) >> 1;
+    if (count_nodes >= MAX_NODES_PER_BUCKET && hash_num_nodes > AnsHash_num_buckets(hash_node)) {
+      if (BOOL_CAS(&(Hash_num_nodes(hash_node)), (hash_num_nodes << 1), CLOSE_HASH(hash_num_nodes))) {
 	/* ok for expanding the current hash */
 	ans_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
-	num_buckets = HashNode_num_buckets(hash_node) * 2;	
+	num_buckets = AnsHash_num_buckets(hash_node) * 2;	
 	ALLOC_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets);
-	old_hash_buckets = HashNode_buckets(hash_node);
-	old_bucket = old_hash_buckets + HashNode_num_buckets(hash_node);
+	old_hash_buckets = AnsHash_buckets(hash_node);
+	old_bucket = old_hash_buckets + AnsHash_num_buckets(hash_node);
 	do {
 	  --old_bucket; 	  /*getting the old_bucket value and closing the bucket */
 	  chain_node = VAL_CAS(old_bucket,*old_bucket, CLOSE_BUCKET(*old_bucket));
@@ -904,7 +905,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  }
 	  NEW_HASH_REF(old_bucket,new_hash);	
 	} while (old_bucket != old_hash_buckets);
-	HashNode_hash(hash_node) = new_hash;
+	AnsHash_hash_bkts(hash_node) = new_hash;
 	OPEN_HASH(hash_node); 
       }
     }    

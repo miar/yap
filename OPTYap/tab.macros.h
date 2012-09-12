@@ -650,7 +650,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   HashBkts_buckets(HASH_BUCKETS) = (struct answer_trie_node **) alloc_bucket_ptr
 
 #define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)          \
-  ALLOC_ANSWER_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS); \
+  ALLOC_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS); \
   Hash_num_nodes(HASH) = NUM_NODES << 1
 
 #else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
