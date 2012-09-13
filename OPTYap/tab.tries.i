@@ -789,7 +789,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
     while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
       ans_node_ptr first_node_tmp;
-      // first_node_tmp = child_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & (long)0xfffffffffffffff0);
       first_node_tmp = child_node = (ans_node_ptr) ((long)(TrNode_child(parent_node)) & ~(long)0x1);
       //printf("2 - child_node = %p\n",child_node);
       if (IS_ANSWER_TRIE_HASH(child_node))
@@ -841,7 +840,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     child_node = *bucket; 
 
     while (IS_NEW_HASH_REF(child_node)){
-      hash = (ans_hash_bkts_ptr) ((long)(*bucket) & ~(long)0x1);
+      hash = (ans_hash_bkts_ptr) ((long)(*bucket) & ~(long)0x3);
       num_buckets = HashBkts_number_of_buckets(hash);
       bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
       child_node = *bucket; 
@@ -865,7 +864,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       child_node = *bucket; 
       
       while (IS_NEW_HASH_REF(child_node)){
-	hash = (ans_hash_bkts_ptr) ((long)(*bucket) & ~(long)0x1);
+	hash = (ans_hash_bkts_ptr) ((long)(*bucket) & ~(long)0x3);
 	num_buckets = HashBkts_number_of_buckets(hash);
 	bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
 	child_node = *bucket; 
