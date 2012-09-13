@@ -103,6 +103,7 @@ typedef struct global_trie_node {
 #define TrNode_next(X)    ((X)->next)
 #define TrNode_lock(X)    ((X)->lock)
 
+#define TrNode_expansion(X) ((X)->expansion)
 
 
 /******************************

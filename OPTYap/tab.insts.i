@@ -1044,10 +1044,6 @@
 #endif /* MODE_DIRECTED_TABLING */
       ans_node = answer_search(sg_fr, subs_ptr);
 
-    /*    if (IS_ANSWER_LEAF_NODE(ans_node))
-	  goto fail; */
-    
-
     LOCK_ANSWER_NODE(ans_node);
     if (! IS_ANSWER_LEAF_NODE(ans_node)) {      
       /* new answer */
