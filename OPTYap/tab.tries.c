@@ -662,11 +662,20 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 	SHOW_TABLE_STRUCTURE("    TRUE\n");
       } else {
 	arity[0] = 0;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+#ifdef EXTRA_STATISTICS
+	traverse_answer_trie(ans_dep, (ans_node_ptr)((long)(TrNode_child(SgFr_answer_trie(sg_fr))) & ~(long)0x1), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+#else
+	traverse_answer_trie((ans_node_ptr)((long)(TrNode_child(SgFr_answer_trie(sg_fr))) & ~(long)0x1), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+#endif /* EXTRA_STATISTICS */
+#else
+
 #ifdef EXTRA_STATISTICS
 	traverse_answer_trie(ans_dep, TrNode_child(SgFr_answer_trie(sg_fr)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
 #else
 	traverse_answer_trie(TrNode_child(SgFr_answer_trie(sg_fr)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
 #endif /* EXTRA_STATISTICS */
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 	if (SgFr_state(sg_fr) < complete) {
 	  TrStat_sg_incomplete++;
 	  SHOW_TABLE_STRUCTURE("    ---> INCOMPLETE\n");
@@ -775,7 +784,6 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
   /* process current trie node */
   TrStat_ans_nodes++;
   traverse_trie_node(TrNode_entry(current_node), str, &str_index, arity, &mode, TRAVERSE_TYPE_ANSWER PASS_REGS);
-
   /* show answer .... */
   if (IS_ANSWER_LEAF_NODE(current_node)) {
     Extra_stats_ans_trie(ans_dep);    
@@ -792,11 +800,19 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 #endif /* TABLING_INNER_CUTS */
   /* ... or continue with child node */
   else
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#ifdef EXTRA_STATISTICS
+    traverse_answer_trie(ans_dep + 1 , (ans_node_ptr)((long)(TrNode_child(current_node)) & ~(long)0x1), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
+#else
+  traverse_answer_trie((ans_node_ptr)((long)(TrNode_child(current_node)) & ~(long)0x1), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
+#endif
+#else
 #ifdef EXTRA_STATISTICS
     traverse_answer_trie(ans_dep + 1 , TrNode_child(current_node), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
 #else
     traverse_answer_trie(TrNode_child(current_node), str, str_index, arity, var_index, mode, TRAVERSE_POSITION_FIRST PASS_REGS);
 #endif
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
   /* restore the initial state and continue with sibling nodes */
   if (position == TRAVERSE_POSITION_FIRST) {
     str_index = current_str_index;
@@ -1551,7 +1567,7 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
       bucket = AnsHash_buckets(hash);
-      last_bucket = bucket +  AnsHash_num_buckets(hash);
+      last_bucket = bucket + AnsHash_num_buckets(hash);
 #else      
       bucket = Hash_buckets(hash);
       last_bucket = bucket + Hash_num_buckets(hash);

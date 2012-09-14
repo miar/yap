@@ -84,9 +84,22 @@
   #define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1  */
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1 /* always define this for atomic level versions */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1  /* the best */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    /* use V01 - not working well */
 
-
+/* -------------------------------
+    resume about atomic level 
+   -------------------------------
+   First hash allocated : 
+      V01 -> on the first hash allocated, hash becames public with all buckets 
+             closed.
+      V02 -> on the first hash allocated, a bit from TrNode_child(parent_node) is 
+             used to close the hash. needs untags on all parent nodes. execution time 
+             is worst than version V01. 
+   Hash expansion:
+      The same for V01 and V02. 
+   obs: V01 is the version that has the best execution times. */
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
