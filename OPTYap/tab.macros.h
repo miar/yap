@@ -416,6 +416,12 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define SgNode_init_lock_field(NODE)
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
 
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#define TRYLOCK_ANSWER_NODE(NODE)
+#define LOCK_ANSWER_NODE(NODE)
+#define UNLOCK_ANSWER_NODE(NODE)
+#define AnsNode_init_lock_field(NODE)
+#else
 #ifdef ANSWER_TRIE_LOCK_USING_NODE_FIELD
 #define TRYLOCK_ANSWER_NODE(NODE)        TRY_LOCK(TrNode_lock(NODE))
 #define LOCK_ANSWER_NODE(NODE)           LOCK(TrNode_lock(NODE))
@@ -432,6 +438,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNLOCK_ANSWER_NODE(NODE)
 #define AnsNode_init_lock_field(NODE)
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 #ifdef GLOBAL_TRIE_LOCK_USING_NODE_FIELD
 #define LOCK_GLOBAL_NODE(NODE)        LOCK(TrNode_lock(NODE))

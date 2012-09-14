@@ -1043,9 +1043,15 @@
     } else
 #endif /* MODE_DIRECTED_TABLING */
       ans_node = answer_search(sg_fr, subs_ptr);
-
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+    if (IS_ANSWER_LEAF_NODE(ans_node))
+      goto fail;
+    if (BOOL_CAS(&(TrNode_parent(ans_node)), (ans_node_ptr)((CELL) TrNode_parent(ans_node) & ~(CELL)0x1), (ans_node_ptr)((CELL) TrNode_parent(ans_node) | (CELL)0x1))) {
+#else
     LOCK_ANSWER_NODE(ans_node);
-    if (! IS_ANSWER_LEAF_NODE(ans_node)) {      
+    if (! IS_ANSWER_LEAF_NODE(ans_node)) { 
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
       /* new answer */
 #ifdef EXTRA_STATISTICS
       Stats_new_answers++;

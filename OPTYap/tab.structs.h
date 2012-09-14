@@ -78,7 +78,7 @@ typedef struct answer_trie_node {
   struct answer_trie_node *parent;
   struct answer_trie_node *child;
   struct answer_trie_node *next;
-#ifdef ANSWER_TRIE_LOCK_USING_NODE_FIELD
+#if defined(ANSWER_TRIE_LOCK_USING_NODE_FIELD) && !defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
   lockvar lock;
 #endif /* ANSWER_TRIE_LOCK_USING_NODE_FIELD */
 } *ans_node_ptr;
