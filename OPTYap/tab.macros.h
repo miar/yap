@@ -679,6 +679,18 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS);  \
   Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
+#define new_answer_trie_hash_atomic_v01(HASH, NUM_NODES)  \
+        ALLOC_ANSWER_TRIE_HASH(HASH);                     \
+        Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;          \
+        init_atomic_new_answer_trie_hash(HASH, NUM_NODES)
+
+
+
+
+
+
+
+
 #elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10

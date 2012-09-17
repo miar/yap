@@ -809,13 +809,14 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
       ans_node_ptr chain_node , next_node;
       ans_hash_ptr hash_node;
-      new_answer_trie_hash(hash_node, count_nodes, sg_fr);
+      new_answer_trie_hash_atomic_v01(hash_node, count_nodes);
       if (!BOOL_CAS(&(TrNode_child(parent_node)), child_node, (ans_node_ptr)hash_node)){
 	FREE_BUCKETS(AnsHash_hash_bkts(hash_node));
 	FREE_ANSWER_TRIE_HASH(hash_node);
 	return child_node;
       }
       // alloc a new hash
+      AnsHash_init_chain_fields(hash_node, sg_fr);
       chain_node = child_node;
       do {
 	bucket = AnsHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
