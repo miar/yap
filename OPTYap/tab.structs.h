@@ -162,6 +162,9 @@ typedef struct answer_trie_hash {
   int number_of_buckets;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
   ans_hash_bkts_ptr hash_bkts;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+  struct answer_trie_node *expansion_nodes;
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #else
   struct answer_trie_node **buckets;
 #endif
@@ -190,6 +193,8 @@ typedef struct global_trie_hash {
 #define Hash_num_nodes(X)    ((X)->number_of_nodes)
 #define Hash_previous(X)     ((X)->previous)
 #define Hash_next(X)         ((X)->next)
+#define Hash_exp_nodes(X)    ((X)->expansion_nodes)
+
 
 /************************************************************************
 **                      Execution Data Structures                      **

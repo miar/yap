@@ -936,10 +936,79 @@ static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, an
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
 
+  ans_node_ptr child_node, first_node, new_child_node = NULL, *bucket;
+  int count_nodes = 0;
+  first_node = child_node = (ans_node_ptr) TrNode_child(parent_node);
 
+  if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
+    while (child_node) {
+      if (TrNode_entry(child_node) == t)
+	return child_node;
+      count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, first_node);
 
+    while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
+      ans_node_ptr first_node_tmp;
+      first_node_tmp = child_node = (ans_node_ptr) TrNode_child(parent_node);
+      if (IS_ANSWER_TRIE_HASH(child_node))
+	goto answer_trie_hash;            
+      count_nodes = 0;
+      while (child_node && child_node != first_node) {
+	if (TrNode_entry(child_node) == t) {
+	  FREE_ANSWER_TRIE_NODE(new_child_node); 
+	  return child_node;
+	}
+	count_nodes++;
+	child_node = TrNode_next(child_node);
+      }
+      first_node = TrNode_next(new_child_node) = first_node_tmp;
+    }
+    child_node = new_child_node;    
+    count_nodes++;
+    
+    if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
+      ans_node_ptr chain_node , next_node, exp_nodes;
+      ans_hash_ptr hash_node;
+      new_answer_trie_hash_exp_nodes(exp_nodes, hash_node, count_nodes, sg_fr, child_node);
+      if (!BOOL_CAS(&(TrNode_child(parent_node)), child_node, (ans_node_ptr)hash_node)){
+	FREE_BUCKETS(AnsHash_hash_bkts(hash_node));
+	/* missing free expansion nodes */
+	FREE_ANSWER_TRIE_HASH(hash_node);
+	return child_node;
+      }
+      // alloc a new hash
+      chain_node = child_node;
+      do {
+	bucket = AnsHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+	next_node = TrNode_next(chain_node);	
+	do 
+	  TrNode_next(chain_node) = *bucket;
+	while (!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+	chain_node = next_node;
+      } while (chain_node);
+      bucket = AnsHash_buckets(hash_node) +  BASE_HASH_BUCKETS;
+      
+      do {
+	bucket--;
+	if (!BOOL_CAS(bucket, IS_ANSWER_TRIE_HASH_EXPANSION(*bucket), NULL)){
+	  chain_node = *bucket;
+	  while(!IS_ANSWER_TRIE_HASH_EXPANSION(TrNode_next(chain_node)))
+	    chain_node = TrNode_next(chain_node);
+	  TrNode_next(chain_node) = NULL;
+	}
+      } while (bucket != AnsHash_buckets(hash_node));
+      OPEN_HASH(hash_node, exp_nodes); 
+    }
+    return child_node;
+  }
 
-
+ answer_trie_hash:
+  {
+    printf("ola\n"); 
+    return NULL;
+  }
 }
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */

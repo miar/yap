@@ -85,8 +85,8 @@
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1      
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    /* under construction */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1      
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    /* under construction */
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
