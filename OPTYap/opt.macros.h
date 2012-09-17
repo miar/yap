@@ -508,8 +508,9 @@ extern int Yap_page_size;
 #define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)2)
 
 #elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+#define IS_NEW_HASH_REF(BUCKET)          ((long)(BUCKET) & (long)0x1)
 #define OPEN_HASH(HASH, EXP_NODES)     (Hash_exp_nodes(HASH) = EXP_NODES)
-
+#define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 */
 

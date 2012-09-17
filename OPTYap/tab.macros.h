@@ -660,7 +660,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
   HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
-  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                 \
+  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	         \
   BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
   HashBkts_buckets(HASH_BUCKETS) = (struct answer_trie_node **) alloc_bucket_ptr
 
