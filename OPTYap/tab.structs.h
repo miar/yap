@@ -143,16 +143,19 @@ typedef struct subgoal_trie_hash {
 
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
 typedef struct answer_trie_hash_buckets {
+  struct answer_trie_hash_buckets *next;
   int number_of_buckets;
   struct answer_trie_node **buckets;
 } *ans_hash_bkts_ptr;
 
+#define HashBkts_next(X)              ((X)->next)
 #define HashBkts_number_of_buckets(X) ((X)->number_of_buckets)
 #define HashBkts_buckets(X)           ((X)->buckets)
 /* answer_trie_hash */
 #define AnsHash_num_buckets(X)        (HashBkts_number_of_buckets(((X)->hash_bkts)))
 #define AnsHash_buckets(X)            (HashBkts_buckets(((X)->hash_bkts)))
 #define AnsHash_hash_bkts(X)          ((X)->hash_bkts)
+#define AnsHash_old_hash_bkts(X)      ((X)->old_hash_bkts)
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 typedef struct answer_trie_hash {
@@ -161,6 +164,7 @@ typedef struct answer_trie_hash {
   OPCODE mark;
   int number_of_buckets;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+  ans_hash_bkts_ptr old_hash_bkts;
   ans_hash_bkts_ptr hash_bkts;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
   struct answer_trie_node *expansion_nodes;

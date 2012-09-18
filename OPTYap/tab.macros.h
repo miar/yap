@@ -658,6 +658,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define ALLOC_CLOSED_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS)	 \
   void **alloc_bucket_ptr;					 	         \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
+  HashBkts_next(HASH_BUCKETS) = NULL;					         \
   HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
   CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	         \
@@ -667,6 +668,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define ALLOC_OPEN_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS)	         \
   void **alloc_bucket_ptr;					 	         \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
+  HashBkts_next(HASH_BUCKETS) = NULL;					         \
   HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
   INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                 \
@@ -676,6 +678,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
 
 #define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                                        \
+  AnsHash_old_hash_bkts(HASH) = NULL;					\
   ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS);  \
   Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
@@ -716,6 +719,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   /*alloc open hash buckets pointing to expansion nodes */		                     \
   void **alloc_bucket_ptr;						                     \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH));				     \
+  HashBkts_next(AnsHash_hash_bkts(HASH)) = NULL;					     \
   HashBkts_number_of_buckets(AnsHash_hash_bkts(HASH)) = BASE_HASH_BUCKETS;		     \
   ALLOC_BLOCK(alloc_bucket_ptr, BASE_HASH_BUCKETS * sizeof(void *), void *);                 \
   AnsHash_buckets(HASH) = (void *) alloc_bucket_ptr;				             \
@@ -951,7 +955,7 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
   if (worker_id == 0){
     abolish_thread_buckets((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
     /* just creating a dummy sg_fr to get the information of the answer trie */
-    /* this sg_fr is remove during the abolish operation */
+    /* this sg_fr is removed during the abolish operation */
     if (sg_fr == NULL){
       new_subgoal_frame(sg_fr, (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
       *sg_fr_addr= sg_fr;

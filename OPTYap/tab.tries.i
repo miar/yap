@@ -854,8 +854,11 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
     child_node  = (ans_node_ptr)((long) child_node & ~(long)0x1);
     while (child_node) {
-      if (TrNode_entry(child_node) == t)
+      if (TrNode_entry(child_node) == t) {
+	if (new_child_node != NULL)
+	  FREE_ANSWER_TRIE_NODE(new_child_node); 
 	return child_node;    
+      }
       child_node = TrNode_next(child_node);    
     }
     
@@ -921,6 +924,10 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  }
 	  NEW_HASH_REF(old_bucket,new_hash);	
 	} while (old_bucket != old_hash_buckets);
+
+	HashBkts_next(AnsHash_hash_bkts(hash_node)) = AnsHash_old_hash_bkts(hash_node);
+	AnsHash_old_hash_bkts(hash_node) = AnsHash_hash_bkts(hash_node);
+
 	AnsHash_hash_bkts(hash_node) = new_hash;
 	OPEN_HASH(hash_node); 
       }

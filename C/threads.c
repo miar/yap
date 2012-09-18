@@ -247,6 +247,15 @@ setup_engine(int myworker_id, int init_thread)
   pthread_mutex_unlock(&(REMOTE_ThreadHandle(myworker_id).tlock));  
 #ifdef TABLING
   new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
+
+#ifdef OUTPUT_THREADS_TABLING
+  char thread_name[25];
+  char filename[YAP_FILENAME_MAX]; 
+  sprintf(thread_name, "/thread_output_%d", myworker_id);
+  strcpy(filename, YAP_BINDIR);
+  strncat(filename, thread_name, 25);
+  LOCAL_thread_output = fopen(filename, "w");
+#endif /* OUTPUT_THREADS_TABLING */
 #endif /* TABLING */
   return TRUE;
 }
@@ -264,14 +273,6 @@ thread_run(void *widp)
   Term tgoal, t;
   Term tgs[2];
   int myworker_id = *((int *)widp); 
-#ifdef OUTPUT_THREADS_TABLING
-  char thread_name[25];
-  char filename[YAP_FILENAME_MAX]; 
-  sprintf(thread_name, "/thread_output_%d", myworker_id);
-  strcpy(filename, YAP_BINDIR);
-  strncat(filename, thread_name, 25);
-  LOCAL_thread_output = fopen(filename, "w");
-#endif /* OUTPUT_THREADS_TABLING */
   start_thread(myworker_id);
   regcache = ((REGSTORE *)pthread_getspecific(Yap_yaamregs_key));
   do {

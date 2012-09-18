@@ -1436,6 +1436,12 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       child_mode = TRAVERSE_MODE_DOUBLE_END;
     else
       child_mode = TRAVERSE_MODE_NORMAL;
+#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+    if (!TrNode_child(current_node))
+      /* if worker != 0 is searching for a subgoal entry (not called by him
+	 during the evaluation) and was not created by another worker */
+      return;
+#endif
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
   } else {
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
@@ -1576,6 +1582,13 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       next_hash = Hash_next(hash);    
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL      
       FREE_BUCKETS(AnsHash_hash_bkts(hash));
+      /* free old hash buckets */      
+      ans_hash_bkts_ptr old_hash = AnsHash_old_hash_bkts(hash);
+      while (old_hash){
+	AnsHash_old_hash_bkts(hash) = HashBkts_next(AnsHash_old_hash_bkts(hash));
+	FREE_BUCKETS(old_hash);
+	old_hash = AnsHash_old_hash_bkts(hash);
+      }
 #else
       FREE_BUCKETS(Hash_buckets(hash));
 #endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
