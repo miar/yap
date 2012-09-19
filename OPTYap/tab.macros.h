@@ -45,7 +45,11 @@
 #endif /* EXTRA_STATISTICS */
 
 #ifdef THREADS
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+static inline void **get_insert_thread_bucket(void **);
+#else
 static inline void **get_insert_thread_bucket(void **, lockvar *);
+#endif
 static inline void **get_thread_bucket(void **);
 static inline void abolish_thread_buckets(void **);
 #endif /* THREADS */
@@ -376,19 +380,17 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #ifdef SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL
 #define LOCK_SUBGOAL_TRIE(TAB_ENT)    LOCK(TabEnt_lock(TAB_ENT))
 #define UNLOCK_SUBGOAL_TRIE(TAB_ENT)  UNLOCK(TabEnt_lock(TAB_ENT))
-#define SgHash_init_chain_fields(HASH, SG_FR)         \
-       tab_ent_ptr tab_ent = SgFr_tab_ent(SG_FR);     \
-       Hash_next(HASH) = TabEnt_hash_chain(tab_ent);  \
-       TabEnt_hash_chain(tab_ent) = HASH
+#define SgHash_init_chain_fields(HASH, TAB_ENT)       \
+       Hash_next(HASH) = TabEnt_hash_chain(TAB_ENT);  \
+       TabEnt_hash_chain(TAB_ENT) = HASH
 #else
 #define LOCK_SUBGOAL_TRIE(TAB_ENT)
 #define UNLOCK_SUBGOAL_TRIE(TAB_ENT)
-#define SgHash_init_chain_fields(HASH, SG_FR)         \
-       tab_ent_ptr tab_ent = SgFr_tab_ent(SG_FR);     \
-       LOCK(TabEnt_lock(tab_ent)) ;                   \
-       Hash_next(HASH) = TabEnt_hash_chain(tab_ent);  \
-       TabEnt_hash_chain(tab_ent) = HASH;	      \
-       UNLOCK(TabEnt_lock(tab_ent))
+#define SgHash_init_chain_fields(HASH, TAB_ENT)      \
+       LOCK(TabEnt_lock(TAB_ENT));                   \
+       Hash_next(HASH) = TabEnt_hash_chain(TAB_ENT); \
+       TabEnt_hash_chain(TAB_ENT) = HASH;	     \
+       UNLOCK(TabEnt_lock(TAB_ENT))
 #endif /* SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL */
 
 #ifdef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
@@ -816,7 +818,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 ******************************/
 
 #ifdef THREADS
-static inline void **get_insert_thread_bucket(void **buckets, lockvar *buckets_lock) {
+static inline void **get_insert_thread_bucket(void **buckets
+#ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+					      , lockvar *buckets_lock
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
+					      ) {
   CACHE_REGS
 
   /* direct bucket */
@@ -829,10 +835,19 @@ static inline void **get_insert_thread_bucket(void **buckets, lockvar *buckets_l
     return *buckets + (worker_id - THREADS_DIRECT_BUCKETS) % THREADS_DIRECT_BUCKETS;
 
   /* insert indirect bucket */
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+  void ** buckets_aux;
+  ALLOC_BUCKETS(*buckets_aux, THREADS_DIRECT_BUCKETS);
+  if (!BOOL_CAS(buckets, NULL, buckets_aux)){  
+    FREE_BUCKETS(buckets_aux);    
+  }
+#else
   LOCK(*buckets_lock);
   if (*buckets == NULL)
     ALLOC_BUCKETS(*buckets, THREADS_DIRECT_BUCKETS);
   UNLOCK(*buckets_lock);
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
   return *buckets + (worker_id - THREADS_DIRECT_BUCKETS) % THREADS_DIRECT_BUCKETS;
 }
 
@@ -912,6 +927,29 @@ static inline sg_node_ptr get_subgoal_trie_for_abolish(tab_ent_ptr tab_ent USES_
 }
 
 
+
+
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+
+static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_REGS) {
+  sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) &TrNode_sg_fr(sg_node);
+  
+  if (*sg_fr_addr == NULL) {
+    sg_ent_ptr sg_ent;
+    new_subgoal_entry(sg_ent);
+    if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))){
+      FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
+      FREE_SUBGOAL_ENTRY(sg_ent);
+    } 
+  }
+
+  sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
+
+  return sg_fr_addr;
+}
+
+#else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
 static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_REGS) {
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) &TrNode_sg_fr(sg_node);
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -944,6 +982,8 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   return sg_fr_addr;
 }
+
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 
 static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {

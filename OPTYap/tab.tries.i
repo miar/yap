@@ -426,7 +426,8 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       count_nodes++;
       child_node = TrNode_next(child_node);
     }
-    NEW_SUBGOAL_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, first_node);
+    NEW_SUBGOAL_TRIE_NODE(new_child_node, t, NULL, parent_node, first_node);
+
 
     while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
       sg_node_ptr first_node_tmp;
@@ -457,7 +458,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 	return child_node;
       }
       // alloc a new hash
-      SgHash_init_chain_fields(hash_node, sg_fr);
+      SgHash_init_chain_fields(hash_node, tab_ent);
       chain_node = child_node;
       do {
 	bucket = SgHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
@@ -504,7 +505,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     }
     
     if (new_child_node == NULL) {
-      NEW_SUBGOAL_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, NULL);
+      NEW_SUBGOAL_TRIE_NODE(new_child_node, t, NULL, parent_node, NULL);
     }
 
     first_node = NULL;    

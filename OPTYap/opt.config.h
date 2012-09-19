@@ -49,7 +49,7 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-//#define THREADS_SUBGOAL_SHARING 1
+//#define THREADS_SUBGOAL_SHARING 1   /* ATOMIC LOCKS NOT TESTED */
 #define THREADS_FULL_SHARING 1
 /* #define THREADS_CONSUMER_SHARING 1 */
 
@@ -74,12 +74,12 @@
 *************************************************************************/
 /* #define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-  #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1 
+/*#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+  #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  */
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 
 
 
