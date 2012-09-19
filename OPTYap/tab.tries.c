@@ -1127,7 +1127,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     RESET_VARIABLE(t);
   }
 
-  sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
+   sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
 #ifndef THREADS
   LOCK_SUBGOAL_NODE(current_sg_node);
 #endif /* !THREADS */
@@ -1452,6 +1452,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       if (TrNode_child(ans_node))
 	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
       IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
@@ -1607,26 +1608,28 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 void abolish_table(tab_ent_ptr tab_ent) {
   CACHE_REGS
   sg_node_ptr sg_node;
-
 #if defined(THREADS)
   if (worker_id == 0) {
     ATTACH_PAGES(_pages_tab_ent);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     ATTACH_PAGES(_pages_sg_ent);
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif  
     ATTACH_PAGES(_pages_sg_fr);
     ATTACH_PAGES(_pages_dep_fr);
     ATTACH_PAGES(_pages_sg_node);
     ATTACH_PAGES(_pages_sg_hash);
     ATTACH_PAGES(_pages_ans_node);
+    
     ATTACH_PAGES(_pages_ans_hash);
 #if defined(THREADS_FULL_SHARING)
     ATTACH_PAGES(_pages_ans_ref_node);
-#endif /* THREADS_FULL_SHARING */
+#endif  
     ATTACH_PAGES(_pages_gt_node);
     ATTACH_PAGES(_pages_gt_hash);
-  }
-#endif /* THREADS */
+    } 
+#endif  /* THREADS */
+
+
   sg_node = get_subgoal_trie_for_abolish(tab_ent PASS_REGS);
   if (sg_node) {
     if (TrNode_child(sg_node)) {
@@ -1636,6 +1639,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 	sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(sg_node PASS_REGS);
 	if (sg_fr) {
 	  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+	    SgFr_hash_chain(sg_fr) = NULL;
 	    FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	    FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));

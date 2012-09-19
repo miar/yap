@@ -186,10 +186,12 @@ thread_die(int wid, int always_die)
     abolish_table(tab_ent);
     tab_ent = TabEnt_next(tab_ent);
   }
+
   FREE_DEPENDENCY_FRAME(LOCAL_top_dep_fr);
   LOCAL_top_dep_fr = NULL;
 #ifdef USE_PAGES_MALLOC
   DETACH_PAGES(_pages_void);
+#endif /* USE_PAGES_MALLOC */
   DETACH_PAGES(_pages_tab_ent);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   DETACH_PAGES(_pages_sg_ent);
@@ -198,6 +200,7 @@ thread_die(int wid, int always_die)
   DETACH_PAGES(_pages_dep_fr);
   DETACH_PAGES(_pages_sg_node);
   DETACH_PAGES(_pages_sg_hash);
+
   DETACH_PAGES(_pages_ans_node);
   DETACH_PAGES(_pages_ans_hash);
 #if defined(THREADS_FULL_SHARING)
@@ -205,7 +208,6 @@ thread_die(int wid, int always_die)
 #endif /* THREADS_FULL_SHARING */
   DETACH_PAGES(_pages_gt_node);
   DETACH_PAGES(_pages_gt_hash);
-#endif /* USE_PAGES_MALLOC */
 #ifdef OUTPUT_THREADS_TABLING 
   fclose(LOCAL_thread_output);
 #endif /* OUTPUT_THREADS_TABLING */

@@ -54,11 +54,12 @@ extern int Yap_page_size;
 /*******************************************************************************************
 **                                      USE_SYSTEM_MALLOC                                 **
 *******************************************************************************************/
-#define ALLOC_BLOCK(STR, SIZE, STR_TYPE)                                                   \
+#define ALLOC_BLOCK(STR, SIZE, STR_TYPE)				                   \
         if ((STR = (STR_TYPE *) malloc(SIZE)) == NULL)                                     \
-          Yap_Error(FATAL_ERROR, TermNil, "ALLOC_BLOCK: malloc error")
+           Yap_Error(FATAL_ERROR, TermNil, "ALLOC_BLOCK: malloc error")
+	 
 #define FREE_BLOCK(STR)                                                                    \
-        free(STR)
+  free(STR)
 #else
 /*******************************************************************************************
 **                                    ! USE_SYSTEM_MALLOC                                 **
@@ -108,7 +109,7 @@ extern int Yap_page_size;
         LOCK(PgEnt_lock(GLOBAL##_PG_ENT));                                                 \
         MOVE_PAGES(LOCAL##_PG_ENT, GLOBAL##_PG_ENT);                                       \
         UNLOCK(PgEnt_lock(GLOBAL##_PG_ENT))
-#define ATTACH_PAGES(_PG_ENT)                                                              \
+#define ATTACH_PAGES(_PG_ENT) 				                                   \
         MOVE_PAGES(GLOBAL##_PG_ENT, LOCAL##_PG_ENT)
 #define GET_FREE_STRUCT(STR, STR_TYPE, PG_ENT, EXTRA_PG_ENT)                               \
         LOCK_PAGE_ENTRY(PG_ENT);                                                           \
@@ -138,12 +139,23 @@ extern int Yap_page_size;
         PgEnt_first(FROM_PG_ENT) = PgEnt_last(FROM_PG_ENT) = NULL;                         \
         PgEnt_pages_in_use(FROM_PG_ENT) = PgEnt_strs_in_use(FROM_PG_ENT) = 0
 
-#define DETACH_PAGES(_PG_ENT)                                                              \
-        if (PgEnt_first(LOCAL##_PG_ENT)) {                                                 \
-          LOCK(PgEnt_lock(GLOBAL##_PG_ENT));                                               \
+
+#define OLD_DETACH_PAGES(_PG_ENT)                                                          \
+          LOCK(PgEnt_lock(GLOBAL##_PG_ENT));				                   \
           MOVE_PAGES(LOCAL##_PG_ENT, GLOBAL##_PG_ENT);                                     \
-          UNLOCK(PgEnt_lock(GLOBAL##_PG_ENT));                                             \
-        }
+          UNLOCK(PgEnt_lock(GLOBAL##_PG_ENT))
+
+#define DETACH_PAGES(_PG_ENT)                                                              \
+  LOCK(PgEnt_lock(GLOBAL##_PG_ENT));					                   \
+  if (PgEnt_first(LOCAL##_PG_ENT))  {					                   \
+    MOVE_PAGES(LOCAL##_PG_ENT, GLOBAL##_PG_ENT);			                   \
+  } else {								                   \
+    UPDATE_STATS(PgEnt_pages_in_use(GLOBAL##_PG_ENT), PgEnt_pages_in_use(LOCAL##_PG_ENT)); \
+    UPDATE_STATS(PgEnt_strs_in_use(GLOBAL##_PG_ENT), PgEnt_strs_in_use(LOCAL##_PG_ENT));   \
+    PgEnt_pages_in_use(LOCAL##_PG_ENT) = PgEnt_strs_in_use(LOCAL##_PG_ENT) = 0 ;           \
+  }									                   \
+  UNLOCK(PgEnt_lock(GLOBAL##_PG_ENT))
+      
 
 #define ATTACH_PAGES(_PG_ENT)                                                              \
         if (PgEnt_first(GLOBAL##_PG_ENT)) {                                                \
@@ -419,7 +431,8 @@ extern int Yap_page_size;
 
 #ifdef THREADS
 #define ALLOC_STRUCT(STR, STR_TYPE, _PG_ENT)                          \
-        GET_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT, GLOBAL##_PG_ENT)
+  GET_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT, GLOBAL##_PG_ENT)
+
 #define FREE_STRUCT(STR, STR_TYPE, _PG_ENT)                           \
         PUT_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT)
 #else
@@ -444,7 +457,7 @@ extern int Yap_page_size;
 #define FREE_DEPENDENCY_FRAME(STR)      FREE_STRUCT(STR, struct dependency_frame, _pages_dep_fr)
 
 #define ALLOC_SUBGOAL_TRIE_NODE(STR)   ALLOC_STRUCT(STR, struct subgoal_trie_node, _pages_sg_node)
-#define FREE_SUBGOAL_TRIE_NODE(STR)     FREE_STRUCT(STR, struct subgoal_trie_node, _pages_sg_node)
+#define FREE_SUBGOAL_TRIE_NODE(STR)    FREE_STRUCT(STR, struct subgoal_trie_node, _pages_sg_node)
 
 #define ALLOC_SUBGOAL_TRIE_HASH(STR)   ALLOC_STRUCT(STR, struct subgoal_trie_hash, _pages_sg_hash)
 #define FREE_SUBGOAL_TRIE_HASH(STR)     FREE_STRUCT(STR, struct subgoal_trie_hash, _pages_sg_hash)
