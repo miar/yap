@@ -551,7 +551,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 	sg_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	sg_hash_bkts_ptr new_hash;
 	num_buckets = SgHash_num_buckets(hash_node) * 2;
-	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct subgoal_trie_node);
+	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct subgoal_trie_node, struct subgoal_trie_hash_buckets);
 	old_hash_buckets = SgHash_buckets(hash_node);
 	old_bucket = old_hash_buckets + SgHash_num_buckets(hash_node);
 	do {
@@ -1079,7 +1079,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	ans_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
 	num_buckets = AnsHash_num_buckets(hash_node) * 2;	
-	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node);
+	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
 	old_hash_buckets = AnsHash_buckets(hash_node);
 	old_bucket = old_hash_buckets + AnsHash_num_buckets(hash_node);
 	do {
@@ -1256,7 +1256,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	ans_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
 	num_buckets = AnsHash_num_buckets(hash_node) * 2;	
-	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node);
+	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
 	old_hash_buckets = AnsHash_buckets(hash_node);
 	old_bucket = old_hash_buckets + AnsHash_num_buckets(hash_node);
 	

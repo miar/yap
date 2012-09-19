@@ -502,11 +502,8 @@ extern int Yap_page_size;
 #define BOOL_CAS(PTR, OLD, NEW)                __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
 #define atomic_inc(P)                          __sync_add_and_fetch((P), 1)
 
-#define ALLOC_SUBGOAL_TRIE_HASH_BUCKETS(STR)   ALLOC_BLOCK(STR, sizeof(struct subgoal_trie_hash_buckets), struct subgoal_trie_hash_buckets)
-#define FREE_SUBGOAL_TRIE_HASH_BUCKETS(STR)     FREE_BLOCK(STR)
-
-#define ALLOC_ANSWER_TRIE_HASH_BUCKETS(STR)    ALLOC_BLOCK(STR, sizeof(struct answer_trie_hash_buckets), struct answer_trie_hash_buckets)
-#define FREE_ANSWER_TRIE_HASH_BUCKETS(STR)      FREE_BLOCK(STR)
+#define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)
+#define FREE_TRIE_HASH_BUCKETS(PTR)                   FREE_BLOCK(PTR)
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
 

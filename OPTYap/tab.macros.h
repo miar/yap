@@ -673,43 +673,43 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   { int i; void **init_bucket_ptr;                        \
   init_bucket_ptr = (void **) BUCKET_PTR;                 \
   for (i = NUM_BUCKETS; i != 0; i--)                      \
-    *init_bucket_ptr++ = (STR *) 0x1;	          \
+    *init_bucket_ptr++ = (STR *) 0x1;	                  \
   }
 
-#define ALLOC_CLOSED_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR)    \
-  void **alloc_bucket_ptr;					 	         \
-  ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
-  HashBkts_next(HASH_BUCKETS) = NULL;					         \
-  HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
-  ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
-  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS, STR);                         \
-  BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
+#define ALLOC_CLOSED_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR, STR_HASH_BKTS) \
+  void **alloc_bucket_ptr;					 	                     \
+  ALLOC_TRIE_HASH_BUCKETS(HASH_BUCKETS, STR_HASH_BKTS);			                     \
+  HashBkts_next(HASH_BUCKETS) = NULL;					                     \
+  HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		                     \
+  ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);                       \
+  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS, STR);                                     \
+  BUCKET_PTR = (void *) alloc_bucket_ptr;				                     \
   HashBkts_buckets(HASH_BUCKETS) = (STR **) alloc_bucket_ptr
 
-#define ALLOC_OPEN_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR) 	 \
-  void **alloc_bucket_ptr;					 	         \
-  ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
-  HashBkts_next(HASH_BUCKETS) = NULL;					         \
-  HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
-  ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
-  INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                 \
-  BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
+#define ALLOC_OPEN_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR, STR_HASH_BKTS)   \
+  void **alloc_bucket_ptr;					 	                     \
+  ALLOC_TRIE_HASH_BUCKETS(HASH_BUCKETS, STR_HASH_BKTS);				             \
+  HashBkts_next(HASH_BUCKETS) = NULL;					                     \
+  HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		                     \
+  ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);                       \
+  INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                             \
+  BUCKET_PTR = (void *) alloc_bucket_ptr;				                     \
   HashBkts_buckets(HASH_BUCKETS) = (STR **) alloc_bucket_ptr
 
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
 
-#define new_subgoal_trie_hash_atomic_v01(HASH, NUM_NODES)  \
-        ALLOC_SUBGOAL_TRIE_HASH(HASH);                     \
-        Hash_mark(HASH) = SUBGOAL_TRIE_HASH_MARK;          \
-	SgHash_old_hash_bkts(HASH) = NULL; 		   \
-        ALLOC_CLOSED_HASH_BUCKETS(SgHash_hash_bkts(HASH), SgHash_buckets(HASH), BASE_HASH_BUCKETS, struct subgoal_trie_node); \
+#define new_subgoal_trie_hash_atomic_v01(HASH, NUM_NODES)                                                                                                       \
+        ALLOC_SUBGOAL_TRIE_HASH(HASH);                                                                                                                          \
+        Hash_mark(HASH) = SUBGOAL_TRIE_HASH_MARK;                                                                                                               \
+	SgHash_old_hash_bkts(HASH) = NULL; 		                                                                                                        \
+        ALLOC_CLOSED_HASH_BUCKETS(SgHash_hash_bkts(HASH), SgHash_buckets(HASH), BASE_HASH_BUCKETS, struct subgoal_trie_node, struct subgoal_trie_hash_buckets); \
         Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
-#define new_answer_trie_hash_atomic_v01(HASH, NUM_NODES)  \
-        ALLOC_ANSWER_TRIE_HASH(HASH);                     \
-        Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;          \
-	AnsHash_old_hash_bkts(HASH) = NULL;		\
-        ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS, struct answer_trie_node); \
+#define new_answer_trie_hash_atomic_v01(HASH, NUM_NODES)                                                                                                        \
+        ALLOC_ANSWER_TRIE_HASH(HASH);                                                                                                                           \
+        Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;                                                                                                                \
+	AnsHash_old_hash_bkts(HASH) = NULL;		                                                                                                        \
+        ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS, struct answer_trie_node, struct answer_trie_hash_buckets); \
         Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
 #endif
