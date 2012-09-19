@@ -837,7 +837,7 @@ static inline void **get_insert_thread_bucket(void **buckets
   /* insert indirect bucket */
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
   void ** buckets_aux;
-  ALLOC_BUCKETS(*buckets_aux, THREADS_DIRECT_BUCKETS);
+  ALLOC_BUCKETS(buckets_aux, THREADS_DIRECT_BUCKETS);
   if (!BOOL_CAS(buckets, NULL, buckets_aux)){  
     FREE_BUCKETS(buckets_aux);    
   }

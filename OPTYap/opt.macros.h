@@ -93,8 +93,8 @@ extern int Yap_page_size;
 #define ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)                                             \
         { void **alloc_bucket_ptr;                                                         \
           ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);             \
-          INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);                                     \
-          BUCKET_PTR = (void *) alloc_bucket_ptr;                                          \
+          INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		                           \
+          BUCKET_PTR = (void *) alloc_bucket_ptr;			                   \
         }
 #define FREE_BUCKETS(BUCKET_PTR)  FREE_BLOCK(BUCKET_PTR)
 

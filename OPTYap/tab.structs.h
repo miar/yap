@@ -161,9 +161,7 @@ typedef struct subgoal_trie_hash {
   struct subgoal_trie_node **buckets;
 #endif
   int number_of_nodes;
-#ifdef USE_PAGES_MALLOC
   struct subgoal_trie_hash *next;
-#endif /* USE_PAGES_MALLOC */
 } *sg_hash_ptr;
 
 
