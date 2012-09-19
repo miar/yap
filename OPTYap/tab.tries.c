@@ -600,8 +600,13 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
     sg_node_ptr *bucket, *last_bucket;
     sg_hash_ptr hash;
     hash = (sg_hash_ptr) current_node;
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+    bucket = SgHash_buckets(hash);
+    last_bucket = bucket + SgHash_num_buckets(hash);
+#else
     bucket = Hash_buckets(hash);
     last_bucket = bucket + Hash_num_buckets(hash);
+#endif
     current_arity = (int *) malloc(sizeof(int) * (arity[0] + 1));
     memcpy(current_arity, arity, sizeof(int) * (arity[0] + 1));
     do {
@@ -1394,8 +1399,13 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
     sg_node_ptr *bucket, *last_bucket;
     sg_hash_ptr hash;
     hash = (sg_hash_ptr) current_node;
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+    bucket = SgHash_buckets(hash);
+    last_bucket = bucket + SgHash_num_buckets(hash);
+#else      
     bucket = Hash_buckets(hash);
     last_bucket = bucket + Hash_num_buckets(hash);
+#endif
     do {
       if (*bucket) {
 	sg_node_ptr next_node = *bucket;
@@ -1407,7 +1417,18 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       }
     } while (++bucket != last_bucket);
     IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES {
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+      FREE_BUCKETS(SgHash_hash_bkts(hash));
+      /* free old hash buckets */      
+      sg_hash_bkts_ptr old_hash = SgHash_old_hash_bkts(hash);
+      while (old_hash){
+	SgHash_old_hash_bkts(hash) = HashBkts_next(SgHash_old_hash_bkts(hash));
+	FREE_BUCKETS(old_hash);
+	old_hash = SgHash_old_hash_bkts(hash);
+      }
+#else
       FREE_BUCKETS(Hash_buckets(hash));
+#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
       FREE_SUBGOAL_TRIE_HASH(hash);
     }
     return;

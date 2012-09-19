@@ -140,11 +140,6 @@ extern int Yap_page_size;
         PgEnt_pages_in_use(FROM_PG_ENT) = PgEnt_strs_in_use(FROM_PG_ENT) = 0
 
 
-#define OLD_DETACH_PAGES(_PG_ENT)                                                          \
-          LOCK(PgEnt_lock(GLOBAL##_PG_ENT));				                   \
-          MOVE_PAGES(LOCAL##_PG_ENT, GLOBAL##_PG_ENT);                                     \
-          UNLOCK(PgEnt_lock(GLOBAL##_PG_ENT))
-
 #define DETACH_PAGES(_PG_ENT)                                                              \
   LOCK(PgEnt_lock(GLOBAL##_PG_ENT));					                   \
   if (PgEnt_first(LOCAL##_PG_ENT))  {					                   \
@@ -501,35 +496,35 @@ extern int Yap_page_size;
 #define FREE_TG_ANSWER_FRAME(STR)       FREE_STRUCT(STR, struct table_subgoal_answer_frame, _pages_tg_ans_fr)
 
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
+
+#define VAL_CAS(PTR, OLD, NEW)                 __sync_val_compare_and_swap((PTR), (OLD), (NEW))
+#define BOOL_CAS(PTR, OLD, NEW)                __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
+#define atomic_inc(P)                          __sync_add_and_fetch((P), 1)
+
+#define ALLOC_SUBGOAL_TRIE_HASH_BUCKETS(STR)   ALLOC_BLOCK(STR, sizeof(struct subgoal_trie_hash_buckets), struct subgoal_trie_hash_buckets)
+#define FREE_SUBGOAL_TRIE_HASH_BUCKETS(STR)     FREE_BLOCK(STR)
 
 #define ALLOC_ANSWER_TRIE_HASH_BUCKETS(STR)    ALLOC_BLOCK(STR, sizeof(struct answer_trie_hash_buckets), struct answer_trie_hash_buckets)
-#define FREE_ANSWER_TRIE_HASH_BUCKETS(STR)     FREE_BLOCK(STR)
+#define FREE_ANSWER_TRIE_HASH_BUCKETS(STR)      FREE_BLOCK(STR)
 
-#define VAL_CAS(PTR, OLD, NEW)    __sync_val_compare_and_swap((PTR), (OLD), (NEW))
-#define BOOL_CAS(PTR, OLD, NEW)   __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
-#define atomic_inc(P)             __sync_add_and_fetch((P), 1)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
 
+#define READ_BUCKET_PTR(BUCKET)                ((long)(*BUCKET) & ~(long)0x1)
+#define CLOSE_BUCKET(BUCKET)                   ((long)(BUCKET) | (long)0x1)
+#define NEW_HASH_REF(BUCKET, NEW_HASH, STR)    ((*BUCKET) = (STR *) ((long)(NEW_HASH) | (long)0x3))
+#define IS_NEW_HASH_REF(BUCKET)                ((long)(BUCKET) & (long)0x2)
+#define CLOSE_HASH(HASH_NUM_NODES)             ((HASH_NUM_NODES << 1) | (int) 1)
+#define OPEN_HASH(HASH)                        __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)-1)
+#define Inc_HashNode_num_nodes(HASH)           __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)2)
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
-#define READ_BUCKET_PTR(BUCKET)     ((long)(*BUCKET) & ~(long)0x1)
-#define CLOSE_BUCKET(BUCKET)        ((long)(BUCKET) | (long)0x1)
-#define NEW_HASH_REF(BUCKET,NEW_HASH) ((*BUCKET) = (ans_node_ptr) ((long)(NEW_HASH) | (long)0x3))
-#define IS_NEW_HASH_REF(BUCKET)          ((long)(BUCKET) & (long)0x2)
-#define CLOSE_HASH(HASH_NUM_NODES)  ((HASH_NUM_NODES << 1) | (int) 1)
-#define OPEN_HASH(HASH)                __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)-1)
-#define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)2)
-
-#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 #define IS_NEW_HASH_REF(BUCKET)          ((long)(BUCKET) & (long)0x1)
-#define OPEN_HASH(HASH, EXP_NODES)     (Hash_exp_nodes(HASH) = EXP_NODES)
-#define Inc_HashNode_num_nodes(HASH)    __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
+#define OPEN_HASH(HASH, EXP_NODES)       (Hash_exp_nodes(HASH) = EXP_NODES)
+#define Inc_HashNode_num_nodes(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
 
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 */
-
-
-
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 || SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 */
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 /************************************************************************
 **                         Bitmap manipulation                         **

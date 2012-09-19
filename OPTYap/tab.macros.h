@@ -367,7 +367,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define IS_UNLOCKED_DEP_FR(DEP_FR)
 #endif /* YAPOR */
 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL) || defined(THREADS_NO_SHARING)
+#ifdef THREADS
 #define INIT_LOCK_TAB_ENT(TAB_ENT)  INIT_LOCK(TabEnt_lock(TAB_ENT))
 #else
 #define INIT_LOCK_TAB_ENT(TAB_ENT)
@@ -376,9 +376,19 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #ifdef SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL
 #define LOCK_SUBGOAL_TRIE(TAB_ENT)    LOCK(TabEnt_lock(TAB_ENT))
 #define UNLOCK_SUBGOAL_TRIE(TAB_ENT)  UNLOCK(TabEnt_lock(TAB_ENT))
+#define SgHash_init_chain_fields(HASH, SG_FR)         \
+       tab_ent_ptr tab_ent = SgFr_tab_ent(SG_FR);     \
+       Hash_next(HASH) = TabEnt_hash_chain(tab_ent);  \
+       TabEnt_hash_chain(tab_ent) = HASH
 #else
 #define LOCK_SUBGOAL_TRIE(TAB_ENT)
 #define UNLOCK_SUBGOAL_TRIE(TAB_ENT)
+#define SgHash_init_chain_fields(HASH, SG_FR)         \
+       tab_ent_ptr tab_ent = SgFr_tab_ent(SG_FR);     \
+       LOCK(TabEnt_lock(tab_ent)) ;                   \
+       Hash_next(HASH) = TabEnt_hash_chain(tab_ent);  \
+       TabEnt_hash_chain(tab_ent) = HASH;	      \
+       UNLOCK(TabEnt_lock(tab_ent))
 #endif /* SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL */
 
 #ifdef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
@@ -399,6 +409,13 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
         UNLOCK_SG_FR(SG_FR)
 #endif /* ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
+
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+#define TRYLOCK_SUBGOAL_NODE(NODE)
+#define LOCK_SUBGOAL_NODE(NODE)
+#define UNLOCK_SUBGOAL_NODE(NODE)
+#define SgNode_init_lock_field(NODE)
+#else
 #ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
 #define TRYLOCK_SUBGOAL_NODE(NODE)      TRY_LOCK(TrNode_lock(NODE))
 #define LOCK_SUBGOAL_NODE(NODE)         LOCK(TrNode_lock(NODE))
@@ -415,6 +432,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNLOCK_SUBGOAL_NODE(NODE)
 #define SgNode_init_lock_field(NODE)
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
 #define TRYLOCK_ANSWER_NODE(NODE)
@@ -527,6 +545,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
           SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
         TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
         TabEnt_init_subgoal_trie_field(TAB_ENT);                       \
+        TabEnt_hash_chain(TAB_ENT) = NULL;                             \
         TabEnt_next(TAB_ENT) = GLOBAL_root_tab_ent;                    \
         GLOBAL_root_tab_ent = TAB_ENT
 
@@ -646,26 +665,26 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
         ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);   \
         Hash_num_nodes(HASH) = NUM_NODES
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
 
-#define CLOSE_ALL_BUCKETS(BUCKET_PTR, NUM_BUCKETS)    \
-  { int i; void **init_bucket_ptr;                    \
-  init_bucket_ptr = (void **) BUCKET_PTR;             \
-  for (i = NUM_BUCKETS; i != 0; i--)                  \
-    *init_bucket_ptr++ = (ans_node_ptr) 0x1;	      \
+#define CLOSE_ALL_BUCKETS(BUCKET_PTR, NUM_BUCKETS, STR)   \
+  { int i; void **init_bucket_ptr;                        \
+  init_bucket_ptr = (void **) BUCKET_PTR;                 \
+  for (i = NUM_BUCKETS; i != 0; i--)                      \
+    *init_bucket_ptr++ = (STR *) 0x1;	          \
   }
 
-#define ALLOC_CLOSED_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS)	 \
+#define ALLOC_CLOSED_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR)    \
   void **alloc_bucket_ptr;					 	         \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
   HashBkts_next(HASH_BUCKETS) = NULL;					         \
   HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		         \
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
-  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	         \
+  CLOSE_ALL_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS, STR);                         \
   BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
-  HashBkts_buckets(HASH_BUCKETS) = (struct answer_trie_node **) alloc_bucket_ptr
+  HashBkts_buckets(HASH_BUCKETS) = (STR **) alloc_bucket_ptr
 
-#define ALLOC_OPEN_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS)	         \
+#define ALLOC_OPEN_HASH_BUCKETS(HASH_BUCKETS, BUCKET_PTR, NUM_BUCKETS, STR) 	 \
   void **alloc_bucket_ptr;					 	         \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(HASH_BUCKETS);				         \
   HashBkts_next(HASH_BUCKETS) = NULL;					         \
@@ -673,28 +692,27 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);           \
   INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                 \
   BUCKET_PTR = (void *) alloc_bucket_ptr;				         \
-  HashBkts_buckets(HASH_BUCKETS) = (struct answer_trie_node **) alloc_bucket_ptr
+  HashBkts_buckets(HASH_BUCKETS) = (STR **) alloc_bucket_ptr
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
 
-#define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                                        \
-  AnsHash_old_hash_bkts(HASH) = NULL;					\
-  ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS);  \
-  Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
+#define new_subgoal_trie_hash_atomic_v01(HASH, NUM_NODES)  \
+        ALLOC_SUBGOAL_TRIE_HASH(HASH);                     \
+        Hash_mark(HASH) = SUBGOAL_TRIE_HASH_MARK;          \
+	SgHash_old_hash_bkts(HASH) = NULL; 		   \
+        ALLOC_CLOSED_HASH_BUCKETS(SgHash_hash_bkts(HASH), SgHash_buckets(HASH), BASE_HASH_BUCKETS, struct subgoal_trie_node); \
+        Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
 #define new_answer_trie_hash_atomic_v01(HASH, NUM_NODES)  \
         ALLOC_ANSWER_TRIE_HASH(HASH);                     \
         Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;          \
-        init_atomic_new_answer_trie_hash(HASH, NUM_NODES)
+	AnsHash_old_hash_bkts(HASH) = NULL;		\
+        ALLOC_CLOSED_HASH_BUCKETS(AnsHash_hash_bkts(HASH), AnsHash_buckets(HASH), BASE_HASH_BUCKETS, struct answer_trie_node); \
+        Hash_num_nodes(HASH) = (NUM_NODES << 1) | (int) 1
 
+#endif
 
-
-
-
-
-
-
-#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+/*#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
 #define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
@@ -702,7 +720,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE)	     \
   Hash_num_nodes(HASH) = NUM_NODES;					                     \
-  /* create hash expansion nodes */					                     \
+  //create hash expansion nodes 					                     \
   Hash_exp_nodes(HASH) = EXP_NODES = NULL;						     \
   ans_node_ptr exp_child_node = CHILD_NODE;		                                     \
   while(exp_child_node != NULL) {			                                     \
@@ -716,7 +734,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
     EXP_NODES = new_node;				      	                             \
     exp_child_node = TrNode_next(exp_child_node);			                     \
   }									                     \
-  /*alloc open hash buckets pointing to expansion nodes */		                     \
+  //alloc open hash buckets pointing to expansion nodes 		                     \
   void **alloc_bucket_ptr;						                     \
   ALLOC_ANSWER_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH));				     \
   HashBkts_next(AnsHash_hash_bkts(HASH)) = NULL;					     \
@@ -737,15 +755,16 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE);            \
   AnsHash_init_chain_fields(HASH, SG_FR)
 
-#endif
-#else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+  #endif */
+
+#else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL && !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 #define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                     \
   Hash_num_buckets(HASH) = BASE_HASH_BUCKETS;				      \
   ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);                       \
   Hash_num_nodes(HASH) = NUM_NODES
 
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 
 #define new_answer_trie_hash(HASH, NUM_NODES, SG_FR)            \

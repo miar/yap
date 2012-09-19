@@ -22,9 +22,9 @@
 **************************/
 
 typedef struct table_entry {
-#if defined(SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL) || defined(THREADS_NO_SHARING)
-  lockvar lock;
-#endif /* SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL || THREADS_NO_SHARING */
+#ifdef THREADS
+  lockvar lock;  // needed for subgoal_trie and hash_chain fields
+#endif
   struct pred_entry *pred_entry;
   Atom pred_atom;
   int pred_arity;
@@ -64,9 +64,9 @@ typedef struct subgoal_trie_node {
   struct subgoal_trie_node *parent;
   struct subgoal_trie_node *child;
   struct subgoal_trie_node *next;
-#ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
+#if defined(SUBGOAL_TRIE_LOCK_USING_NODE_FIELD )&& !defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL)
   lockvar lock;
-#endif /* SUBGOAL_TRIE_LOCK_USING_NODE_FIELD */
+#endif 
 } *sg_node_ptr;
 
 typedef struct answer_trie_node {
@@ -80,7 +80,7 @@ typedef struct answer_trie_node {
   struct answer_trie_node *next;
 #if defined(ANSWER_TRIE_LOCK_USING_NODE_FIELD) && !defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
   lockvar lock;
-#endif /* ANSWER_TRIE_LOCK_USING_NODE_FIELD */
+#endif 
 } *ans_node_ptr;
 
 typedef struct global_trie_node {
@@ -128,12 +128,38 @@ typedef struct answer_ref_node {
 **      subgoal_trie_hash, answer_trie_hash and global_trie_hash      **
 ***********************************************************************/
 
+#define HashBkts_next(X)              ((X)->next)
+#define HashBkts_number_of_buckets(X) ((X)->number_of_buckets)
+#define HashBkts_buckets(X)           ((X)->buckets)
+
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+typedef struct subgoal_trie_hash_buckets {
+  struct subgoal_trie_hash_buckets *next;
+  int number_of_buckets;
+  struct subgoal_trie_node **buckets;
+} *sg_hash_bkts_ptr;
+
+/* subgoal_trie_hash */
+#define SgHash_num_buckets(X)        (HashBkts_number_of_buckets(((X)->hash_bkts)))
+#define SgHash_buckets(X)            (HashBkts_buckets(((X)->hash_bkts)))
+#define SgHash_hash_bkts(X)          ((X)->hash_bkts)
+#define SgHash_old_hash_bkts(X)      ((X)->old_hash_bkts)
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
 typedef struct subgoal_trie_hash {
   /* the first field is used for compatibility **
   ** with the subgoal_trie_node data structure */
   Term mark;    
   int number_of_buckets;
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+  sg_hash_bkts_ptr old_hash_bkts;
+  sg_hash_bkts_ptr hash_bkts;
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+  struct subgoal_trie_node *expansion_nodes;
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
+#else
   struct subgoal_trie_node **buckets;
+#endif
   int number_of_nodes;
 #ifdef USE_PAGES_MALLOC
   struct subgoal_trie_hash *next;
@@ -148,9 +174,6 @@ typedef struct answer_trie_hash_buckets {
   struct answer_trie_node **buckets;
 } *ans_hash_bkts_ptr;
 
-#define HashBkts_next(X)              ((X)->next)
-#define HashBkts_number_of_buckets(X) ((X)->number_of_buckets)
-#define HashBkts_buckets(X)           ((X)->buckets)
 /* answer_trie_hash */
 #define AnsHash_num_buckets(X)        (HashBkts_number_of_buckets(((X)->hash_bkts)))
 #define AnsHash_buckets(X)            (HashBkts_buckets(((X)->hash_bkts)))
