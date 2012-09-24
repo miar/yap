@@ -1257,10 +1257,28 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	// ok for expanding the current hash 
 	ans_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
-	num_buckets = AnsHash_num_buckets(hash_node) * 2;	
+	num_buckets = AnsHash_num_buckets(hash_node) * 2;
 	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
 	old_hash_buckets = AnsHash_buckets(hash_node);
+	int i = 0;
+
+	while(i < AnsHash_num_buckets(hash_node)) {
+	  old_bucket = old_hash_buckets + i;
+	  ans_node_ptr *new_bucket_1, *new_bucket_2;
+	  new_bucket_1 = new_hash_buckets + i;
+	  new_bucket_2 = new_hash_buckets + i + AnsHash_num_buckets(hash_node);
+	  
+	  
+	  i++;
+	}
+	
+	
+	
+
+
+
 	old_bucket = old_hash_buckets + AnsHash_num_buckets(hash_node);
+
 	
 	do {
 	  --old_bucket; 
@@ -1279,7 +1297,10 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    chain_node = next_node;
 	  }
 	  NEW_HASH_REF(old_bucket,new_hash);	
+
 	} while (old_bucket != old_hash_buckets);
+
+
 	AnsHash_hash_bkts(hash_node) = new_hash;
 	OPEN_HASH(hash_node); 
       }
