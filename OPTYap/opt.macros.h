@@ -514,13 +514,14 @@ extern int Yap_page_size;
 #define CLOSE_HASH(HASH_NUM_NODES)             ((HASH_NUM_NODES << 1) | (int) 1)
 #define OPEN_HASH(HASH)                        __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)-1)
 #define Inc_HashNode_num_nodes(HASH)           __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)2)
+#endif
 
-#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
-#define IS_NEW_HASH_REF(BUCKET)          ((long)(BUCKET) & (long)0x1)
-#define OPEN_HASH(HASH, EXP_NODES)       (Hash_exp_nodes(HASH) = EXP_NODES)
-#define Inc_HashNode_num_nodes(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+#define IS_NEW_HASH_REF_V02(BUCKET)          ((long)(BUCKET) & (long)0x1)
+#define OPEN_HASH_V02(HASH, EXP_NODES)       (Hash_exp_nodes(HASH) = EXP_NODES)
+#define Inc_HashNode_num_nodes_v02(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
+#endif 
 
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 || SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 */
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 /************************************************************************

@@ -714,7 +714,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #endif
 
-/*#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
 #define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
@@ -722,8 +722,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE)	     \
   Hash_num_nodes(HASH) = NUM_NODES;					                     \
-  //create hash expansion nodes 					                     \
-  Hash_exp_nodes(HASH) = EXP_NODES = NULL;						     \
+  /*create hash expansion nodes */			                                     \
+  Hash_exp_nodes(HASH) = Hash_unused_exp_nodes(HASH) = EXP_NODES = NULL;                     \
   ans_node_ptr exp_child_node = CHILD_NODE;		                                     \
   while(exp_child_node != NULL) {			                                     \
     ans_node_ptr new_node;					                             \
@@ -736,9 +736,9 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
     EXP_NODES = new_node;				      	                             \
     exp_child_node = TrNode_next(exp_child_node);			                     \
   }									                     \
-  //alloc open hash buckets pointing to expansion nodes 		                     \
+  /*alloc open hash buckets pointing to expansion nodes*/		                     \
   void **alloc_bucket_ptr;						                     \
-  ALLOC_ANSWER_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH));				     \
+  ALLOC_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH),struct answer_trie_hash_buckets);	     \
   HashBkts_next(AnsHash_hash_bkts(HASH)) = NULL;					     \
   HashBkts_number_of_buckets(AnsHash_hash_bkts(HASH)) = BASE_HASH_BUCKETS;		     \
   ALLOC_BLOCK(alloc_bucket_ptr, BASE_HASH_BUCKETS * sizeof(void *), void *);                 \
@@ -757,7 +757,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE);            \
   AnsHash_init_chain_fields(HASH, SG_FR)
 
-  #endif */
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 
 #else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL && !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 

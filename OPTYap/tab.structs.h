@@ -154,7 +154,7 @@ typedef struct subgoal_trie_hash {
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
   sg_hash_bkts_ptr old_hash_bkts;
   sg_hash_bkts_ptr hash_bkts;
-#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02  
   struct subgoal_trie_node *expansion_nodes;
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #else
@@ -189,6 +189,7 @@ typedef struct answer_trie_hash {
   ans_hash_bkts_ptr hash_bkts;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
   struct answer_trie_node *expansion_nodes;
+  struct answer_trie_node *unused_expansion_nodes;
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #else
   struct answer_trie_node **buckets;
@@ -212,14 +213,14 @@ typedef struct global_trie_hash {
 #endif /* USE_PAGES_MALLOC */
 } *gt_hash_ptr;
 
-#define Hash_mark(X)         ((X)->mark)
-#define Hash_num_buckets(X)  ((X)->number_of_buckets)
-#define Hash_buckets(X)      ((X)->buckets)
-#define Hash_num_nodes(X)    ((X)->number_of_nodes)
-#define Hash_previous(X)     ((X)->previous)
-#define Hash_next(X)         ((X)->next)
-#define Hash_exp_nodes(X)    ((X)->expansion_nodes)
-
+#define Hash_mark(X)             ((X)->mark)
+#define Hash_num_buckets(X)      ((X)->number_of_buckets)
+#define Hash_buckets(X)          ((X)->buckets)
+#define Hash_num_nodes(X)        ((X)->number_of_nodes)
+#define Hash_previous(X)         ((X)->previous)
+#define Hash_next(X)             ((X)->next)
+#define Hash_exp_nodes(X)        ((X)->expansion_nodes)
+#define Hash_unused_exp_nodes(X) ((X)->unused_expansion_nodes)
 
 /************************************************************************
 **                      Execution Data Structures                      **
