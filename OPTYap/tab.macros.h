@@ -728,10 +728,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   while(exp_child_node != NULL) {			                                     \
     ans_node_ptr new_node;					                             \
     ALLOC_ANSWER_TRIE_NODE(new_node);				                             \
+    /*printf("exp_node = %p \n",new_node); */				\
     TrNode_instr(new_node) = ANSWER_TRIE_HASH_EXPANSION_MARK;		                     \
     TrNode_entry(new_node) = TrNode_entry(exp_child_node);		                     \
-    TrNode_child(new_node) = exp_child_node;                                                 \
-    TrNode_parent(new_node) = TrNode_parent(exp_child_node);		                     \
+    TrNode_child(new_node) = TrNode_child(exp_child_node);		                     \
+    TrNode_parent(new_node) = exp_child_node;                                                \
     TrNode_next(new_node) = EXP_NODES;                                                       \
     EXP_NODES = new_node;				      	                             \
     exp_child_node = TrNode_next(exp_child_node);			                     \
@@ -747,7 +748,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   void **init_bucket_ptr;				                                     \
   init_bucket_ptr = (void **) alloc_bucket_ptr;	                                             \
   int i;						                                     \
-  for (i = BASE_HASH_BUCKETS; i != 0; i--)	                                             \
+  for (i = 0; i < BASE_HASH_BUCKETS;  i++)	                                             \
     *init_bucket_ptr++ = EXP_NODES
 
 
