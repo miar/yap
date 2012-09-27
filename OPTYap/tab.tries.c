@@ -781,6 +781,7 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
   TrStat_ans_nodes++;
   traverse_trie_node(TrNode_entry(current_node), str, &str_index, arity, &mode, TRAVERSE_TYPE_ANSWER PASS_REGS);
   /* show answer .... */
+
   if (IS_ANSWER_LEAF_NODE(current_node)) {
     Extra_stats_ans_trie(ans_dep);    
     TrStat_answers++;
@@ -1594,9 +1595,9 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       TrNode_child((ans_node_ptr) UNTAG_ANSWER_NODE(TrNode_parent(chain_node))) = chain_node;
       while (++bucket != last_bucket) {
 	if (*bucket != NULL) {
-	  while (TrNode_next(chain_node))
+	  while (TrNode_next(chain_node)){
 	    chain_node = TrNode_next(chain_node);
-	  
+	  }
 	  TrNode_next(chain_node) = *bucket;
 	  chain_node = *bucket ;
 	}

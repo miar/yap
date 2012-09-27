@@ -230,8 +230,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
-#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-//#define MAX_NODES_PER_TRIE_LEVEL        2
+//#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
+#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define BASE_HASH_BUCKETS               64
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
@@ -755,6 +755,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define new_answer_trie_hash_exp_nodes(EXP_NODES, HASH, NUM_NODES, SG_FR, CHILD_NODE)  \
   ALLOC_ANSWER_TRIE_HASH(HASH);					                       \
   Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;			                       \
+  AnsHash_old_hash_bkts(HASH) = NULL;			                               \
   init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE);            \
   AnsHash_init_chain_fields(HASH, SG_FR)
 

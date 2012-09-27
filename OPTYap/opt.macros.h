@@ -505,6 +505,14 @@ extern int Yap_page_size;
 #define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)
 #define FREE_TRIE_HASH_BUCKETS(PTR)                   FREE_BLOCK(PTR)
 
+#define	FREE_EXPANSION_NODES(EXP_NODES, STR_PTR)     \
+  do {                                               \
+    STR_PTR next_exp_nodes = TrNode_next(exp_nodes); \
+    FREE_ANSWER_TRIE_NODE(EXP_NODES);                \
+    EXP_NODES = next_exp_nodes;                      \
+  } while(EXP_NODES)
+
+
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
 
 #define READ_BUCKET_PTR(BUCKET)                ((CELL)(*BUCKET) & ~(CELL)0x1)
@@ -517,6 +525,8 @@ extern int Yap_page_size;
 #endif
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
+
+
 #define IS_NEW_HASH_REF_V02(BUCKET)          ((CELL)(BUCKET) & (CELL)0x1)
 #define OPEN_HASH_V02(HASH, EXP_NODES)       (Hash_exp_nodes(HASH) = EXP_NODES)
 #define Inc_HashNode_num_nodes_v02(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
