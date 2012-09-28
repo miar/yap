@@ -645,6 +645,35 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
   /* show answers ... */
   if (IS_SUBGOAL_LEAF_NODE(current_node)) {
     sg_fr_ptr sg_fr = get_subgoal_frame(current_node);
+
+
+#ifdef THREADS_FULL_SHARING
+    /* works well on table_statistics but not well on the show_table(aways printfs EMPTY on last */
+    if (worker_id == 0 && sg_fr == NULL) {
+      /* if worker_id = 0 arrived here without sg_fr then he is just counting the statistics */
+      sg_ent_ptr sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node));
+      TrStat_ans_nodes++;
+      
+      if (SgEnt_first_answer(sg_ent) == NULL) {
+	if (SgEnt_sg_ent_state(sg_ent) < complete) 
+	  TrStat_sg_incomplete++;
+	else 
+	  TrStat_answers_no++;	
+      } else if (SgEnt_first_answer(sg_ent) == SgEnt_answer_trie(sg_ent)) 
+	TrStat_answers_true++;
+      else {
+#ifdef EXTRA_STATISTICS
+	traverse_answer_trie(ans_dep, TrNode_child(SgEnt_answer_trie(sg_ent)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+#else
+	traverse_answer_trie(TrNode_child(SgEnt_answer_trie(sg_ent)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+#endif /* EXTRA_STATISTICS */
+	if (SgEnt_sg_ent_state(sg_ent) < complete) 
+	  TrStat_sg_incomplete++;	
+      }
+    }
+#endif /* THREADS_FULL_SHARING_ */
+
+    
     if (sg_fr) {
       Extra_stats_sg_trie(sg_dep);
       TrStat_subgoals++;
@@ -725,6 +754,7 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
   int *current_arity = NULL, current_str_index = 0, current_var_index = 0, current_mode = 0;
 
   /* test if hashing */
+
 
   if (IS_ANSWER_TRIE_HASH(current_node)) {
     ans_node_ptr *bucket, *last_bucket;
@@ -1589,15 +1619,14 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       
       while (*bucket == NULL)
 	bucket++;           
-      chain_node = *bucket;     
-      
+      chain_node = *bucket;           
       
       TrNode_child((ans_node_ptr) UNTAG_ANSWER_NODE(TrNode_parent(chain_node))) = chain_node;
       while (++bucket != last_bucket) {
 	if (*bucket != NULL) {
-	  while (TrNode_next(chain_node)){
+	  while (TrNode_next(chain_node))
 	    chain_node = TrNode_next(chain_node);
-	  }
+	  
 	  TrNode_next(chain_node) = *bucket;
 	  chain_node = *bucket ;
 	}
@@ -1612,6 +1641,9 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 	FREE_BUCKETS(old_hash);
 	old_hash = AnsHash_old_hash_bkts(hash);
       }
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+      FREE_EXPANSION_NODES(Hash_exp_nodes(hash), ans_node_ptr);
+#endif
 #else
       FREE_BUCKETS(Hash_buckets(hash));
 #endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */

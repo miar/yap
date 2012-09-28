@@ -150,7 +150,6 @@ typedef struct subgoal_trie_hash {
   /* the first field is used for compatibility **
   ** with the subgoal_trie_node data structure */
   Term mark;    
-  int number_of_buckets;
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
   sg_hash_bkts_ptr old_hash_bkts;
   sg_hash_bkts_ptr hash_bkts;
@@ -158,6 +157,7 @@ typedef struct subgoal_trie_hash {
   struct subgoal_trie_node *expansion_nodes;
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #else
+  int number_of_buckets;
   struct subgoal_trie_node **buckets;
 #endif
   int number_of_nodes;
@@ -183,7 +183,6 @@ typedef struct answer_trie_hash {
   /* the first field is used for compatibility **
   ** with the answer_trie_node data structure  */
   OPCODE mark;
-  int number_of_buckets;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
   ans_hash_bkts_ptr old_hash_bkts;
   ans_hash_bkts_ptr hash_bkts;
@@ -194,6 +193,7 @@ typedef struct answer_trie_hash {
 #else
   struct answer_trie_node **buckets;
 #endif
+  int number_of_buckets;
   int number_of_nodes;
 #ifdef MODE_DIRECTED_TABLING
   struct answer_trie_hash *previous;	

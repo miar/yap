@@ -507,7 +507,7 @@ extern int Yap_page_size;
 
 #define	FREE_EXPANSION_NODES(EXP_NODES, STR_PTR)     \
   do {                                               \
-    STR_PTR next_exp_nodes = TrNode_next(exp_nodes); \
+    STR_PTR next_exp_nodes = TrNode_next(EXP_NODES); \
     FREE_ANSWER_TRIE_NODE(EXP_NODES);                \
     EXP_NODES = next_exp_nodes;                      \
   } while(EXP_NODES)

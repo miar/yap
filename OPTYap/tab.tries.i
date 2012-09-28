@@ -1156,11 +1156,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     }
     child_node = new_child_node; 
 
-    //    printf("new child_node = %p \n", child_node);
-
     count_nodes++;
     
-    if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
+    if ( 0 && count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
       ans_node_ptr chain_node , next_node, exp_nodes;
       ans_hash_ptr hash_node;
       new_answer_trie_hash_exp_nodes(exp_nodes, hash_node, count_nodes, sg_fr, child_node);      
