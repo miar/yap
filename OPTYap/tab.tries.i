@@ -1274,7 +1274,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     
     Inc_HashNode_num_nodes_v02(hash_node);
 
-    /* UNDER CONSTRUCTION - BEGIN 
+    /* UNDER CONSTRUCTION - BEGIN */
     if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
       ans_node_ptr exp_nodes = Hash_exp_nodes(hash_node);
       if (BOOL_CAS(&(Hash_exp_nodes(hash_node)), !NULL, NULL)) {
@@ -1364,7 +1364,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	Hash_exp_nodes(hash_node) = Hash_unused_exp_nodes(hash_node); // open hash
       }
     }
-     UNDER CONSTRUCTION - END */
+    /* UNDER CONSTRUCTION - END */
     return child_node;    
   }
 }
