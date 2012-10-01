@@ -756,8 +756,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   ALLOC_ANSWER_TRIE_HASH(HASH);					                       \
   Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;			                       \
   AnsHash_old_hash_bkts(HASH) = NULL;			                               \
-  init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE);            \
-  AnsHash_init_chain_fields(HASH, SG_FR)
+  init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE)
+
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 

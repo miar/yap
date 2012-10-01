@@ -1158,7 +1158,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
     count_nodes++;
     
-    if ( 0 && count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
+    if (count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
       ans_node_ptr chain_node , next_node, exp_nodes;
       ans_hash_ptr hash_node;
       new_answer_trie_hash_exp_nodes(exp_nodes, hash_node, count_nodes, sg_fr, child_node);      
@@ -1169,6 +1169,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	return child_node;
       }
       // alloc a new hash
+      AnsHash_init_chain_fields(hash_node, sg_fr);
       chain_node = child_node;
       do {
 	bucket = AnsHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);

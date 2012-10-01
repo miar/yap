@@ -647,7 +647,7 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
     sg_fr_ptr sg_fr = get_subgoal_frame(current_node);
 
 
-#ifdef THREADS_FULL_SHARING
+#ifdef THREADS_FULL_SHARING_
     /* works well on table_statistics but not well on the show_table(aways printfs EMPTY on last */
     if (worker_id == 0 && sg_fr == NULL) {
       /* if worker_id = 0 arrived here without sg_fr then he is just counting the statistics */
@@ -1619,13 +1619,14 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       
       while (*bucket == NULL)
 	bucket++;           
-      chain_node = *bucket;           
+      chain_node = *bucket;
       
       TrNode_child((ans_node_ptr) UNTAG_ANSWER_NODE(TrNode_parent(chain_node))) = chain_node;
       while (++bucket != last_bucket) {
 	if (*bucket != NULL) {
-	  while (TrNode_next(chain_node))
-	    chain_node = TrNode_next(chain_node);
+	  while (TrNode_next(chain_node)) 
+	    chain_node = TrNode_next(chain_node);  
+
 	  
 	  TrNode_next(chain_node) = *bucket;
 	  chain_node = *bucket ;

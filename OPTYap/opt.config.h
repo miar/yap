@@ -75,25 +75,25 @@
 *************************************************************************/
 /* #define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1 
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1 
 
 
 
 
 /* #define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
-#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
+//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    /* check tab.tries.i UNDER CONSTRUCTION tag */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    /* check tab.tries.i UNDER CONSTRUCTION tag */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
