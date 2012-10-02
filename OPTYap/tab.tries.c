@@ -644,34 +644,20 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 
   /* show answers ... */
   if (IS_SUBGOAL_LEAF_NODE(current_node)) {
-    sg_fr_ptr sg_fr = get_subgoal_frame(current_node);
 
-
-#ifdef THREADS_FULL_SHARING_
-    /* works well on table_statistics but not well on the show_table(aways printfs EMPTY on last */
-    if (worker_id == 0 && sg_fr == NULL) {
-      /* if worker_id = 0 arrived here without sg_fr then he is just counting the statistics */
-      sg_ent_ptr sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node));
-      TrStat_ans_nodes++;
-      
-      if (SgEnt_first_answer(sg_ent) == NULL) {
-	if (SgEnt_sg_ent_state(sg_ent) < complete) 
-	  TrStat_sg_incomplete++;
-	else 
-	  TrStat_answers_no++;	
-      } else if (SgEnt_first_answer(sg_ent) == SgEnt_answer_trie(sg_ent)) 
-	TrStat_answers_true++;
-      else {
-#ifdef EXTRA_STATISTICS
-	traverse_answer_trie(ans_dep, TrNode_child(SgEnt_answer_trie(sg_ent)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+#ifdef THREADS_FULL_SHARING
+    sg_fr_ptr sg_fr;
+    sg_fr_ptr * sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node))));
+    if (worker_id == 0 && *sg_fr_addr == NULL) {
+      /* if worker_id = 0 arrived here without sg_fr then we create one. This will help for Test Suite */
+      new_subgoal_frame(sg_fr, (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node)));
+      SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
+      *sg_fr_addr = sg_fr;
+    } else
+      sg_fr = *sg_fr_addr;
 #else
-	traverse_answer_trie(TrNode_child(SgEnt_answer_trie(sg_ent)), &str[str_index], 0, arity, 0, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
-#endif /* EXTRA_STATISTICS */
-	if (SgEnt_sg_ent_state(sg_ent) < complete) 
-	  TrStat_sg_incomplete++;	
-      }
-    }
-#endif /* THREADS_FULL_SHARING_ */
+      sg_fr_ptr sg_fr = get_subgoal_frame(current_node);
+#endif /* THREADS_FULL_SHARING */
 
     
     if (sg_fr) {
