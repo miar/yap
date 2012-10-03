@@ -1296,25 +1296,25 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  new_bucket_2 = new_hash_buckets + i + AnsHash_num_buckets(hash_node);
 	  
 	  first_node = NULL;	 
-	  // creating expansion node fields 
+	  // creating the expansion nodes
 	  do {
 	    ans_node_ptr first_node_tmp;
 	    first_node_tmp = chain_node = *old_bucket;
 	    while(chain_node != first_node) {
 	      Hash_unused_exp_nodes(hash_node) = TrNode_next(exp_nodes);
-	      TrNode_entry(exp_nodes) = TrNode_entry(chain_node);
-	      TrNode_child(exp_nodes) = TrNode_child(chain_node);
-	      TrNode_parent(exp_nodes) = chain_node;
-	      TrNode_next(exp_nodes)  = *new_bucket_1;
-	      *new_bucket_1 = *new_bucket_2 = exp_nodes;
-	      if (Hash_unused_exp_nodes(hash_node) != NULL)
-		exp_nodes = Hash_unused_exp_nodes(hash_node);
-	      else {
-		// the last node is not released. please fix it 
-		ALLOC_ANSWER_TRIE_NODE(exp_nodes); 
-		TrNode_instr(exp_nodes) = ANSWER_TRIE_HASH_EXPANSION_MARK;
-		TrNode_next(exp_nodes)  = NULL;		
-	      }	      
+              TrNode_entry(exp_nodes) = TrNode_entry(chain_node);
+              TrNode_child(exp_nodes) = TrNode_child(chain_node);
+              TrNode_parent(exp_nodes) = chain_node;
+              TrNode_next(exp_nodes)  = *new_bucket_1;
+              *new_bucket_1 = *new_bucket_2 = exp_nodes;
+              if (Hash_unused_exp_nodes(hash_node) != NULL)
+                exp_nodes = Hash_unused_exp_nodes(hash_node);
+              else {
+                ALLOC_ANSWER_TRIE_NODE(exp_nodes);
+                TrNode_instr(exp_nodes) = ANSWER_TRIE_HASH_EXPANSION_MARK;
+                TrNode_next(exp_nodes)  = NULL;
+		Hash_unused_exp_nodes(hash_node) = exp_nodes;
+              }
 	      chain_node = TrNode_next(chain_node);
 	    }
 	    first_node = first_node_tmp;	    
