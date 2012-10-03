@@ -647,7 +647,13 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 
 #ifdef THREADS_FULL_SHARING
     sg_fr_ptr sg_fr;
-    sg_fr_ptr * sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node))));
+    sg_fr_ptr * sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node)))
+#ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
+								    , &TrNode_lock(current_node)
+#elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
+								    , &HASH_TRIE_LOCK(current_node)
+#endif
+								    );
     if (worker_id == 0 && *sg_fr_addr == NULL) {
       /* if worker_id = 0 arrived here without sg_fr then we create one. This will help for Test Suite */
       new_subgoal_frame(sg_fr, (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_node)));

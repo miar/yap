@@ -230,10 +230,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
-#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-//#define MAX_NODES_PER_TRIE_LEVEL        2
+//#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
+#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
-#define BASE_HASH_BUCKETS               64
+//#define BASE_HASH_BUCKETS               64
+#define BASE_HASH_BUCKETS               2
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
@@ -761,7 +762,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 
-#else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL && !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+#else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 #define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                     \
   Hash_num_buckets(HASH) = BASE_HASH_BUCKETS;				      \
