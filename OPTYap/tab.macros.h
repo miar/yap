@@ -230,11 +230,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
-//#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-#define MAX_NODES_PER_TRIE_LEVEL        2
+#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
+//#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
-//#define BASE_HASH_BUCKETS               64
-#define BASE_HASH_BUCKETS               2
+#define BASE_HASH_BUCKETS               64
+//#define BASE_HASH_BUCKETS               2
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
@@ -718,7 +718,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
-#define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
+//#define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
+#define ANSWER_TRIE_HASH_EXPANSION_MARK       (5000)
 #define IS_ANSWER_TRIE_HASH_EXPANSION(NODE)   (TrNode_instr(NODE) == ANSWER_TRIE_HASH_EXPANSION_MARK)
 
 #define init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE)	     \
