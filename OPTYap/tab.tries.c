@@ -1777,7 +1777,25 @@ void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
 	free(str);
 	free(arity);
       } else {
+#ifdef THREADS_FULL_SHARING
+	sg_fr_ptr sg_fr;
+	sg_fr_ptr * sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)))
+#ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
+									, &TrNode_lock(sg_node)
+#elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
+									, &HASH_TRIE_LOCK(sg_node)
+#endif
+									);
+	if (worker_id == 0 && *sg_fr_addr == NULL) {
+	  /* if worker_id = 0 arrived here without sg_fr then we create one. This will help for Test Suite */
+	  new_subgoal_frame(sg_fr, (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
+	  SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
+	  *sg_fr_addr = sg_fr;
+	} else
+	  sg_fr = *sg_fr_addr;
+#else
 	sg_fr_ptr sg_fr = get_subgoal_frame(sg_node);
+#endif /* THREADS_FULL_SHARING */
 	if (sg_fr) {
 	  TrStat_subgoals++;
 	  SHOW_TABLE_STRUCTURE("  ?- %s.\n", AtomName(TabEnt_atom(tab_ent)));

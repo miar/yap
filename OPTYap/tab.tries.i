@@ -1276,7 +1276,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     Inc_HashNode_num_nodes_v02(hash_node);
     ans_node_ptr exp_nodes = Hash_exp_nodes(hash_node);
 
-    /* UNDER CONSTRUCTION - BEGIN */
     if (exp_nodes != NULL && count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {      
       if (BOOL_CAS(&(Hash_exp_nodes(hash_node)), exp_nodes, NULL)) {
 	// ok for expanding the current hash 
@@ -1347,7 +1346,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    
 	    while (chain_node) {
 	      next_node = TrNode_next(chain_node);
-	      if (next_node && TrNode_instr(next_node) == ANSWER_TRIE_HASH_EXPANSION_MARK) {
+	      if(IS_ANSWER_TRIE_HASH_EXPANSION(next_node)) {
 		TrNode_next(chain_node) =  NULL;
 		// chaining the expansion nodes
 		chain_node = next_node;
@@ -1372,7 +1371,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    
 	    while (chain_node) {
 	      next_node = TrNode_next(chain_node);
-	      if (next_node && TrNode_instr(next_node) == ANSWER_TRIE_HASH_EXPANSION_MARK) {
+	      if(IS_ANSWER_TRIE_HASH_EXPANSION(next_node)) {
 		TrNode_next(chain_node) =  NULL;
 		break;
 	      }
@@ -1390,7 +1389,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	Hash_exp_nodes(hash_node) = Hash_unused_exp_nodes(hash_node); // open hash
       }
     }
-    /* UNDER CONSTRUCTION - END */
     return child_node;    
   }
 }
