@@ -1392,6 +1392,291 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     return child_node;    
   }
 }
+
+#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+#ifdef MODE_GLOBAL_TRIE_ENTRY
+static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
+#else
+static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
+#endif /* MODE_GLOBAL_TRIE_ENTRY */
+
+  ans_node_ptr child_node, first_node, new_child_node = NULL, *bucket;
+  int count_nodes = 0;
+  first_node = child_node = (ans_node_ptr) TrNode_child(parent_node);
+
+  if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
+    while (child_node) {
+      if (TrNode_entry(child_node) == t) {
+	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	  return TrNode_parent(child_node);
+	else
+	  return child_node;
+      }
+      if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	count_nodes++;
+      child_node = TrNode_next(child_node);
+    }
+    NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, first_node);
+
+    while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
+      ans_node_ptr first_node_tmp;
+      first_node_tmp = child_node = (ans_node_ptr) TrNode_child(parent_node);
+      if (IS_ANSWER_TRIE_HASH(child_node))
+	goto answer_trie_hash;            
+      count_nodes = 0;
+      while (child_node && child_node != first_node) {
+	if (TrNode_entry(child_node) == t) {
+	  FREE_ANSWER_TRIE_NODE(new_child_node); 
+	  if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	    return TrNode_parent(child_node);
+	  else
+	    return child_node;
+	}
+	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	  count_nodes++;
+	child_node = TrNode_next(child_node);
+      }
+      first_node = TrNode_next(new_child_node) = first_node_tmp;
+    }
+    
+    child_node = new_child_node; 
+        
+    count_nodes++;
+    
+    if (!IS_ANSWER_TRIE_HASH(TrNode_child(parent_node)) && count_nodes >= MAX_NODES_PER_TRIE_LEVEL) {
+      ans_node_ptr chain_node , next_node, exp_nodes;
+      ans_hash_ptr hash_node;
+      new_answer_trie_hash_exp_nodes(exp_nodes, hash_node, count_nodes, sg_fr, child_node);      
+      if (!BOOL_CAS(&(TrNode_child(parent_node)), child_node, (ans_node_ptr)hash_node)) {
+	FREE_EXPANSION_NODES(exp_nodes, ans_node_ptr);
+	FREE_BUCKETS(AnsHash_hash_bkts(hash_node));			
+	FREE_ANSWER_TRIE_HASH(hash_node);
+	return child_node;
+      } 
+      // alloc a new hash
+      AnsHash_init_chain_fields(hash_node, sg_fr);
+      chain_node = child_node;
+      do {
+	bucket = AnsHash_buckets(hash_node) + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+	next_node = TrNode_next(chain_node);	
+	do 
+	  TrNode_next(chain_node) = *bucket;
+	while (!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+	chain_node = next_node;
+      } while (chain_node);
+      bucket = AnsHash_buckets(hash_node) +  BASE_HASH_BUCKETS;
+      
+      do {
+	bucket--;
+	chain_node = *bucket;
+	if (IS_ANSWER_TRIE_HASH_EXPANSION(chain_node)) {
+	  if (BOOL_CAS(bucket, chain_node, NULL))
+	    continue;
+	  else
+	    chain_node = *bucket;
+	}    
+	while(chain_node) {
+	  next_node = TrNode_next(chain_node);
+	  if (next_node && TrNode_instr(next_node) == ANSWER_TRIE_HASH_EXPANSION_MARK) {
+	    TrNode_next(chain_node) =  NULL;
+	    break;
+	  }
+	  chain_node = next_node;
+	}
+      } while (bucket != AnsHash_buckets(hash_node));
+      Hash_unused_exp_nodes(hash_node) = exp_nodes;
+      Hash_exp_nodes(hash_node) = Hash_unused_exp_nodes(hash_node); // open hash
+    }
+    return child_node;
+  }
+  
+ answer_trie_hash:
+  {
+    int num_buckets = 0;
+    ans_hash_ptr hash_node = (ans_hash_ptr) child_node;
+    ans_hash_bkts_ptr hash = AnsHash_hash_bkts(hash_node);
+    num_buckets = HashBkts_number_of_buckets(hash);
+    bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
+    child_node = *bucket; 
+    
+    while (IS_NEW_HASH_REF_V02(child_node)){
+      hash = (ans_hash_bkts_ptr) ((CELL)(*bucket) & ~(CELL)0x1);
+      num_buckets = HashBkts_number_of_buckets(hash);
+      bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
+      child_node = *bucket; 
+    }
+    
+    while (child_node) {
+      if (TrNode_entry(child_node) == t) {
+	if (new_child_node != NULL) 
+	  FREE_ANSWER_TRIE_NODE(new_child_node);
+	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	  return TrNode_parent(child_node);
+	else
+	  return child_node;    
+      }
+      child_node = TrNode_next(child_node);    
+    }
+    
+    if (new_child_node == NULL) {
+      NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, NULL);
+    }
+    
+    first_node = NULL;    
+    
+    do {
+      count_nodes = 0;
+      child_node = *bucket; 
+      
+      while (IS_NEW_HASH_REF_V02(child_node)){
+	hash = (ans_hash_bkts_ptr) ((CELL)(*bucket) & ~(CELL)0x1);
+	num_buckets = HashBkts_number_of_buckets(hash);
+	bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
+	child_node = *bucket; 
+	first_node = NULL;
+      }
+      
+      ans_node_ptr first_node_tmp = child_node;      
+      
+      while (child_node && child_node != first_node) {
+	if (TrNode_entry(child_node) == t){
+	  FREE_ANSWER_TRIE_NODE(new_child_node);
+	  if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	    return TrNode_parent(child_node);
+	  else
+	    return child_node;	
+	}
+	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
+	  count_nodes++;
+	child_node = TrNode_next(child_node);
+      }
+      
+      first_node = TrNode_next(new_child_node) = first_node_tmp;
+      
+    } while(!BOOL_CAS(bucket, first_node, new_child_node));
+    child_node = new_child_node;
+    count_nodes++; 
+    
+    Inc_HashNode_num_nodes_v02(hash_node);
+    ans_node_ptr exp_nodes = Hash_exp_nodes(hash_node);
+
+    if (exp_nodes != NULL && count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {      
+      if (BOOL_CAS(&(Hash_exp_nodes(hash_node)), exp_nodes, NULL)) {
+	// ok for expanding the current hash 
+	ans_node_ptr chain_node, next_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
+	ans_hash_bkts_ptr new_hash;
+	num_buckets = AnsHash_num_buckets(hash_node) * 2;
+	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
+	old_hash_buckets = AnsHash_buckets(hash_node);
+	int i = 0;
+	
+	while(i < AnsHash_num_buckets(hash_node)) {
+	  old_bucket = old_hash_buckets + i;
+	  ans_node_ptr *new_bucket_1, *new_bucket_2;
+	  new_bucket_1 = new_hash_buckets + i;
+	  new_bucket_2 = new_hash_buckets + i + AnsHash_num_buckets(hash_node);
+
+	  first_node = NULL;	 
+	  // creating the expansion nodes
+	  do {
+	    ans_node_ptr first_node_tmp;
+	    first_node_tmp = chain_node = *old_bucket;
+	    while(chain_node != first_node) {	      
+	      Hash_unused_exp_nodes(hash_node) = TrNode_next(exp_nodes);
+	      TrNode_entry(exp_nodes) = TrNode_entry(chain_node);
+	      TrNode_child(exp_nodes) = TrNode_child(chain_node);
+	      TrNode_parent(exp_nodes) = chain_node;
+	      TrNode_next(exp_nodes)  = *new_bucket_1;
+	      *new_bucket_1 = *new_bucket_2 = exp_nodes;
+	      if (Hash_unused_exp_nodes(hash_node) != NULL)
+                exp_nodes = Hash_unused_exp_nodes(hash_node);
+	      else {
+                ALLOC_ANSWER_TRIE_NODE(exp_nodes);
+                TrNode_instr(exp_nodes) = ANSWER_TRIE_HASH_EXPANSION_MARK;
+                TrNode_next(exp_nodes)  = NULL;
+		Hash_unused_exp_nodes(hash_node) = exp_nodes;
+              }
+	      chain_node = TrNode_next(chain_node);
+	    }
+	    first_node = first_node_tmp;	    
+	  } while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1)));
+	  
+	  // putting hash nodes in place if they exist
+	  if (first_node) {
+	    chain_node = first_node;	  
+	    while (chain_node) {
+	      first_node = TrNode_next(first_node);
+	      bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
+	      do 
+		TrNode_next(chain_node) = *bucket;
+	      while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+	      chain_node = first_node;
+	    }
+	    
+	    // removing the expansion nodes
+	    chain_node = *new_bucket_1;
+	    if (IS_ANSWER_TRIE_HASH_EXPANSION(chain_node)) {
+	      if (BOOL_CAS(new_bucket_1, chain_node, NULL)) {
+		// chaining the expansion nodes
+		first_node = chain_node;
+		while(TrNode_next(chain_node) != NULL)
+		  chain_node = TrNode_next(chain_node);		
+		TrNode_next(chain_node) = Hash_unused_exp_nodes(hash_node);
+		Hash_unused_exp_nodes(hash_node) = first_node;    
+		chain_node = NULL;
+	      } else
+		chain_node = *new_bucket_1;
+	    }    
+	    
+	    while (chain_node) {
+	      next_node = TrNode_next(chain_node);
+	      if(IS_ANSWER_TRIE_HASH_EXPANSION(next_node)) {
+		TrNode_next(chain_node) =  NULL;
+		// chaining the expansion nodes
+		chain_node = next_node;
+		while(TrNode_next(chain_node) != NULL) 
+		  chain_node = TrNode_next(chain_node);
+		
+		TrNode_next(chain_node) = Hash_unused_exp_nodes(hash_node); 
+		Hash_unused_exp_nodes(hash_node) = next_node;
+		break;
+	      }
+	      chain_node = next_node;
+	    }
+	    
+	    chain_node = *new_bucket_2;
+	    
+	    if (IS_ANSWER_TRIE_HASH_EXPANSION(chain_node)) {
+	      if (BOOL_CAS(new_bucket_2, chain_node, NULL))
+		chain_node = NULL;
+	      else
+		chain_node = *new_bucket_2;
+	    }    
+	    
+	    while (chain_node) {
+	      next_node = TrNode_next(chain_node);
+	      if(IS_ANSWER_TRIE_HASH_EXPANSION(next_node)) {
+		TrNode_next(chain_node) =  NULL;
+		break;
+	      }
+	      chain_node = next_node;
+	    }
+	    exp_nodes =  Hash_unused_exp_nodes(hash_node);
+	  }
+	  i++;
+	}
+	
+	HashBkts_next(AnsHash_hash_bkts(hash_node)) = AnsHash_old_hash_bkts(hash_node);
+	AnsHash_old_hash_bkts(hash_node) = AnsHash_hash_bkts(hash_node);
+
+	AnsHash_hash_bkts(hash_node) = new_hash;
+	Hash_exp_nodes(hash_node) = Hash_unused_exp_nodes(hash_node); // open hash
+      }
+    }
+    return child_node;    
+  }
+}
+
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */
 

@@ -508,7 +508,6 @@ extern int Yap_page_size;
 #define	FREE_EXPANSION_NODES(EXP_NODES, STR_PTR)     \
   do {                                               \
     STR_PTR next_exp_nodes = TrNode_next(EXP_NODES); \
-    /*printf("free = %p \n", EXP_NODES); */	     \
     FREE_ANSWER_TRIE_NODE(EXP_NODES);                \
     EXP_NODES = next_exp_nodes;                      \
   } while(EXP_NODES)
@@ -527,11 +526,17 @@ extern int Yap_page_size;
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02)
 
-
 #define IS_NEW_HASH_REF_V02(BUCKET)          ((CELL)(BUCKET) & (CELL)0x1)
 #define OPEN_HASH_V02(HASH, EXP_NODES)       (Hash_exp_nodes(HASH) = EXP_NODES)
 #define Inc_HashNode_num_nodes_v02(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
 #endif 
+
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+
+#define IS_NEW_HASH_REF_V03(BUCKET)          ((CELL)(BUCKET) & (CELL)0x1)
+#define Inc_HashNode_num_nodes_v03(HASH)      __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)
+#endif 
+
 
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
