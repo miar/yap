@@ -230,11 +230,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
-#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-//#define MAX_NODES_PER_TRIE_LEVEL        2
+//#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
+#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
-#define BASE_HASH_BUCKETS               64 //-> DEFAULT
-//#define BASE_HASH_BUCKETS               2
+//#define BASE_HASH_BUCKETS               64 //-> DEFAULT
+#define BASE_HASH_BUCKETS               2
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
@@ -764,23 +764,24 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
-#define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
+#define ANSWER_TRIE_HASH_EXPANSION_MARK       (500)
 
-#define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, NUM_NODES, CHILD_NODE)                                    \
+#define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \
   /*create hash expansion node */			                                                           \
   ALLOC_ANSWER_TRIE_NODE(EXP_NODE);				                                                   \
   TrNode_instr(EXP_NODE) = ANSWER_TRIE_HASH_EXPANSION_MARK;		                                           \
-  TrNode_entry(EXP_NODE) = TrNode_child(EXP_NODE) = TrNode_parent(EXP_NODE) = NULL;                                \
+  TrNode_entry(EXP_NODE) = (Term) NULL;		                                                                   \
+  TrNode_child(EXP_NODE) = TrNode_parent(EXP_NODE) = NULL;                                                         \
   TrNode_next(EXP_NODE) = CHILD_NODE;                                                                              \
   /*alloc open hash buckets pointing to the expansion node*/		                                           \
   void **alloc_bucket_ptr;						                                           \
-  ALLOC_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH),struct answer_trie_hash_buckets);	                           \
-  AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1);                      \
+  ALLOC_TRIE_HASH_BUCKETS(AnsHash_hash_bkts(HASH), struct answer_trie_hash_buckets);	                           \
   HashBkts_next(AnsHash_hash_bkts(HASH)) = NULL;					                           \
   HashBkts_number_of_buckets(AnsHash_hash_bkts(HASH)) = BASE_HASH_BUCKETS;		                           \
   ALLOC_BLOCK(alloc_bucket_ptr, BASE_HASH_BUCKETS * sizeof(void *), void *);                                       \
-  HashBkts_buckets(AnsHash_hash_bkts(HASH)) = (struct answer_trie_node **) alloc_bucket_ptr;                       \
+  BUCKETS = HashBkts_buckets(AnsHash_hash_bkts(HASH)) = (struct answer_trie_node **) alloc_bucket_ptr;             \
+  AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1);                      \
   void **init_bucket_ptr;				                                                           \
   init_bucket_ptr = (void **) alloc_bucket_ptr;	                                                                   \
   int i;						                                                           \
@@ -788,11 +789,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
     *init_bucket_ptr++ = EXP_NODE
 
 
-#define new_answer_trie_hash_atomic_v03(EXP_NODE, HASH, NUM_NODES, SG_FR, CHILD_NODE)  \
-  ALLOC_ANSWER_TRIE_HASH(HASH);					                       \
-  Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;			                       \
-  AnsHash_old_hash_bkts(HASH) = NULL;			                               \
-  init_atomic_new_answer_trie_hash(EXP_NODE, HASH, NUM_NODES, CHILD_NODE);             \
+#define new_answer_trie_hash_atomic_v03(EXP_NODE, HASH, BUCKETS, NUM_NODES, SG_FR, CHILD_NODE) \
+  ALLOC_ANSWER_TRIE_HASH(HASH);					                               \
+  Hash_mark(HASH) = ANSWER_TRIE_HASH_MARK;			                               \
+  AnsHash_old_hash_bkts(HASH) = NULL;			                                       \
+  init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE);            \
   AnsHash_init_chain_fields(hash_node, sg_fr)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
