@@ -52,6 +52,9 @@ static inline void **get_insert_thread_bucket(void **, lockvar *);
 #endif
 static inline void **get_thread_bucket(void **);
 static inline void abolish_thread_buckets(void **);
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+static inline ans_node_ptr adjust_answer_hash_nodes(ans_node_ptr, ans_node_ptr *, int);
+#endif
 #endif /* THREADS */
 static inline sg_node_ptr get_insert_subgoal_trie(tab_ent_ptr USES_REGS);
 static inline sg_node_ptr get_subgoal_trie(tab_ent_ptr);
@@ -640,6 +643,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)  \
         ALLOC_ANSWER_TRIE_NODE(NODE);				       \
+	printf("new node = %p\n", NODE);			       \
         TrNode_instr(NODE) = INSTR;                                    \
         TrNode_entry(NODE) = ENTRY;                                    \
         TrNode_child(NODE) = CHILD;                                    \
@@ -764,7 +768,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
 
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
-#define ANSWER_TRIE_HASH_EXPANSION_MARK       (500)
+#define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
 
 #define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \
@@ -861,6 +865,30 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 ******************************/
 
 #ifdef THREADS
+
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+static inline ans_node_ptr adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int num_buckets) {
+  ans_node_ptr *bucket;
+  if (TrNode_next(chain_node) == NULL) {
+    bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
+    do                                                                                                                                                                                 
+      TrNode_next(chain_node) = *bucket;
+    while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+    printf("1- chain_node = %p  chain_node->next = %p\n", chain_node, chain_node->next);
+    return chain_node; // last node  
+  }
+  ans_node_ptr last_node;
+  last_node = adjust_answer_hash_nodes(TrNode_next(chain_node), new_hash_buckets, num_buckets);
+  TrNode_next(chain_node) = NULL;
+  bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
+  do                                                                                                                                                                                 
+    TrNode_next(chain_node) = *bucket;
+  while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+  printf("2- chain_node = %p\n", chain_node);
+  return last_node;
+}
+#endif
+
 static inline void **get_insert_thread_bucket(void **buckets
 #ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
 					      , lockvar *buckets_lock
