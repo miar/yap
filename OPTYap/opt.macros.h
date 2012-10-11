@@ -87,8 +87,10 @@ extern int Yap_page_size;
 #define INIT_BUCKETS(BUCKET_PTR, NUM_BUCKETS)                                              \
         { int i; void **init_bucket_ptr; 		                                   \
 	  init_bucket_ptr = (void **) BUCKET_PTR;	                                   \
-          for (i = NUM_BUCKETS; i != 0; i--)                                               \
-            *init_bucket_ptr++ = NULL;                                                     \
+          for (i = NUM_BUCKETS; i != 0; i--){				\
+	    /*printf("init = %p\n",init_bucket_ptr);*/			\
+            *init_bucket_ptr++ = NULL;					\
+	  }								\
         }
 #define ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)                                             \
         { void **alloc_bucket_ptr;                                                         \

@@ -1505,7 +1505,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, NULL);
     }
     
-    first_node = NULL;    
+    first_node = NULL;
     
     do {
       count_nodes = 0;
@@ -1519,9 +1519,10 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	first_node = NULL;
       }
       
-      ans_node_ptr first_node_tmp = child_node;      
-      
-      while (child_node && child_node != first_node) {
+      ans_node_ptr first_node_tmp = child_node;
+
+      //      while (child_node && child_node != first_node) {
+      while (child_node) {
 	if (TrNode_entry(child_node) == t){
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  return child_node;	
@@ -1534,31 +1535,30 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       
     } while(!BOOL_CAS(bucket, first_node, new_child_node));
     child_node = new_child_node;
+
     count_nodes++; 
     
     Inc_HashNode_num_nodes_v03(hash_node);
 
     /* UNDER CONSTRUCTION - BEGIN */
 
-    hash = AnsHash_hash_bkts(hash_node);
+    hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
 
-    if (!IS_OPENED_HASH(hash_node) && count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
-      if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {
-	printf("--------------------------------------\n");
+    if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
+      if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {	
+	printf("closed worker_id = %d\n", worker_id);
 	ans_node_ptr chain_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
-
-	hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
 
 	old_hash_buckets = HashBkts_buckets(hash);
 	int old_number_buckets = HashBkts_number_of_buckets(hash);
 
 	// ok for expanding the current hash 
 	num_buckets = old_number_buckets * 2;
+
 	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
 	
 	int i = 0;
-	
 	while(i < old_number_buckets) {
 	  old_bucket = old_hash_buckets + i;
 	  ans_node_ptr *new_bucket_1, *new_bucket_2;
@@ -1570,18 +1570,40 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    first_node = *new_bucket_1 = *new_bucket_2 = *old_bucket;
 	  while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1)));
 	  	  
-	  // putting hash nodes in place if they exist --> I'M HERE
-	  if (first_node) {
+	  if (first_node != NULL) {
 	    chain_node = first_node;
 	    ans_node_ptr last_node;
-	    printf("first_node = %p \n", first_node);
 	    last_node = adjust_answer_hash_nodes(chain_node, new_hash_buckets, num_buckets); 
-	    while(TrNode_next(last_node) != first_node)
-	      last_node = TrNode_next(last_node);
-	    TrNode_next(last_node) = NULL;
-	  }	  
+	    
+	    bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(first_node), num_buckets);
+	    if (bucket == new_bucket_1)
+	      bucket = new_bucket_2;
+	    else
+	      bucket = new_bucket_1;
+	    
+	    
+	    if (!BOOL_CAS(bucket, first_node, NULL)){
+	      ans_node_ptr next_node;	      
+	      chain_node = *bucket;
+	      while(chain_node) {
+		next_node = TrNode_next(chain_node);
+		if (next_node == first_node) {
+		  TrNode_next(chain_node) = NULL;
+		  break;
+		}
+		chain_node = next_node;
+	      }
+	    }
+	    
+	    if (TrNode_next(first_node) == first_node)
+	      TrNode_next(first_node) = NULL;
+	  }
 	  i++;
 	}
+	
+	HashBkts_next(hash) = AnsHash_old_hash_bkts(hash_node);
+	AnsHash_old_hash_bkts(hash_node) = hash;
+	printf("open worker_id = %d\n", worker_id);
 	AnsHash_hash_bkts(hash_node) = new_hash; // open hash
       }
     }

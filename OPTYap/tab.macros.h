@@ -643,9 +643,9 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)  \
         ALLOC_ANSWER_TRIE_NODE(NODE);				       \
-	printf("new node = %p\n", NODE);			       \
         TrNode_instr(NODE) = INSTR;                                    \
         TrNode_entry(NODE) = ENTRY;                                    \
+        /*printf("new node = %p  entry =%d \n", NODE, (int)ENTRY>>3);*/ \
         TrNode_child(NODE) = CHILD;                                    \
         TrNode_parent(NODE) = PARENT;                                  \
         TrNode_next(NODE) = NEXT;                                      \
@@ -698,7 +698,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   HashBkts_number_of_buckets(HASH_BUCKETS) = NUM_BUCKETS;		                     \
   ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);                       \
   INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		  	                             \
-  BUCKET_PTR = (void *) alloc_bucket_ptr;				                     \
+  BUCKET_PTR = (STR **) alloc_bucket_ptr;				                     \
   HashBkts_buckets(HASH_BUCKETS) = (STR **) alloc_bucket_ptr
 
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01)
@@ -785,7 +785,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   HashBkts_number_of_buckets(AnsHash_hash_bkts(HASH)) = BASE_HASH_BUCKETS;		                           \
   ALLOC_BLOCK(alloc_bucket_ptr, BASE_HASH_BUCKETS * sizeof(void *), void *);                                       \
   BUCKETS = HashBkts_buckets(AnsHash_hash_bkts(HASH)) = (struct answer_trie_node **) alloc_bucket_ptr;             \
-  AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1);                      \
+			/*AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1); */ \
   void **init_bucket_ptr;				                                                           \
   init_bucket_ptr = (void **) alloc_bucket_ptr;	                                                                   \
   int i;						                                                           \
@@ -869,22 +869,19 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
 static inline ans_node_ptr adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int num_buckets) {
   ans_node_ptr *bucket;
+  bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
   if (TrNode_next(chain_node) == NULL) {
-    bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
-    do                                                                                                                                                                                 
+    do
       TrNode_next(chain_node) = *bucket;
     while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-    printf("1- chain_node = %p  chain_node->next = %p\n", chain_node, chain_node->next);
-    return chain_node; // last node  
-  }
+    return chain_node;  
+  }  
   ans_node_ptr last_node;
   last_node = adjust_answer_hash_nodes(TrNode_next(chain_node), new_hash_buckets, num_buckets);
   TrNode_next(chain_node) = NULL;
-  bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
-  do                                                                                                                                                                                 
+  do 
     TrNode_next(chain_node) = *bucket;
   while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-  printf("2- chain_node = %p\n", chain_node);
   return last_node;
 }
 #endif
