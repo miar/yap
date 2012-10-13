@@ -1546,7 +1546,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
     if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
       if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {	
-	printf("closed worker_id = %d\n", worker_id);
+	//	printf("closed worker_id = %d\n", worker_id);
 	ans_node_ptr chain_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
 
@@ -1581,9 +1581,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    else
 	      bucket = new_bucket_1;
 	    
-	    
+	    ans_node_ptr next_node;	      
 	    if (!BOOL_CAS(bucket, first_node, NULL)){
-	      ans_node_ptr next_node;	      
 	      chain_node = *bucket;
 	      while(chain_node) {
 		next_node = TrNode_next(chain_node);
@@ -1595,15 +1594,21 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	      }
 	    }
 	    
-	    if (TrNode_next(first_node) == first_node)
-	      TrNode_next(first_node) = NULL;
+	    chain_node = first_node;
+	    next_node = TrNode_next(first_node);
+	    while(next_node != first_node) {
+	      chain_node = next_node;
+	      next_node = TrNode_next(next_node);
+	    }
+	    TrNode_next(chain_node) = NULL;
+
 	  }
 	  i++;
 	}
 	
 	HashBkts_next(hash) = AnsHash_old_hash_bkts(hash_node);
 	AnsHash_old_hash_bkts(hash_node) = hash;
-	printf("open worker_id = %d\n", worker_id);
+	//	printf("open worker_id = %d\n", worker_id);
 	AnsHash_hash_bkts(hash_node) = new_hash; // open hash
       }
     }
