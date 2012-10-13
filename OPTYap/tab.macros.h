@@ -233,11 +233,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
-//#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-#define MAX_NODES_PER_TRIE_LEVEL        2
+#define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
+//#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
-//#define BASE_HASH_BUCKETS               64 //-> DEFAULT
-#define BASE_HASH_BUCKETS               2
+#define BASE_HASH_BUCKETS               64 //-> DEFAULT
+//#define BASE_HASH_BUCKETS               2
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
@@ -783,7 +783,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   HashBkts_number_of_buckets(AnsHash_hash_bkts(HASH)) = BASE_HASH_BUCKETS;		                           \
   ALLOC_BLOCK(alloc_bucket_ptr, BASE_HASH_BUCKETS * sizeof(void *), void *);                                       \
   BUCKETS = HashBkts_buckets(AnsHash_hash_bkts(HASH)) = (struct answer_trie_node **) alloc_bucket_ptr;             \
-			/*AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1); */ \
+  AnsHash_hash_bkts(HASH) = (ans_hash_bkts_ptr)((CELL) AnsHash_hash_bkts(HASH) | (CELL) 0x1);                      \
   void **init_bucket_ptr;				                                                           \
   init_bucket_ptr = (void **) alloc_bucket_ptr;	                                                                   \
   int i;						                                                           \
