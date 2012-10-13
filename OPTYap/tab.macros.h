@@ -53,7 +53,7 @@ static inline void **get_insert_thread_bucket(void **, lockvar *);
 static inline void **get_thread_bucket(void **);
 static inline void abolish_thread_buckets(void **);
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
-static inline ans_node_ptr adjust_answer_hash_nodes(ans_node_ptr, ans_node_ptr *, int);
+static inline void adjust_answer_hash_nodes(ans_node_ptr, ans_node_ptr *, int);
 #endif
 #endif /* THREADS */
 static inline sg_node_ptr get_insert_subgoal_trie(tab_ent_ptr USES_REGS);
@@ -645,7 +645,6 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
         ALLOC_ANSWER_TRIE_NODE(NODE);				       \
         TrNode_instr(NODE) = INSTR;                                    \
         TrNode_entry(NODE) = ENTRY;                                    \
-        /*printf("new node = %p  entry =%d \n", NODE, (int)ENTRY>>3);*/ \
         TrNode_child(NODE) = CHILD;                                    \
         TrNode_parent(NODE) = PARENT;                                  \
         TrNode_next(NODE) = NEXT;                                      \
@@ -734,7 +733,6 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   while(exp_child_node != NULL) {			                                     \
     ans_node_ptr new_node;					                             \
     ALLOC_ANSWER_TRIE_NODE(new_node);				                             \
-    /*printf("1- alloc = %p\n", new_node) ;*/				                     \
     TrNode_instr(new_node) = ANSWER_TRIE_HASH_EXPANSION_MARK;		                     \
     TrNode_entry(new_node) = TrNode_entry(exp_child_node);		                     \
     TrNode_child(new_node) = TrNode_child(exp_child_node);		                     \
@@ -867,22 +865,21 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #ifdef THREADS
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
-static inline ans_node_ptr adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int num_buckets) {
+static inline void adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int num_buckets) {
   ans_node_ptr *bucket;
   bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
   if (TrNode_next(chain_node) == NULL) {
     do
       TrNode_next(chain_node) = *bucket;
     while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-    return chain_node;  
+    return;  
   }  
-  ans_node_ptr last_node;
-  last_node = adjust_answer_hash_nodes(TrNode_next(chain_node), new_hash_buckets, num_buckets);
+  adjust_answer_hash_nodes(TrNode_next(chain_node), new_hash_buckets, num_buckets);
   TrNode_next(chain_node) = NULL;
   do 
     TrNode_next(chain_node) = *bucket;
   while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-  return last_node;
+  return;
 }
 #endif
 

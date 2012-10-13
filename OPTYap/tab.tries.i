@@ -1521,8 +1521,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       
       ans_node_ptr first_node_tmp = child_node;
 
-      //      while (child_node && child_node != first_node) {
-      while (child_node) {
+      while (child_node && child_node != first_node) {
+      //while (child_node) {
 	if (TrNode_entry(child_node) == t){
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  return child_node;	
@@ -1540,13 +1540,10 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     
     Inc_HashNode_num_nodes_v03(hash_node);
 
-    /* UNDER CONSTRUCTION - BEGIN */
-
     hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
 
     if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
       if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {	
-	//	printf("closed worker_id = %d\n", worker_id);
 	ans_node_ptr chain_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
 	ans_hash_bkts_ptr new_hash;
 
@@ -1570,11 +1567,14 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	    first_node = *new_bucket_1 = *new_bucket_2 = *old_bucket;
 	  while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1)));
 	  	  
+	  // putting the nodes (if they exist) of the last hash in place on the new hash
+
 	  if (first_node != NULL) {
 	    chain_node = first_node;
-	    ans_node_ptr last_node;
-	    last_node = adjust_answer_hash_nodes(chain_node, new_hash_buckets, num_buckets); 
+	    adjust_answer_hash_nodes(chain_node, new_hash_buckets, num_buckets); 
 	    
+	    // removing the link of the bucket where the first node was not present 
+	    // here we start from the node where the bucket is pointing
 	    bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(first_node), num_buckets);
 	    if (bucket == new_bucket_1)
 	      bucket = new_bucket_2;
@@ -1594,6 +1594,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	      }
 	    }
 	    
+	    // removing the circular link created on the first node  
+	    // here we start from the first node
 	    chain_node = first_node;
 	    next_node = TrNode_next(first_node);
 	    while(next_node != first_node) {
@@ -1601,18 +1603,15 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	      next_node = TrNode_next(next_node);
 	    }
 	    TrNode_next(chain_node) = NULL;
-
 	  }
 	  i++;
 	}
 	
 	HashBkts_next(hash) = AnsHash_old_hash_bkts(hash_node);
 	AnsHash_old_hash_bkts(hash_node) = hash;
-	//	printf("open worker_id = %d\n", worker_id);
 	AnsHash_hash_bkts(hash_node) = new_hash; // open hash
       }
     }
-    /* UNDER CONSTRUCTION - END */
     return child_node;    
   }
 }
