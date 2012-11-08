@@ -770,6 +770,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \
+  Hash_exp_nodes(HASH) = NULL;			                                                                   \
   /*create hash expansion node */			                                                           \
   ALLOC_ANSWER_TRIE_NODE(EXP_NODE);				                                                   \
   TrNode_instr(EXP_NODE) = ANSWER_TRIE_HASH_EXPANSION_MARK;		                                           \
@@ -875,7 +876,6 @@ static inline void adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_pt
     return;  
   }  
   adjust_answer_hash_nodes(TrNode_next(chain_node), new_hash_buckets, num_buckets);
-  TrNode_next(chain_node) = NULL;
   do 
     TrNode_next(chain_node) = *bucket;
   while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));

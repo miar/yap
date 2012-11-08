@@ -190,6 +190,9 @@ typedef struct answer_trie_hash {
   struct answer_trie_node *expansion_nodes;
   struct answer_trie_node *unused_expansion_nodes;
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
+  struct answer_trie_node *expansion_nodes;
+#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
 #else
   struct answer_trie_node **buckets;
 #endif

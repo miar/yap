@@ -1429,7 +1429,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       }
       first_node = TrNode_next(new_child_node) = first_node_tmp;
     }    
-    child_node = new_child_node;     
+    child_node = new_child_node;
     count_nodes++;
     
     if (count_nodes == MAX_NODES_PER_TRIE_LEVEL) {
@@ -1469,9 +1469,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  chain_node = next_node;
 	}
       } while (bucket != buckets);
-      
+
+      Hash_exp_nodes(hash_node) = exp_node;
       OPEN_HASH_V03(hash_node);
-      FREE_ANSWER_TRIE_NODE(exp_node);
     }
     return child_node;
   }
@@ -1484,6 +1484,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     num_buckets = HashBkts_number_of_buckets(hash);
     bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
     child_node = *bucket; 
+    ans_node_ptr next_node = NULL;
     
     while (IS_NEW_HASH_REF_V03(child_node)){
       hash = (ans_hash_bkts_ptr) ((CELL)(*bucket) & ~(CELL)0x1);
@@ -1520,31 +1521,30 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       }
       
       ans_node_ptr first_node_tmp = child_node;
-
       while (child_node && child_node != first_node) {
-      //while (child_node) {
-	if (TrNode_entry(child_node) == t){
+	if (TrNode_entry(child_node) == t) {
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  return child_node;	
 	}
 	count_nodes++;
 	child_node = TrNode_next(child_node);
-      }
-      
+      }	      
       first_node = TrNode_next(new_child_node) = first_node_tmp;
-      
     } while(!BOOL_CAS(bucket, first_node, new_child_node));
-    child_node = new_child_node;
 
+    child_node = new_child_node;
     count_nodes++; 
     
     Inc_HashNode_num_nodes_v03(hash_node);
 
     hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
 
+    /////////////////////////////////////////////create exp_node 
+
     if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
       if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {	
 	ans_node_ptr chain_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
+	ans_node_ptr exp_node;
 	ans_hash_bkts_ptr new_hash;
 
 	old_hash_buckets = HashBkts_buckets(hash);
@@ -1554,18 +1554,19 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	num_buckets = old_number_buckets * 2;
 
 	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
-	
+	exp_node = Hash_exp_nodes(hash_node);
 	int i = 0;
 	while(i < old_number_buckets) {
 	  old_bucket = old_hash_buckets + i;
 	  ans_node_ptr *new_bucket_1, *new_bucket_2;
 	  new_bucket_1 = new_hash_buckets + i;
 	  new_bucket_2 = new_hash_buckets + i + old_number_buckets;
+	  *new_bucket_1 = *new_bucket_2 = exp_node;
 
 	  // adjusting the new hash buckets	  
-	  do 
-	    first_node = *new_bucket_1 = *new_bucket_2 = *old_bucket;
-	  while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1)));
+	  do
+	    TrNode_next(exp_node) = first_node = *old_bucket;
+	  while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1))); 
 	  	  
 	  // putting the nodes (if they exist) of the last hash in place on the new hash
 
@@ -1580,8 +1581,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	      bucket = new_bucket_2;
 	    else
 	      bucket = new_bucket_1;
-	    
-	    ans_node_ptr next_node;	      
+ 
 	    if (!BOOL_CAS(bucket, first_node, NULL)){
 	      chain_node = *bucket;
 	      while(chain_node) {

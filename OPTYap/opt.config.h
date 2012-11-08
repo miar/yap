@@ -24,6 +24,7 @@
 #define TRIE_LOCK_BUCKETS  512
 //#define THREADS_DIRECT_BUCKETS    32
 #define THREADS_DIRECT_BUCKETS    50
+//#define THREADS_DIRECT_BUCKETS    256
 #define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */
 #define THREADS_NUM_BUCKETS       (THREADS_DIRECT_BUCKETS + THREADS_INDIRECT_BUCKETS)
 #define TG_ANSWER_SLOTS    20
@@ -75,12 +76,12 @@
 *************************************************************************/
 /* #define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1 
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1 
 
 
 
@@ -94,7 +95,7 @@
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1 /* repete uma solucao na tabela no btree_17 */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
