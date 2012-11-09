@@ -1638,7 +1638,8 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       FREE_EXPANSION_NODES(Hash_exp_nodes(hash), ans_node_ptr);
 #endif
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
-      FREE_ANSWER_TRIE_NODE(Hash_exp_nodes(hash));
+      if (Hash_exp_nodes(hash))
+	FREE_ANSWER_TRIE_NODE(Hash_exp_nodes(hash));      
 #endif
 #else
       FREE_BUCKETS(Hash_buckets(hash));

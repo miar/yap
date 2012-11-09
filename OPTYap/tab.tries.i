@@ -1539,8 +1539,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
     hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
 
-    /////////////////////////////////////////////create exp_node 
-
     if (count_nodes >= MAX_NODES_PER_BUCKET && Hash_num_nodes(hash_node) > AnsHash_num_buckets(hash_node)) {
       if (BOOL_CAS(&(AnsHash_hash_bkts(hash_node)), hash, CLOSE_HASH_V03(hash))) {	
 	ans_node_ptr chain_node, *old_bucket, *old_hash_buckets, *new_hash_buckets;
