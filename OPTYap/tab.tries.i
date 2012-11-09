@@ -1558,52 +1558,46 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	int i = 0;
 	while(i < old_number_buckets) {
 	  old_bucket = old_hash_buckets + i;
+	  if (BOOL_CAS(old_bucket, NULL, (ans_node_ptr)((CELL)new_hash | (CELL)0x1))) { 
+	    i++;
+	    continue;
+	  }
+	  // we have at least one node to be expanded
+	  
 	  ans_node_ptr *new_bucket_1, *new_bucket_2;
 	  new_bucket_1 = new_hash_buckets + i;
 	  new_bucket_2 = new_hash_buckets + i + old_number_buckets;
 	  *new_bucket_1 = *new_bucket_2 = exp_node;
 
-	  // adjusting the new hash buckets	  
 	  do
 	    TrNode_next(exp_node) = first_node = *old_bucket;
 	  while(!BOOL_CAS(old_bucket, first_node, (ans_node_ptr)((CELL)new_hash | (CELL)0x1))); 
 	  	  
-	  // putting the nodes (if they exist) of the last hash in place on the new hash
+	  // putting the nodes of the last hash in place on the new hash
+	  chain_node = first_node;
+	  adjust_answer_hash_nodes(chain_node, new_hash_buckets, num_buckets); 
 
-	  if (first_node != NULL) {
-	    chain_node = first_node;
-	    adjust_answer_hash_nodes(chain_node, new_hash_buckets, num_buckets); 
-	    
-	    // removing the link of the bucket where the first node was not present 
-	    // here we start from the node where the bucket is pointing
-	    bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(first_node), num_buckets);
-	    if (bucket == new_bucket_1)
-	      bucket = new_bucket_2;
-	    else
-	      bucket = new_bucket_1;
- 
-	    if (!BOOL_CAS(bucket, first_node, NULL)){
-	      chain_node = *bucket;
-	      while(chain_node) {
-		next_node = TrNode_next(chain_node);
-		if (next_node == first_node) {
-		  TrNode_next(chain_node) = NULL;
-		  break;
-		}
-		chain_node = next_node;
-	      }
-	    }
-	    
-	    // removing the circular link created on the first node  
-	    // here we start from the first node
-	    chain_node = first_node;
-	    next_node = TrNode_next(first_node);
-	    while(next_node != first_node) {
+	  // removing the link of both buckets to the exp_node
+	  if (!BOOL_CAS(new_bucket_1, exp_node, NULL)) { 
+	    chain_node = *new_bucket_1;
+	    next_node = TrNode_next(chain_node);
+	    while(next_node != exp_node) {
 	      chain_node = next_node;
-	      next_node = TrNode_next(next_node);
+	      next_node = TrNode_next(chain_node);
 	    }
-	    TrNode_next(chain_node) = NULL;
+	    TrNode_next(chain_node) = NULL;	      
 	  }
+
+	  if (!BOOL_CAS(new_bucket_2, exp_node, NULL)) { 
+	    chain_node = *new_bucket_2;
+	    next_node = TrNode_next(chain_node);
+	    while(next_node != exp_node) {
+	      chain_node = next_node;
+	      next_node = TrNode_next(chain_node);
+	    }
+	    TrNode_next(chain_node) = NULL;	      
+	  }	  
+	  TrNode_next(exp_node) = NULL;
 	  i++;
 	}
 	

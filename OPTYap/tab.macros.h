@@ -768,6 +768,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define ANSWER_TRIE_HASH_EXPANSION_NUM_NODES  10
 #define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
 
+#define IS_ANSWER_TRIE_HASH_EXPANSION(NODE)   (TrNode_instr(NODE) == ANSWER_TRIE_HASH_EXPANSION_MARK)
+
 #define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \
   Hash_exp_nodes(HASH) = NULL;			                                                                   \
