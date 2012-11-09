@@ -772,9 +772,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \
-  Hash_exp_nodes(HASH) = NULL;			                                                                   \
   /*create hash expansion node */			                                                           \
-  ALLOC_ANSWER_TRIE_NODE(EXP_NODE);				                                                   \
+  EXP_NODE = Hash_exp_node(HASH);			                                                           \
   TrNode_instr(EXP_NODE) = ANSWER_TRIE_HASH_EXPANSION_MARK;		                                           \
   TrNode_entry(EXP_NODE) = (Term) NULL;		                                                                   \
   TrNode_child(EXP_NODE) = TrNode_parent(EXP_NODE) = NULL;                                                         \
@@ -802,10 +801,6 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   AnsHash_init_chain_fields(hash_node, sg_fr)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
-
-
-
-
 
 #else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 

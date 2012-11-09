@@ -1470,7 +1470,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	}
       } while (bucket != buckets);
 
-      Hash_exp_nodes(hash_node) = exp_node;
+      //      Hash_exp_node(hash_node) = exp_node;
       OPEN_HASH_V03(hash_node);
     }
     return child_node;
@@ -1552,7 +1552,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	num_buckets = old_number_buckets * 2;
 
 	ALLOC_OPEN_HASH_BUCKETS(new_hash, new_hash_buckets, num_buckets, struct answer_trie_node, struct answer_trie_hash_buckets);
-	exp_node = Hash_exp_nodes(hash_node);
+	exp_node = Hash_exp_node(hash_node);
 	int i = 0;
 	while(i < old_number_buckets) {
 	  old_bucket = old_hash_buckets + i;

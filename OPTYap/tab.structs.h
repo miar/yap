@@ -183,6 +183,8 @@ typedef struct answer_trie_hash {
   /* the first field is used for compatibility **
   ** with the answer_trie_node data structure  */
   OPCODE mark;
+  int number_of_buckets;
+  int number_of_nodes;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
   ans_hash_bkts_ptr old_hash_bkts;
   ans_hash_bkts_ptr hash_bkts;
@@ -191,13 +193,11 @@ typedef struct answer_trie_hash {
   struct answer_trie_node *unused_expansion_nodes;
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
-  struct answer_trie_node *expansion_nodes;
+  struct answer_trie_node expansion_node;
 #endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
 #else
   struct answer_trie_node **buckets;
 #endif
-  int number_of_buckets;
-  int number_of_nodes;
 #ifdef MODE_DIRECTED_TABLING
   struct answer_trie_hash *previous;	
 #endif /*MODE_DIRECTED_TABLING*/
@@ -222,8 +222,14 @@ typedef struct global_trie_hash {
 #define Hash_num_nodes(X)        ((X)->number_of_nodes)
 #define Hash_previous(X)         ((X)->previous)
 #define Hash_next(X)             ((X)->next)
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
 #define Hash_exp_nodes(X)        ((X)->expansion_nodes)
 #define Hash_unused_exp_nodes(X) ((X)->unused_expansion_nodes)
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
+#define Hash_exp_node(X)          ((ans_node_ptr) &(((struct answer_trie_hash *) (X))->expansion_node))
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
 
 /************************************************************************
 **                      Execution Data Structures                      **
