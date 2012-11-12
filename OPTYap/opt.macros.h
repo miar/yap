@@ -535,7 +535,7 @@ extern int Yap_page_size;
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03) || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
 
 #define IS_NEW_HASH_REF_V03(BUCKET)               ((CELL)(BUCKET) & (CELL)0x1)
-#define IS_OPENED_HASH(HASH)                      ((CELL)HASH & (CELL)0x1)
+#define IS_CLOSED_HASH_V03(HASH)                  ((CELL)(HASH) & (CELL)0x1)
 #define CLOSE_HASH_V03(HASH)                      ((ans_hash_bkts_ptr)((CELL)HASH | (CELL)0x1))
 
 #define Inc_HashNode_num_nodes_v03(HASH)          __sync_add_and_fetch(&(Hash_num_nodes(HASH)), (int)1)

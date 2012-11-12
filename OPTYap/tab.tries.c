@@ -1596,7 +1596,6 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
   CACHE_REGS
 
   IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
-
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
       ans_hash_ptr next_hash;

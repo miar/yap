@@ -80,9 +80,9 @@
 #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions */
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1 
-
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1 
 
 
 

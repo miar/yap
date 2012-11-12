@@ -54,7 +54,6 @@ typedef struct table_entry {
 #define TabEnt_next(X)            ((X)->next)
 
 
-
 /***********************************************************************
 **      subgoal_trie_node, answer_trie_node and global_trie_node      **
 ***********************************************************************/
