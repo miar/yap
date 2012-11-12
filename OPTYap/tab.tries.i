@@ -620,7 +620,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       sg_node_ptr chain_node , next_node, exp_node;
       sg_hash_ptr hash_node;
       struct subgoal_trie_node **buckets;
-      new_subgoal_trie_hash_atomic_v03(exp_node, hash_node, buckets, 0, tab_ent, child_node); /////// NEW
+      new_subgoal_trie_hash_atomic_v03(exp_node, hash_node, buckets, 0, tab_ent, child_node);
       chain_node = child_node;
       while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (sg_node_ptr)hash_node))
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
