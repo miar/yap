@@ -152,9 +152,9 @@ typedef struct subgoal_trie_hash {
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
   sg_hash_bkts_ptr old_hash_bkts;
   sg_hash_bkts_ptr hash_bkts;
-#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02  
-  struct subgoal_trie_node *expansion_nodes;
-#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03  
+  struct subgoal_trie_node expansion_node;
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
 #else
   int number_of_buckets;
   struct subgoal_trie_node **buckets;
@@ -198,7 +198,7 @@ typedef struct answer_trie_hash {
   struct answer_trie_node **buckets;
 #endif
 #ifdef MODE_DIRECTED_TABLING
-  struct answer_trie_hash *previous;	
+  struct answer_trie_hash *previous;
 #endif /*MODE_DIRECTED_TABLING*/
   struct answer_trie_hash *next;
 } *ans_hash_ptr;
@@ -222,13 +222,18 @@ typedef struct global_trie_hash {
 #define Hash_previous(X)         ((X)->previous)
 #define Hash_next(X)             ((X)->next)
 
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
+#define Hash_sg_exp_node(X)          ((sg_node_ptr) &(((struct subgoal_trie_hash *) (X))->expansion_node))
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
+
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
 #define Hash_exp_nodes(X)        ((X)->expansion_nodes)
 #define Hash_unused_exp_nodes(X) ((X)->unused_expansion_nodes)
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
-#define Hash_exp_node(X)          ((ans_node_ptr) &(((struct answer_trie_hash *) (X))->expansion_node))
+#define Hash_ans_exp_node(X)          ((ans_node_ptr) &(((struct answer_trie_hash *) (X))->expansion_node))
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
+
 
 /************************************************************************
 **                      Execution Data Structures                      **
