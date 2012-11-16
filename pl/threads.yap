@@ -348,7 +348,7 @@ thread_exit(Term) :-
 	var(Term), !,
 	'$do_error'(instantiation_error, thread_exit(Term)).
 thread_exit(Term) :-
-	throw('$thread_finished'(exited(Term)).
+	throw('$thread_finished'(exited(Term))).
 	%'$close_thread'('$thread_finished'(exited(Term)), Detached).
 
 '$run_at_thread_exit'(Id0) :-

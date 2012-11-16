@@ -22,11 +22,18 @@
 ****************************/
 #define MAX_TABLE_VARS     1000
 #define TRIE_LOCK_BUCKETS  512
-//#define THREADS_DIRECT_BUCKETS    32
-#define THREADS_DIRECT_BUCKETS    50
-//#define THREADS_DIRECT_BUCKETS    256
+/************************original - inicio ********************/
+//#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
+#define THREADS_DIRECT_BUCKETS    49
 #define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */
 #define THREADS_NUM_BUCKETS       (THREADS_DIRECT_BUCKETS + THREADS_INDIRECT_BUCKETS)
+/************************original - fim ********************/
+/*
+#define THREADS_DIRECT_BUCKETS    27
+#define THREADS_INDIRECT_BUCKETS  0
+#define THREADS_NUM_BUCKETS       (THREADS_DIRECT_BUCKETS + THREADS_INDIRECT_BUCKETS)
+*/
+
 #define TG_ANSWER_SLOTS    20
 #define MAX_BRANCH_DEPTH   1000
 
@@ -82,7 +89,7 @@
 
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1 
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
 
 
 

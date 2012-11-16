@@ -619,25 +619,17 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     if (count_nodes == MAX_NODES_PER_TRIE_LEVEL) {
       sg_node_ptr chain_node , next_node, exp_node;
       sg_hash_ptr hash_node;
-      struct subgoal_trie_node **buckets;
-      new_subgoal_trie_hash_atomic_v03(exp_node, hash_node, buckets, 0, tab_ent, child_node);
+      struct subgoal_trie_node **new_hash_buckets;
+      new_subgoal_trie_hash_atomic_v03(exp_node, hash_node, new_hash_buckets, 0, tab_ent, child_node);
       chain_node = child_node;
       while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (sg_node_ptr)hash_node))
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
       // alloc a new hash
-      count_nodes = 0;
-      do {
-	bucket = buckets + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
-	next_node = TrNode_next(chain_node);	
-	do 
-	  TrNode_next(chain_node) = *bucket;
-	while (!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-	count_nodes++;
-	chain_node = next_node;
-      } while (chain_node);
+      count_nodes = adjust_subgoal_hash_nodes_first_exp(chain_node, new_hash_buckets, 0);
       Add_HashNode_num_nodes_v03(hash_node, count_nodes);
-      // remove the expansion node from the buckets
-      bucket = buckets + BASE_HASH_BUCKETS;
+
+      // remove the the expansion node from all buckets
+      bucket = new_hash_buckets + BASE_HASH_BUCKETS;
       do {
 	bucket--;
 	if (BOOL_CAS(bucket, exp_node, NULL))
@@ -651,7 +643,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 	  }
 	  chain_node = next_node;
 	}
-      } while (bucket != buckets);
+      } while (bucket != new_hash_buckets);
       OPEN_SG_HASH_V03(hash_node);
     }
     return child_node;
@@ -1646,26 +1638,17 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     if (count_nodes == MAX_NODES_PER_TRIE_LEVEL) {
       ans_node_ptr chain_node , next_node, exp_node;
       ans_hash_ptr hash_node;
-      struct answer_trie_node **buckets;
-      new_answer_trie_hash_atomic_v03(exp_node, hash_node, buckets, 0, sg_fr, child_node);
+      struct answer_trie_node **new_hash_buckets;
+      new_answer_trie_hash_atomic_v03(exp_node, hash_node, new_hash_buckets, 0, sg_fr, child_node);
       chain_node = child_node;
       while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (ans_node_ptr)hash_node))
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
       // alloc a new hash
-      count_nodes = 0;
-      do {
-	bucket = buckets + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
-	next_node = TrNode_next(chain_node);	
-	do 
-	  TrNode_next(chain_node) = *bucket;
-	while (!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
-	count_nodes++;
-	chain_node = next_node;
-      } while (chain_node);
-      
+      count_nodes = adjust_answer_hash_nodes_first_exp(chain_node, new_hash_buckets, 0);
       Add_HashNode_num_nodes_v03(hash_node, count_nodes);
-      // remove expansion node from buckets
-      bucket = buckets + BASE_HASH_BUCKETS;
+
+      // remove the the expansion node from all buckets
+      bucket = new_hash_buckets + BASE_HASH_BUCKETS;
       do {
 	bucket--;
 	if (BOOL_CAS(bucket, exp_node, NULL))
@@ -1679,7 +1662,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  }
 	  chain_node = next_node;
 	}
-      } while (bucket != buckets);
+      } while (bucket != new_hash_buckets);
       OPEN_HASH_V03(hash_node);
     }
     return child_node;

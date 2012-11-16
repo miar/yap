@@ -53,9 +53,11 @@ static inline void **get_insert_thread_bucket(void **, lockvar *);
 static inline void **get_thread_bucket(void **);
 static inline void abolish_thread_buckets(void **);
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+static inline int adjust_subgoal_hash_nodes_first_exp(sg_node_ptr, sg_node_ptr *, int);
 static inline void adjust_subgoal_hash_nodes(sg_node_ptr, sg_node_ptr *, int);
 #endif
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+static inline int adjust_answer_hash_nodes_first_exp(ans_node_ptr, ans_node_ptr *, int);
 static inline void adjust_answer_hash_nodes(ans_node_ptr, ans_node_ptr *, int);
 #endif
 #endif /* THREADS */
@@ -896,8 +898,24 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 #ifdef THREADS
 
-
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+
+static inline int adjust_subgoal_hash_nodes_first_exp(sg_node_ptr chain_node, sg_node_ptr *new_hash_buckets, int count_nodes) {
+  sg_node_ptr *bucket;
+  bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+  if (TrNode_next(chain_node) == NULL) {
+    do
+      TrNode_next(chain_node) = *bucket;
+    while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+    return(count_nodes + 1);  
+  }  
+  adjust_subgoal_hash_nodes_first_exp(TrNode_next(chain_node), new_hash_buckets, count_nodes);
+  do 
+    TrNode_next(chain_node) = *bucket;
+  while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+  return(count_nodes + 1);  
+}
+
 static inline void adjust_subgoal_hash_nodes(sg_node_ptr chain_node, sg_node_ptr *new_hash_buckets, int num_buckets) {
   sg_node_ptr *bucket;
   bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
@@ -916,6 +934,23 @@ static inline void adjust_subgoal_hash_nodes(sg_node_ptr chain_node, sg_node_ptr
 #endif
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+
+static inline int adjust_answer_hash_nodes_first_exp(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int count_nodes) {
+  ans_node_ptr *bucket;
+  bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), BASE_HASH_BUCKETS);
+  if (TrNode_next(chain_node) == NULL) {
+    do
+      TrNode_next(chain_node) = *bucket;
+    while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+    return(count_nodes + 1);  
+  }  
+  adjust_answer_hash_nodes_first_exp(TrNode_next(chain_node), new_hash_buckets, count_nodes);
+  do 
+    TrNode_next(chain_node) = *bucket;
+  while(!BOOL_CAS(bucket, TrNode_next(chain_node), chain_node));
+  return(count_nodes + 1);  
+}
+
 static inline void adjust_answer_hash_nodes(ans_node_ptr chain_node, ans_node_ptr *new_hash_buckets, int num_buckets) {
   ans_node_ptr *bucket;
   bucket = new_hash_buckets + HASH_ENTRY(TrNode_entry(chain_node), num_buckets);
@@ -943,7 +978,7 @@ static inline void **get_insert_thread_bucket(void **buckets
   /* direct bucket */
   if (worker_id < THREADS_DIRECT_BUCKETS)
     return buckets + worker_id;
-
+  
   /* indirect bucket */
   buckets = buckets + THREADS_DIRECT_BUCKETS + (worker_id - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS;
   if (*buckets)
@@ -964,6 +999,7 @@ static inline void **get_insert_thread_bucket(void **buckets
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
   return *buckets + (worker_id - THREADS_DIRECT_BUCKETS) % THREADS_DIRECT_BUCKETS;
+
 }
 
 
@@ -978,9 +1014,9 @@ static inline void **get_thread_bucket(void **buckets) {
   buckets = buckets + THREADS_DIRECT_BUCKETS + (worker_id - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS;
   if (*buckets)
     return *buckets + (worker_id - THREADS_DIRECT_BUCKETS) % THREADS_DIRECT_BUCKETS;
-
+  
   /* empty indirect bucket */
-  return buckets;
+  return buckets; 
 }
 
 
