@@ -603,10 +603,17 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       if (IS_SUBGOAL_TRIE_HASH(child_node))
 	goto subgoal_trie_hash;            
       count_nodes = 0;
+      int expNodeVisited = 0; //lock-freedom
       while (child_node && child_node != first_node) {
 	if (TrNode_entry(child_node) == t) {
 	  FREE_SUBGOAL_TRIE_NODE(new_child_node); 
 	  return child_node;
+	}
+	if (IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	  if (expNodeVisited == 1)
+	    break;
+	  else
+	    expNodeVisited = 1;	
 	}
 	count_nodes++;
 	child_node = TrNode_next(child_node);
@@ -694,10 +701,17 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       }
       
       sg_node_ptr first_node_tmp = child_node;
+      int expNodeVisited = 0; //lock-freedom
       while (child_node && child_node != first_node) {
 	if (TrNode_entry(child_node) == t) {
 	  FREE_SUBGOAL_TRIE_NODE(new_child_node);
 	  return child_node;	
+	}
+	if (IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	  if (expNodeVisited == 1)
+	    break;
+	  else
+	    expNodeVisited = 1;	
 	}
 	count_nodes++;
 	child_node = TrNode_next(child_node);
@@ -1622,11 +1636,19 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       if (IS_ANSWER_TRIE_HASH(child_node))
 	goto answer_trie_hash;            
       count_nodes = 0;
+      int expNodeVisited = 0; //lock-freedom
       while (child_node && child_node != first_node) {
 	if (TrNode_entry(child_node) == t) {
 	  FREE_ANSWER_TRIE_NODE(new_child_node); 
 	  return child_node;
 	}
+	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+	  if (expNodeVisited == 1)
+	    break;
+	  else
+	    expNodeVisited = 1;	
+	}
+
 	count_nodes++;
 	child_node = TrNode_next(child_node);
       }
@@ -1711,12 +1733,18 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	child_node = *bucket; 
 	first_node = NULL;
       }
-      
+      int expNodeVisited = 0;      //lock-freedom
       ans_node_ptr first_node_tmp = child_node;
       while (child_node && child_node != first_node) {
 	if (TrNode_entry(child_node) == t) {
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  return child_node;	
+	}
+	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+	  if (expNodeVisited == 1)
+	    break;
+	  else
+	    expNodeVisited = 1;	
 	}
 	count_nodes++;
 	child_node = TrNode_next(child_node);

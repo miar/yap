@@ -1388,7 +1388,7 @@ static inline void adjust_freeze_registers(void) {
 
 
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
-#ifdef OUTPUT_THREADS_TABLING
+#if defined(OUTPUT_THREADS_TABLING) || defined(MODE_DIRECTED_TABLING)
   CACHE_REGS
 #endif /* OUTPUT_THREADS_TABLING */
 

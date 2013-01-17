@@ -218,6 +218,7 @@ thread_die(int wid, int always_die)
     GLOBAL_ThreadsTotalTime += Yap_cputime();
   }
   kill_thread_engine(wid, always_die);
+
 }
 
 static int

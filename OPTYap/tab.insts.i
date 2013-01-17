@@ -593,7 +593,7 @@
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	  if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
-	    if (SgFr_state(sg_fr) < compiled)
+          if (SgFr_state(sg_fr) < compiled)
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 	    update_answer_trie(sg_fr);
 	  UNLOCK_SG_FR(sg_fr);

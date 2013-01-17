@@ -121,7 +121,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-#define MODE_DIRECTED_TABLING 1
+//#define MODE_DIRECTED_TABLING 1
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **
