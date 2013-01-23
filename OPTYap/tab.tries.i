@@ -590,11 +590,19 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
   
   if (child_node == NULL || !IS_SUBGOAL_TRIE_HASH(child_node)) {
     while (child_node) {
-      if (TrNode_entry(child_node) == t) 
-	return child_node;
-      count_nodes++;
+      if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	if (TrNode_entry(child_node) == t) 
+	  return child_node;
+	count_nodes++;
+      }  else {
+	// cache coherence (check same code on answer trie)
+	__sync_synchronize(); 	   
+	child_node = (sg_node_ptr) TrNode_child(parent_node); 	    	
+	goto subgoal_trie_hash;
+      }
       child_node = TrNode_next(child_node);
     }
+
     NEW_SUBGOAL_TRIE_NODE(new_child_node, t, NULL, parent_node, first_node);
     
     while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
@@ -602,20 +610,22 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       first_node_tmp = child_node = (sg_node_ptr) TrNode_child(parent_node);
       if (IS_SUBGOAL_TRIE_HASH(child_node))
 	goto subgoal_trie_hash;            
+
       count_nodes = 0;
-      int expNodeVisited = 0; //lock-freedom
+
       while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t) {
-	  FREE_SUBGOAL_TRIE_NODE(new_child_node); 
-	  return child_node;
+	if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	  if (TrNode_entry(child_node) == t) {
+	    FREE_SUBGOAL_TRIE_NODE(new_child_node); 
+	    return child_node;
+	  }
+	  count_nodes++;
+	} else {
+	  // cache coherence (test_large_joins_join2 fails without it)
+	  __sync_synchronize(); 	   
+	  child_node = (sg_node_ptr) TrNode_child(parent_node); 	    	
+	  goto subgoal_trie_hash;
 	}
-	if (IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
-	  if (expNodeVisited == 1)
-	    break;
-	  else
-	    expNodeVisited = 1;	
-	}
-	count_nodes++;
 	child_node = TrNode_next(child_node);
       }
       first_node = TrNode_next(new_child_node) = first_node_tmp;
@@ -674,7 +684,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     }
     
     while (child_node) {
-      if (TrNode_entry(child_node) == t) {
+      if (TrNode_entry(child_node) == t && !IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
 	if (new_child_node != NULL) 
 	  FREE_SUBGOAL_TRIE_NODE(new_child_node);
 	return child_node;    
@@ -687,7 +697,8 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     }
     
     first_node = NULL;
-    
+    int expNodeVisited = 0; // lock-freedom - 2    
+    sg_node_ptr first_node_tmp = NULL;
     do {
       count_nodes = 0;
       child_node = *bucket; 
@@ -696,28 +707,33 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 	hash = (sg_hash_bkts_ptr) ((CELL)(*bucket) & ~(CELL)0x1);
 	num_buckets = HashBkts_number_of_buckets(hash);
 	bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
+	expNodeVisited = 0;   // lock-freedom - 2
 	child_node = *bucket; 
 	first_node = NULL;
       }
       
-      sg_node_ptr first_node_tmp = child_node;
-      int expNodeVisited = 0; //lock-freedom
-      while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t) {
-	  FREE_SUBGOAL_TRIE_NODE(new_child_node);
-	  return child_node;	
-	}
-	if (IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+      first_node_tmp = child_node;
+
+      while (child_node != first_node) {
+	if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	  if (TrNode_entry(child_node) == t) {
+	    FREE_SUBGOAL_TRIE_NODE(new_child_node);
+	    return child_node;	
+	  }	  
+	  count_nodes++;
+	} else {
 	  if (expNodeVisited == 1)
 	    break;
 	  else
 	    expNodeVisited = 1;	
 	}
-	count_nodes++;
-	child_node = TrNode_next(child_node);
-      }	      
-      first_node = TrNode_next(new_child_node) = first_node_tmp;
-    } while(!BOOL_CAS(bucket, first_node, new_child_node));
+	child_node = TrNode_next(child_node);	  
+      }
+
+      if (first_node_tmp && !IS_SUBGOAL_TRIE_HASH_EXPANSION(first_node_tmp))
+	first_node = first_node_tmp;	      
+      TrNode_next(new_child_node) = first_node_tmp;
+    } while(!BOOL_CAS(bucket, first_node_tmp, new_child_node));
 
     child_node = new_child_node;
     count_nodes++; 
@@ -1622,12 +1638,21 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   first_node = child_node = (ans_node_ptr) TrNode_child(parent_node);
   
   if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
+
     while (child_node) {
-      if (TrNode_entry(child_node) == t) 
-	return child_node;
-      count_nodes++;
+      if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)){
+	if (TrNode_entry(child_node) == t) 
+	  return child_node;
+	count_nodes++;
+      }  else {
+	// cache coherence (test_large_joins_join2 fails without it)
+	__sync_synchronize(); 	   
+	child_node = (ans_node_ptr) TrNode_child(parent_node); 	    	
+	goto answer_trie_hash;
+      }
       child_node = TrNode_next(child_node);
     }
+
     NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, first_node);
     
     while (!BOOL_CAS(&(TrNode_child(parent_node)), first_node, new_child_node)) {
@@ -1635,21 +1660,34 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       first_node_tmp = child_node = (ans_node_ptr) TrNode_child(parent_node);
       if (IS_ANSWER_TRIE_HASH(child_node))
 	goto answer_trie_hash;            
-      count_nodes = 0;
-      int expNodeVisited = 0; //lock-freedom
-      while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t) {
-	  FREE_ANSWER_TRIE_NODE(new_child_node); 
-	  return child_node;
-	}
-	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
-	  if (expNodeVisited == 1)
-	    break;
-	  else
-	    expNodeVisited = 1;	
-	}
 
-	count_nodes++;
+      count_nodes = 0;
+      
+      while (child_node && child_node != first_node) {
+	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+	  if (TrNode_entry(child_node) == t) {
+	    FREE_ANSWER_TRIE_NODE(new_child_node); 
+	    return child_node;
+	  }
+	  count_nodes++;
+	} else {
+	  // cache coherence (test_large_joins_join2 fails without it)
+	  __sync_synchronize(); 	   
+	  child_node = (ans_node_ptr) TrNode_child(parent_node);
+	  goto answer_trie_hash;
+
+	  /*	  do {
+	    int n=1;
+	    child_node = (ans_node_ptr) TrNode_child(parent_node);
+	    printf("child_node = %p\n", child_node);
+	    if (!IS_ANSWER_TRIE_HASH(child_node)) {
+	      printf("EEEEEEEEEE %d\n",n);
+	      n++;
+	      //__sync_synchronize(); 	   
+	    }
+	    } while (!IS_ANSWER_TRIE_HASH(child_node));*/
+
+	}
 	child_node = TrNode_next(child_node);
       }
       first_node = TrNode_next(new_child_node) = first_node_tmp;
@@ -1693,7 +1731,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
  answer_trie_hash:
   {
     int num_buckets = 0;
-    ans_hash_ptr hash_node = (ans_hash_ptr) child_node;
+    ans_hash_ptr hash_node = (ans_hash_ptr) child_node; 
     ans_hash_bkts_ptr hash = (ans_hash_bkts_ptr) ((CELL) AnsHash_hash_bkts(hash_node) & ~(CELL)0x1);
     num_buckets = HashBkts_number_of_buckets(hash);
     bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
@@ -1708,7 +1746,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     }
     
     while (child_node) {
-      if (TrNode_entry(child_node) == t) {
+      if (TrNode_entry(child_node) == t && !IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
 	if (new_child_node != NULL) 
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	return child_node;    
@@ -1720,8 +1758,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, NULL);
     }
     
-    first_node = NULL;
-    
+    first_node = NULL;        // oldfFirst
+    int expNodeVisited = 0;   // lock-freedom - 4    
+    ans_node_ptr first_node_tmp = NULL;
     do {
       count_nodes = 0;
       child_node = *bucket; 
@@ -1730,27 +1769,32 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	hash = (ans_hash_bkts_ptr) ((CELL)(*bucket) & ~(CELL)0x1);
 	num_buckets = HashBkts_number_of_buckets(hash);
 	bucket = HashBkts_buckets(hash) + HASH_ENTRY(t, num_buckets);
+	expNodeVisited = 0;   // lock-freedom - 4
 	child_node = *bucket; 
 	first_node = NULL;
       }
-      int expNodeVisited = 0;      //lock-freedom
-      ans_node_ptr first_node_tmp = child_node;
-      while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t) {
-	  FREE_ANSWER_TRIE_NODE(new_child_node);
-	  return child_node;	
-	}
-	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+
+      first_node_tmp = child_node;   // first
+
+      while (child_node != first_node) {
+	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+	  if (TrNode_entry(child_node) == t) {
+	    FREE_ANSWER_TRIE_NODE(new_child_node);
+	    return child_node;	
+	  }	  
+	  count_nodes++;
+	} else {
 	  if (expNodeVisited == 1)
 	    break;
 	  else
 	    expNodeVisited = 1;	
 	}
-	count_nodes++;
-	child_node = TrNode_next(child_node);
-      }	      
-      first_node = TrNode_next(new_child_node) = first_node_tmp;
-    } while(!BOOL_CAS(bucket, first_node, new_child_node));
+	child_node = TrNode_next(child_node);	  
+      }      
+      if (first_node_tmp && !IS_ANSWER_TRIE_HASH_EXPANSION(first_node_tmp))
+	first_node = first_node_tmp;
+      TrNode_next(new_child_node) = first_node_tmp;
+    } while(!BOOL_CAS(bucket, first_node_tmp, new_child_node));
 
     child_node = new_child_node;
     count_nodes++; 

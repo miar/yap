@@ -1593,8 +1593,8 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 
 
 void free_answer_hash_chain(ans_hash_ptr hash) {
-  CACHE_REGS
-    
+  CACHE_REGS    
+   
   IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
@@ -1624,9 +1624,9 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 	}
       }
       next_hash = Hash_next(hash);    
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL      
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
       FREE_BUCKETS(AnsHash_hash_bkts(hash));
-      /* free old hash buckets */      
+      // free old hash buckets 
       ans_hash_bkts_ptr old_hash = AnsHash_old_hash_bkts(hash);
       while (old_hash){
 	AnsHash_old_hash_bkts(hash) = HashBkts_next(AnsHash_old_hash_bkts(hash));
