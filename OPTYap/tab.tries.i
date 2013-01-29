@@ -1671,22 +1671,25 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 	  }
 	  count_nodes++;
 	} else {
+	  
 	  // cache coherence (test_large_joins_join2 fails without it)
 	  __sync_synchronize(); 	   
 	  child_node = (ans_node_ptr) TrNode_child(parent_node);
-	  goto answer_trie_hash;
-
-	  /*	  do {
-	    int n=1;
-	    child_node = (ans_node_ptr) TrNode_child(parent_node);
-	    printf("child_node = %p\n", child_node);
-	    if (!IS_ANSWER_TRIE_HASH(child_node)) {
-	      printf("EEEEEEEEEE %d\n",n);
-	      n++;
-	      //__sync_synchronize(); 	   
-	    }
-	    } while (!IS_ANSWER_TRIE_HASH(child_node));*/
-
+	  goto answer_trie_hash; 
+	  
+	  /* This code shows that the expansion node is correct
+	     ans_node_ptr expnode1, expnode2;
+	     expnode1 = child_node;
+	     do {
+	     child_node = (ans_node_ptr) TrNode_child(parent_node);
+	     if (!IS_ANSWER_TRIE_HASH(child_node))
+	     __sync_synchronize(); 	   
+	     } while (!IS_ANSWER_TRIE_HASH(child_node));
+	     ans_hash_ptr hash_node_lixo = (ans_hash_ptr) child_node; 
+	     expnode2 = Hash_ans_exp_node(hash_node_lixo);
+	     if (expnode1 != expnode2)
+	     printf("expnode1 = %p  expnode2 = %p \n", expnode1, expnode2);
+	     goto answer_trie_hash; */	  
 	}
 	child_node = TrNode_next(child_node);
       }
