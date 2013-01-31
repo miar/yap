@@ -82,6 +82,7 @@ typedef struct answer_trie_node {
 #endif 
 } *ans_node_ptr;
 
+
 typedef struct global_trie_node {
   Term entry;
   struct global_trie_node *parent;

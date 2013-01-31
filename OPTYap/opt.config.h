@@ -81,28 +81,28 @@
 ** can use (TRIE_TYPE)_ALLOC_BEFORE_CHECK with this scheme to allocate  **
 ** a node before checking if it will be necessary.                      **
 *************************************************************************/
-/* #define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
+//#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
 
 
 
-/* #define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 */
+//#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
-//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
@@ -308,12 +308,19 @@
 #undef SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL
 #undef SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL
 #undef SUBGOAL_TRIE_ALLOC_BEFORE_CHECK
+#undef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
+#undef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
+#undef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
 #endif
 #if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING)
 #undef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
 #undef ANSWER_TRIE_LOCK_AT_NODE_LEVEL
 #undef ANSWER_TRIE_LOCK_AT_WRITE_LEVEL
 #undef ANSWER_TRIE_ALLOC_BEFORE_CHECK
+#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
+#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
+#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
 #endif
 #else /* ! TABLING || ! THREADS */
 #undef THREADS_NO_SHARING
