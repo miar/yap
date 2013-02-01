@@ -1037,6 +1037,7 @@
 #ifdef MODE_DIRECTED_TABLING
     if (SgFr_mode_directed(sg_fr)) {
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr);
+  
       if (ans_node == NULL) {
 	/* no answer inserted */
 	UNLOCK_ANSWER_TRIE(sg_fr);

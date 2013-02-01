@@ -2710,26 +2710,42 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 ***************************************************************/
 
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
-#ifdef YAPOR
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+#ifdef THREADS_FULL_SHARING
+
+/*#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)	\
         TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);  \
-        SgFr_invalid_chain(SG_FR) = NODE
-#else
+        SgFr_invalid_chain(SG_FR) = NODE */
+
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)
+
+#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
+        TAG_AS_ANSWER_INVALID_NODE(NODE)
+
+#else 
 #define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
         FREE_ANSWER_TRIE_NODE(NODE)
-#endif /* YAPOR */
+
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
         TAG_AS_ANSWER_INVALID_NODE(NODE);               \
         TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);  \
         SgFr_invalid_chain(SG_FR) = NODE
+
+#endif /* THREADS_FULL_SHARING */
+
+
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
   if (IS_ANSWER_TRIE_HASH(current_node)) {
     ans_hash_ptr hash;
     ans_node_ptr *bucket, *last_bucket;
     hash = (ans_hash_ptr) current_node;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+    bucket = AnsHash_buckets(hash);
+    last_bucket = bucket + AnsHash_num_buckets(hash);
+#else      
     bucket = Hash_buckets(hash);
     last_bucket = bucket + Hash_num_buckets(hash);
+#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
     do {
       current_node = *bucket;
       if (current_node) {
@@ -2754,7 +2770,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
     else
       SgFr_hash_chain(sg_fr) = Hash_next(hash);
     //    FREE_BUCKETS(Hash_buckets(hash));
-    FREE_ANSWER_TRIE_HASH(hash);
+    //FREE_ANSWER_TRIE_HASH(hash);
   } else {
     if (position == TRAVERSE_POSITION_FIRST) {
       ans_node_ptr next_node = TrNode_next(current_node);

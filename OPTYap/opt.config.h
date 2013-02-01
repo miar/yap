@@ -84,7 +84,7 @@
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
 #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
@@ -96,13 +96,13 @@
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
 #define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
-#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
+//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
+//%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+//%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
@@ -121,7 +121,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-//#define MODE_DIRECTED_TABLING 1
+#define MODE_DIRECTED_TABLING 1
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **
@@ -373,7 +373,7 @@
 #endif
 
 #if defined(YAPOR) || defined(THREADS)
-#undef MODE_DIRECTED_TABLING
+//#undef MODE_DIRECTED_TABLING
 #undef INCOMPLETE_TABLING
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING

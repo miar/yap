@@ -1388,10 +1388,9 @@ static inline void adjust_freeze_registers(void) {
 
 
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
-#if defined(OUTPUT_THREADS_TABLING) || defined(MODE_DIRECTED_TABLING)
+#if defined(OUTPUT_THREADS_TABLING) /* || defined(MODE_DIRECTED_TABLING) */
   CACHE_REGS
 #endif /* OUTPUT_THREADS_TABLING */
-
   LOCK_SG_FR(sg_fr);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   INFO_THREADS(" mark_as_completed sgfr=%p ", SgFr_sg_ent(sg_fr));
@@ -1400,7 +1399,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   SgFr_sg_ent_state(sg_fr) = complete;
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   SgFr_state(sg_fr) = complete;
-  UNLOCK_SG_FR(sg_fr);
 #ifdef MODE_DIRECTED_TABLING
   if (SgFr_invalid_chain(sg_fr)) {
     ans_node_ptr current_node, next_node;
@@ -1419,7 +1417,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       next_node = TrNode_child(next_node);
     }
     SgFr_last_answer(sg_fr) = current_node;
-#ifndef YAPOR
+#ifndef THREADS_FULL_SHARING
+    /* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
     /* free invalid answer nodes */
     current_node = SgFr_invalid_chain(sg_fr);
     SgFr_invalid_chain(sg_fr) = NULL;
@@ -1428,9 +1427,10 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       FREE_ANSWER_TRIE_NODE(current_node);
       current_node = next_node;
     }
-#endif /* ! YAPOR */
+#endif /* !THREADS_FULL_SHARING */
   }
 #endif /* MODE_DIRECTED_TABLING */
+  UNLOCK_SG_FR(sg_fr);
   return;
 }
 
@@ -1635,7 +1635,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       /* answers --> incomplete/ready */
 #ifdef INCOMPLETE_TABLING
       SgFr_state(sg_fr) = incomplete;
-      UNLOCK_SG_FR(sg_fr);
 #ifdef MODE_DIRECTED_TABLING
       if (SgFr_invalid_chain(sg_fr)) {
 	ans_node_ptr current_node, next_node;
@@ -1654,7 +1653,8 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	  next_node = TrNode_child(next_node);
 	}
 	SgFr_last_answer(sg_fr) = current_node;
-#ifndef YAPOR
+#ifndef THREADS_FULL_SHARING
+	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
 	/* free invalid answer nodes */
 	current_node = SgFr_invalid_chain(sg_fr);
 	SgFr_invalid_chain(sg_fr) = NULL;
@@ -1663,14 +1663,18 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	  FREE_ANSWER_TRIE_NODE(current_node);
 	  current_node = node_node;
 	}
-#endif /* ! YAPOR */
+#endif /* THREADS_FULL_SHARING */
       }
 #endif /* MODE_DIRECTED_TABLING */
-#else
+      UNLOCK_SG_FR(sg_fr);
+#else /* !INCOMPLETE_TABLING */
       ans_node_ptr node;
 #ifdef MODE_DIRECTED_TABLING
+#ifndef THREADS_FULL_SHARING
+	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
       ans_node_ptr invalid_node = SgFr_invalid_chain(sg_fr);
       SgFr_invalid_chain(sg_fr) = NULL;
+#endif /* THREADS_FULL_SHARING */
 #endif /* MODE_DIRECTED_TABLING */
       SgFr_state(sg_fr) = ready;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1717,14 +1721,17 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
       }
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-#if defined(MODE_DIRECTED_TABLING) && ! defined(YAPOR)
+#if defined(MODE_DIRECTED_TABLING)
+#ifndef THREADS_FULL_SHARING
+	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
       /* free invalid answer nodes */
       while (invalid_node) {
 	node = TrNode_next(invalid_node);	
 	FREE_ANSWER_TRIE_NODE(invalid_node);
 	invalid_node = node;
       }
-#endif /* MODE_DIRECTED_TABLING && ! YAPOR */
+#endif /* THREADS_FULL_SHARING */
+#endif /* MODE_DIRECTED_TABLING  */
 #endif /* INCOMPLETE_TABLING */
     }
 #ifdef LIMIT_TABLING

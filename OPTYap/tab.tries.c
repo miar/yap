@@ -1161,6 +1161,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #endif /* !THREADS */
   if (*sg_fr_end == NULL) {
     /* new tabled subgoal */
+#if !defined(THREADS_FULL_SHARING) && !defined(THREADS_CONSUMER_SHARING)
 #ifdef MODE_DIRECTED_TABLING
     if (subs_pos) {
       ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
@@ -1168,7 +1169,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     } else
       mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
-#if !defined(THREADS_FULL_SHARING) && !defined(THREADS_CONSUMER_SHARING)
     new_subgoal_frame(sg_fr, preg, mode_directed);
     *sg_fr_end = sg_fr;
     __sync_synchronize();
@@ -1185,14 +1185,21 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     if (SgEnt_sg_ent_state(sg_ent) == ready) {
       LOCK(SgEnt_lock(sg_ent));
       if (SgEnt_sg_ent_state(sg_ent) == ready) {
-	SgEnt_code(sg_ent) = preg;
+        SgEnt_code(sg_ent) = preg;
+#ifdef MODE_DIRECTED_TABLING
+	if (subs_pos) {
+          ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+          memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+        } else
+	  mode_directed = NULL;
+#endif /* MODE_DIRECTED_TABLING */
 	SgEnt_init_mode_directed_fields(sg_ent, mode_directed);
-	SgEnt_sg_ent_state(sg_ent) = evaluating;
 #ifdef THREADS_CONSUMER_SHARING
 	SgEnt_gen_worker(sg_ent) = worker_id;
 	SgFr_state(sg_fr) = ready;
 #endif /* THREADS_CONSUMER_SHARING */
       }
+      SgEnt_sg_ent_state(sg_ent) = evaluating;
       UNLOCK(SgEnt_lock(sg_ent));
     }
     *sg_fr_end = sg_fr;
@@ -1271,21 +1278,20 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
-	LOCK_ANSWER_NODE(current_ans_node);
+	ans_node_ptr parent_ans_node = current_ans_node;
+	LOCK_ANSWER_NODE(parent_ans_node);
 	if (TrNode_child(current_ans_node) == NULL) {
-#ifdef YAPOR
+#ifdef THREADS_FULL_SHARING
 	  struct answer_trie_node virtual_ans_node;
-	  ans_node_ptr parent_ans_node = current_ans_node;
-	  TrNode_init_lock_field(&virtual_ans_node);
+	  AnsNode_init_lock_field(&virtual_ans_node);
 	  TrNode_parent(&virtual_ans_node) = NULL;
 	  TrNode_child(&virtual_ans_node) = NULL;
 	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
 #else
 	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
-#endif /* YAPOR */
+#endif /* THREADS_FULL_SHARING */
 	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
-	  ans_node_ptr parent_ans_node = current_ans_node;
 	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
 	  current_ans_node = answer_search_min_max(sg_fr, current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
 	  if (invalid_ans_node == TrNode_child(parent_ans_node))  /* worse or equal answer */
@@ -1293,11 +1299,10 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	} else if (mode == MODE_DIRECTED_FIRST)
 	  current_ans_node = NULL;
 	else {  /* mode == MODE_DIRECTED_LAST */
-#ifdef YAPOR
+#ifdef THREADS_FULL_SHARING
 	  struct answer_trie_node virtual_ans_node;
-	  ans_node_ptr parent_ans_node = current_ans_node;
 	  invalid_ans_node = TrNode_child(parent_ans_node);
-	  TrNode_init_lock_field(&virtual_ans_node);
+	  AnsNode_init_lock_field(&virtual_ans_node);
 	  TrNode_parent(&virtual_ans_node) = NULL;
 	  TrNode_child(&virtual_ans_node) = NULL;
 	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
@@ -1306,9 +1311,9 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	  invalid_ans_node = TrNode_child(current_ans_node);
 	  TrNode_child(current_ans_node) = NULL;	 
 	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
-#endif /* YAPOR */
+#endif /* THREADS_FULL_SHARING */
 	}
-	UNLOCK_ANSWER_NODE(current_ans_node);
+	UNLOCK_ANSWER_NODE(parent_ans_node);
       }
       n_subs--;
       i--;
@@ -1325,8 +1330,7 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
   while (vars_arity--) {
     Term t = STACK_POP_DOWN(stack_vars);
     RESET_VARIABLE(t);
-  }
-
+  } 
   return current_ans_node;
 #undef subs_arity
 }
@@ -1501,19 +1505,19 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-      }
-#if defined(MODE_DIRECTED_TABLING) && defined(YAPOR)
-      if (SgFr_invalid_chain(sg_fr)) {
-	ans_node_ptr next_node, invalid_node = SgFr_invalid_chain(sg_fr);
-	SgFr_invalid_chain(sg_fr) = NULL;
-	/* free invalid answer nodes */
-	while (invalid_node) {
-	  next_node = TrNode_next(invalid_node);	
-	  FREE_ANSWER_TRIE_NODE(invalid_node);
-	  invalid_node = next_node;
+#if defined(MODE_DIRECTED_TABLING)
+	if (SgFr_invalid_chain(sg_fr)) {
+	  ans_node_ptr next_node, invalid_node = SgFr_invalid_chain(sg_fr);
+	  SgFr_invalid_chain(sg_fr) = NULL;
+	  /* free invalid answer nodes */
+	  while (invalid_node) {
+	    next_node = TrNode_next(invalid_node);	
+	    FREE_ANSWER_TRIE_NODE(invalid_node);
+	    invalid_node = next_node;
+	  }
 	}
+#endif /* MODE_DIRECTED_TABLING */
       }
-#endif /* MODE_DIRECTED_TABLING && YAPOR */
 #ifdef LIMIT_TABLING
       remove_from_global_sg_fr_list(sg_fr);
 #endif /* LIMIT_TABLING */
