@@ -45,6 +45,7 @@ static Int p_abolish_all_tables( USES_REGS1 );
 static Int p_show_tabled_predicates( USES_REGS1 );
 static Int p_show_table( USES_REGS1 );
 static Int p_show_all_tables( USES_REGS1 );
+static Int p_show_cputime_by_thread( USES_REGS1 );
 static Int p_show_global_trie( USES_REGS1 );
 static Int p_show_statistics_table( USES_REGS1 );
 static Int p_show_statistics_tabling( USES_REGS1 );
@@ -211,6 +212,7 @@ void Yap_init_optyap_preds(void) {
   Yap_InitCPred("show_tabled_predicates", 1, p_show_tabled_predicates, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("$c_show_table", 3, p_show_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("show_all_tables", 1, p_show_all_tables, SafePredFlag|SyncPredFlag);
+  Yap_InitCPred("show_cputime_by_thread", 1, p_show_cputime_by_thread, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("show_global_trie", 1, p_show_global_trie, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("$c_table_statistics", 3, p_show_statistics_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("tabling_statistics", 1, p_show_statistics_tabling, SafePredFlag|SyncPredFlag);
@@ -547,6 +549,38 @@ static Int p_show_all_tables( USES_REGS1 ) {
   PL_release_stream(out);
   return (TRUE);
 }
+
+
+
+static Int p_show_cputime_by_thread( USES_REGS1 ) {
+#ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
+  IOSTREAM *out;
+  Term t = Deref(ARG1);
+  
+  if (IsVarTerm(t) || !IsAtomTerm(t))
+    return FALSE;
+  if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))
+    return FALSE;
+    
+  if (worker_id != 0) { 
+    Sfprintf(out, "Error - Main thread Only\n");
+    PL_release_stream(out); 
+    return (FALSE);
+  }
+    
+  int i = 1;
+  while(cputime_by_thread[i] != (UInt)0 && i < CPUTIME_BY_THREAD_MAX_THREADS) {
+    Sfprintf(out,"cputime_by_thread[%d] = %d \n", i, cputime_by_thread[i]) ;
+    i++;
+  }
+  
+  PL_release_stream(out); 
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
+
+return (TRUE);
+}
+
+
 
 
 static Int p_show_global_trie( USES_REGS1 ) {
