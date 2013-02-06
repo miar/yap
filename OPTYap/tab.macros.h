@@ -1392,13 +1392,34 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 #endif /* OUTPUT_THREADS_TABLING */
   LOCK_SG_FR(sg_fr);
+  SgFr_state(sg_fr) = complete;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   INFO_THREADS(" mark_as_completed sgfr=%p ", SgFr_sg_ent(sg_fr));
   TABLING_ERROR_CHECKING(mark_as_completed, SgFr_sg_ent_state(sg_fr) > complete);
   SgFr_active_workers(sg_fr)--;
   SgFr_sg_ent_state(sg_fr) = complete;
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-  SgFr_state(sg_fr) = complete;
+#ifdef MODE_DIRECTED_TABLING
+  if (SgFr_invalid_chain(sg_fr)) {
+    ans_node_ptr current_node, next_node;
+    /* find first valid answer */
+    current_node = SgFr_first_answer(sg_fr);
+    while (IS_ANSWER_INVALID_NODE(current_node))
+      current_node = TrNode_child(current_node);
+    SgFr_first_answer(sg_fr) = current_node;
+    /* chain next valid answers */
+    next_node = TrNode_child(current_node);
+    while (next_node) {
+      if (! IS_ANSWER_INVALID_NODE(next_node)) {
+	TrNode_child(current_node) = next_node;
+	current_node = next_node;   
+      }
+      next_node = TrNode_child(next_node);
+    }
+    SgFr_last_answer(sg_fr) = current_node;    
+  }
+#endif /* MODE_DIRECTED_TABLING */
+
+#else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
 
 #ifdef MODE_DIRECTED_TABLING
   if (SgFr_invalid_chain(sg_fr)) {
@@ -1418,8 +1439,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       next_node = TrNode_child(next_node);
     }
     SgFr_last_answer(sg_fr) = current_node;
-#ifndef THREADS_FULL_SHARING
-    /* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
     /* free invalid answer nodes */
     current_node = SgFr_invalid_chain(sg_fr);
     SgFr_invalid_chain(sg_fr) = NULL;
@@ -1428,9 +1447,9 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       FREE_ANSWER_TRIE_NODE(current_node);
       current_node = next_node;
     }
-#endif /* !THREADS_FULL_SHARING */
   }
 #endif /* MODE_DIRECTED_TABLING */
+#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   UNLOCK_SG_FR(sg_fr);
   return;
 }
