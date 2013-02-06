@@ -1399,6 +1399,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   SgFr_sg_ent_state(sg_fr) = complete;
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   SgFr_state(sg_fr) = complete;
+
 #ifdef MODE_DIRECTED_TABLING
   if (SgFr_invalid_chain(sg_fr)) {
     ans_node_ptr current_node, next_node;

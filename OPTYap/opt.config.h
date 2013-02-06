@@ -63,7 +63,7 @@
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
-#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
+//#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
 
 /*************************************************************************
 **      tries locking scheme (mandatory, define one per trie type)      **
@@ -373,7 +373,7 @@
 #endif
 
 #if defined(YAPOR) || defined(THREADS)
-#undef MODE_DIRECTED_TABLING
+//#undef MODE_DIRECTED_TABLING
 #undef INCOMPLETE_TABLING
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING
