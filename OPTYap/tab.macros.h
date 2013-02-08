@@ -511,6 +511,16 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define DepFr_init_external_field(DEP_FR, IS_EXTERNAL)
 #endif /* THREADS_CONSUMER_SHARING */
 
+
+#if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
+#define	  Init_mode_directed_full_sharing_fields(SG_ENT)        \
+          SgEnt_old_hash_chain(SG_ENT) = NULL;
+#else
+#define   Init_mode_directed_full_sharing_fields(SG_ENT)
+#endif
+
+
+
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 #define DepFr_init_last_answer_field(DEP_FR, SG_FR)                                               \
         /* start with TrNode_child(DepFr_last_answer(DEP_FR)) ... */                              \
@@ -566,6 +576,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
           ALLOC_SUBGOAL_ENTRY(SG_ENT);                              \
           INIT_LOCK(SgEnt_lock(SG_ENT));		            \
           SgEnt_hash_chain(SG_ENT) = NULL;		 	    \
+	  Init_mode_directed_full_sharing_fields(SG_ENT);	    \
           SgEnt_answer_trie(SG_ENT) = ans_node;                     \
           SgEnt_first_answer(SG_ENT) = NULL;                        \
           SgEnt_last_answer(SG_ENT) = NULL;		            \

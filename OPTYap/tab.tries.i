@@ -2712,17 +2712,20 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
 
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
-        TAG_AS_ANSWER_INVALID_NODE(NODE);		\
-        TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);  \
-        SgFr_invalid_chain(SG_FR) = NODE
+       TAG_AS_ANSWER_INVALID_NODE(NODE);		\
+       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);   \
+       SgFr_invalid_chain(SG_FR) = NODE
 
 
 
 #ifdef THREADS_FULL_SHARING
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+       TAG_AS_ANSWER_INVALID_NODE(NODE);		\
+       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);   \
+       SgFr_invalid_chain(SG_FR) = NODE
 
 #else 
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)  \
         FREE_ANSWER_TRIE_NODE(NODE)
 
 #endif /* THREADS_FULL_SHARING */
@@ -2758,14 +2761,22 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 	}
       }
     } while (++bucket != last_bucket); 
+    LOCK_SG_FR(sg_fr);
     if (Hash_next(hash))
       Hash_previous(Hash_next(hash)) = Hash_previous(hash);
     if (Hash_previous(hash))
       Hash_next(Hash_previous(hash)) = Hash_next(hash);
     else
       SgFr_hash_chain(sg_fr) = Hash_next(hash);
-    //    FREE_BUCKETS(Hash_buckets(hash));
-    //FREE_ANSWER_TRIE_HASH(hash);
+#ifdef THREADS_FULL_SHARING
+    Hash_next(hash) = SgFr_old_hash_chain(sg_fr);
+    SgFr_old_hash_chain(sg_fr) = hash;
+#else    
+    FREE_BUCKETS(Hash_buckets(hash));
+    FREE_ANSWER_TRIE_HASH(hash);
+#endif /* THREADS_FULL_SHARING */
+    UNLOCK_SG_FR(sg_fr);
+
   } else {
     if (position == TRAVERSE_POSITION_FIRST) {
       ans_node_ptr next_node = TrNode_next(current_node);

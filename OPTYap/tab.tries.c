@@ -1518,6 +1518,16 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 	    invalid_node = next_node;
 	  }
 	}
+#if defined(THREADS_FULL_SHARING)
+	if (SgFr_old_hash_chain(sg_fr)) {
+	  struct answer_trie_hash *hash;
+	  do {	    
+	    hash = SgFr_old_hash_chain(sg_fr);
+	    SgFr_old_hash_chain(sg_fr) = Hash_next(SgFr_old_hash_chain(sg_fr));
+	    FREE_ANSWER_TRIE_HASH(hash);
+	  } while(SgFr_old_hash_chain(sg_fr));
+	}
+#endif /*THREADS_FULL_SHARING */
 #endif /* MODE_DIRECTED_TABLING */
       }
 #ifdef LIMIT_TABLING

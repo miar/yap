@@ -308,6 +308,9 @@ typedef struct subgoal_entry {
 #endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   yamop *code_of_subgoal;
   struct answer_trie_hash *hash_chain;
+#if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
+  struct answer_trie_hash *old_hash_chain;
+#endif
   struct answer_trie_node *answer_trie;
   struct answer_trie_node *first_answer;
   struct answer_trie_node *last_answer;
@@ -332,7 +335,7 @@ typedef struct subgoal_entry {
   int active_workers;
   struct subgoal_frame *subgoal_frame[THREADS_NUM_BUCKETS];
 #ifdef USE_PAGES_MALLOC
-  struct subgoal_entry * next; //missing initialization --NEW
+  struct subgoal_entry * next; 
 #endif /*USE_PAGES_MALLOC */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 }* sg_ent_ptr;
@@ -342,6 +345,7 @@ typedef struct subgoal_entry {
 #define SgEnt_tab_ent(X)         (((X)->code_of_subgoal)->u.Otapl.te)
 #define SgEnt_arity(X)           (((X)->code_of_subgoal)->u.Otapl.s)
 #define SgEnt_hash_chain(X)      ((X)->hash_chain)
+#define SgEnt_old_hash_chain(X)  ((X)->old_hash_chain)
 #define SgEnt_answer_trie(X)     ((X)->answer_trie)
 #define SgEnt_first_answer(X)    ((X)->first_answer)
 #define SgEnt_last_answer(X)     ((X)->last_answer)
@@ -388,6 +392,7 @@ typedef struct subgoal_frame {
 #define SgFr_tab_ent(X)                 ((SUBGOAL_ENTRY(X) code_of_subgoal)->u.Otapl.te)
 #define SgFr_arity(X)                   ((SUBGOAL_ENTRY(X) code_of_subgoal)->u.Otapl.s)
 #define SgFr_hash_chain(X)              (SUBGOAL_ENTRY(X) hash_chain)
+#define SgFr_old_hash_chain(X)          (SUBGOAL_ENTRY(X) old_hash_chain)
 #define SgFr_answer_trie(X)             (SUBGOAL_ENTRY(X) answer_trie)
 #define SgFr_first_answer(X)            (SUBGOAL_ENTRY(X) first_answer)
 #define SgFr_last_answer(X)             (SUBGOAL_ENTRY(X) last_answer)
