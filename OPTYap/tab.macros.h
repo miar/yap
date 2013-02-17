@@ -1100,7 +1100,11 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
     void **new_buckets;
-    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS);
+    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS 
+#ifdef THREADS_SUBGOAL_SHARING_NEW
++ 1
+#endif /* THREADS_SUBGOAL_SHARING_NEW */
+);  
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
       FREE_BUCKETS(new_buckets);
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1132,7 +1136,11 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
     LOCK_SUBGOAL_NODE(sg_node);
     if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
-      ALLOC_BUCKETS(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS);
+      ALLOC_BUCKETS(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS 
+#ifdef THREADS_SUBGOAL_SHARING_NEW
++ 1
+#endif /* THREADS_SUBGOAL_SHARING_NEW */
+);  
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
       sg_ent_ptr sg_ent;
       new_subgoal_entry(sg_ent);
@@ -1474,6 +1482,21 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }
 #endif /* MODE_DIRECTED_TABLING */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+
+#ifdef THREADS_SUBGOAL_SHARING_NEW
+  void **sg_fr_array;
+  sg_fr_array = SgFr_sg_fr_array(sg_fr);
+  if (*(sg_fr_array + THREADS_NUM_BUCKETS) == NULL) {
+    sg_fr_comp_ptr sg_fr_comp;
+    ALLOC_SG_FR_COMP(sg_fr_comp);
+    SgFrComp_answer_trie(sg_fr_comp) = SgFr_answer_trie(sg_fr);
+    SgFrComp_first_answer(sg_fr_comp) = SgFr_first_answer(sg_fr);
+    SgFrComp_last_answer(sg_fr_comp) = SgFr_last_answer(sg_fr);
+    SgFrComp_state(sg_fr_comp) = SgFr_state(sg_fr);
+    if (!BOOL_CAS((sg_fr_array + THREADS_NUM_BUCKETS), NULL, sg_fr_comp))
+      FREE_SG_FR_COMP(sg_fr_comp);
+  }
+#endif /* THREADS_SUBGOAL_SHARING_NEW */
   UNLOCK_SG_FR(sg_fr);
   return;
 }

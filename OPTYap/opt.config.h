@@ -58,7 +58,9 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1   /* ATOMIC LOCKS NOT TESTED */
+#define THREADS_SUBGOAL_SHARING 1 
+//#define THREADS_SUBGOAL_SHARING_NEW 1  /* doing this now */
+
 //#define THREADS_FULL_SHARING 1
 /* #define THREADS_CONSUMER_SHARING 1 */
 

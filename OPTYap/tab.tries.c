@@ -1170,6 +1170,10 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
       mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
     new_subgoal_frame(sg_fr, preg, mode_directed);
+#ifdef THREADS_SUBGOAL_SHARING_NEW
+    SgFr_sg_fr_array(sg_fr) =   (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node))
+#endif /* THREADS_SUBGOAL_SHARING_NEW */
+
     *sg_fr_end = sg_fr;
     __sync_synchronize();
     TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
