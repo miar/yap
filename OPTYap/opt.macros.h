@@ -497,11 +497,11 @@ extern int Yap_page_size;
 #define FREE_TG_ANSWER_FRAME(STR)       FREE_STRUCT(STR, struct table_subgoal_answer_frame, _pages_tg_ans_fr)
 
 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
-
 #define VAL_CAS(PTR, OLD, NEW)                 __sync_val_compare_and_swap((PTR), (OLD), (NEW))
 #define BOOL_CAS(PTR, OLD, NEW)                __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
 #define atomic_inc(P)                          __sync_add_and_fetch((P), 1)
+
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
 
 #define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)
 #define FREE_TRIE_HASH_BUCKETS(PTR)                   FREE_BLOCK(PTR)

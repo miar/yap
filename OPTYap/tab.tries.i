@@ -2711,25 +2711,32 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
 
-#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
-       TAG_AS_ANSWER_INVALID_NODE(NODE);		\
-       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);   \
-       SgFr_invalid_chain(SG_FR) = NODE
-
-
-
 #ifdef THREADS_FULL_SHARING
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
-       TAG_AS_ANSWER_INVALID_NODE(NODE);		\
+
+#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)  \
+         TAG_AS_ANSWER_INVALID_NODE(NODE)
+	 /*     LOCK_SG_FR(SG_FR);			\
        TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);   \
-       SgFr_invalid_chain(SG_FR) = NODE
+       SgFr_invalid_chain(SG_FR) = NODE;		\
+       UNLOCK_SG_FR(SG_FR) */
+
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+        TAG_AS_ANSWER_INVALID_NODE(NODE)
+/*       LOCK_SG_FR(SG_FR);				\
+       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);	\
+       SgFr_invalid_chain(SG_FR) = NODE;		\
+       UNLOCK_SG_FR(SG_FR)*/
 
 #else 
+
+#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
+      TAG_AS_ANSWER_INVALID_NODE(NODE);                 \
+      TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);    \
+       SgFr_invalid_chain(SG_FR) = NODE
+
 #define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)  \
         FREE_ANSWER_TRIE_NODE(NODE)
-
 #endif /* THREADS_FULL_SHARING */
-
 
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {

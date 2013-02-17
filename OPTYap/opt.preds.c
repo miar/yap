@@ -473,7 +473,6 @@ static Int p_abolish_table( USES_REGS1 ) {
 
 static Int p_abolish_all_tables( USES_REGS1 ) {
   tab_ent_ptr tab_ent;
-  //  printf("yap_page = %d subgoal_entry = %d page_header = %d \n", Yap_page_size, sizeof(struct subgoal_entry), sizeof(struct page_header));
 
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {

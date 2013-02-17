@@ -484,7 +484,6 @@
       UNLOCK_SG_FR(sg_fr);
       }
 #endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-//LOCK_SG_FR(sg_fr);
 //    INFO_THREADS("table_try_single sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
@@ -499,7 +498,6 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
-      //    UNLOCK_SG_FR(sg_fr);
 #ifdef DETERMINISTIC_TABLING
       if (IsMode_Batched(TabEnt_mode(tab_ent))) {
 	store_deterministic_generator_node(tab_ent, sg_fr);
@@ -518,7 +516,6 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      //UNLOCK_SG_FR(sg_fr);
       SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
@@ -532,7 +529,6 @@
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
-      //UNLOCK_SG_FR(sg_fr);
       find_leader_node(leader_cp, leader_dep_on_stack);
       store_consumer_node(tab_ent, sg_fr, leader_cp, leader_dep_on_stack);
 #ifdef DEBUG_OPTYAP
@@ -554,11 +550,9 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;

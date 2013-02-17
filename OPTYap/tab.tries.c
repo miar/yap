@@ -1325,7 +1325,7 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
     j++;
   }
   if (invalid_ans_node)
-    invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+   invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
  
   /* reset variables */
   stack_vars = (CELL *) TR;

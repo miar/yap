@@ -239,10 +239,8 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 
 /* trie hashes */
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
-//#define MAX_NODES_PER_TRIE_LEVEL        2
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define BASE_HASH_BUCKETS               64 //-> DEFAULT
-//#define BASE_HASH_BUCKETS               2
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
@@ -779,7 +777,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   init_atomic_new_answer_trie_hash(EXP_NODES, HASH, NUM_NODES, CHILD_NODE)
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 */
 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03)
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03) 
 
 #define SUBGOAL_TRIE_HASH_EXPANSION_MARK       ((Term) MakeTableVarTerm(MAX_TABLE_VARS + 1))
 #define IS_SUBGOAL_TRIE_HASH_EXPANSION(NODE)   (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_EXPANSION_MARK)
@@ -813,6 +811,9 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   init_atomic_new_subgoal_trie_hash(EXP_NODE, HASH_NODE, BUCKETS, NUM_NODES, CHILD_NODE);                          \
   SgHash_init_chain_fields(HASH_NODE, TAB_ENT)
 
+#endif
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
 
 #define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
 #define IS_ANSWER_TRIE_HASH_EXPANSION(NODE)   (TrNode_instr(NODE) == ANSWER_TRIE_HASH_EXPANSION_MARK)
@@ -848,15 +849,15 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
   AnsHash_init_chain_fields(HASH_NODE, sg_fr)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
+#endif
 
-#else /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
-
+#ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
 #define init_atomic_new_answer_trie_hash(HASH, NUM_NODES)                     \
   Hash_num_buckets(HASH) = BASE_HASH_BUCKETS;				      \
   ALLOC_BUCKETS(Hash_buckets(HASH), BASE_HASH_BUCKETS);                       \
   Hash_num_nodes(HASH) = NUM_NODES
 
-#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+#endif
 
 
 #define new_answer_trie_hash(HASH, NUM_NODES, SG_FR)            \
@@ -1097,16 +1098,28 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) &TrNode_sg_fr(sg_node);
   
   if (*sg_fr_addr == NULL) {
+#if defined(THREADS_SUBGOAL_SHARING)
+    void **new_buckets;
+    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS);
+    if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
+      FREE_BUCKETS(new_buckets);
+#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     sg_ent_ptr sg_ent;
     new_subgoal_entry(sg_ent);
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))){
       FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
       FREE_SUBGOAL_ENTRY(sg_ent);
     } 
+#endif
   }
 
-  sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
-
+  sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket(
+#if defined(THREADS_SUBGOAL_SHARING)
+                                                      (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))
+#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+						       (void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)))
+#endif
+						      );
   return sg_fr_addr;
 }
 
@@ -1399,7 +1412,7 @@ static inline void adjust_freeze_registers(void) {
 
 
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
-#if defined(OUTPUT_THREADS_TABLING) /* || defined(MODE_DIRECTED_TABLING) */
+#if defined(OUTPUT_THREADS_TABLING)  || defined(MODE_DIRECTED_TABLING)
   CACHE_REGS
 #endif /* OUTPUT_THREADS_TABLING */
   LOCK_SG_FR(sg_fr);
