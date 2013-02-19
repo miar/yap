@@ -1100,11 +1100,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
     void **new_buckets;
-    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS 
-#ifdef THREADS_SUBGOAL_SHARING_NEW
-+ 1
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-);  
+    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS);  
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
       FREE_BUCKETS(new_buckets);
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1136,11 +1132,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
     LOCK_SUBGOAL_NODE(sg_node);
     if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
-      ALLOC_BUCKETS(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS 
-#ifdef THREADS_SUBGOAL_SHARING_NEW
-+ 1
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-);  
+      ALLOC_BUCKETS(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS);  
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
       sg_ent_ptr sg_ent;
       new_subgoal_entry(sg_ent);
@@ -1186,10 +1178,19 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
 #if defined(THREADS_SUBGOAL_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   sg_fr_ptr sg_fr = *sg_fr_addr;
-  if (worker_id == 0)
+  if (worker_id == 0) 
     abolish_thread_buckets((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
-  else
+  else {
+#if defined(THREADS_SUBGOAL_SHARING_NEW)
+    void **buckets;
+    buckets = (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
+    sg_fr_ptr *sg_fr_addr_completed = (sg_fr_ptr *) buckets;
+    sg_fr_ptr sg_fr_complete = *sg_fr_addr_completed;    
+    if (sg_fr && SgFr_answer_trie(sg_fr) == SgFr_answer_trie(sg_fr_complete))
+      sg_fr = NULL;
+#endif /* THREADS_SUBGOAL_SHARING_NEW  */
     *sg_fr_addr = NULL;
+  }
   return sg_fr;
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
@@ -1484,18 +1485,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
 #ifdef THREADS_SUBGOAL_SHARING_NEW
-  void **sg_fr_array;
-  sg_fr_array = SgFr_sg_fr_array(sg_fr);
-  if (*(sg_fr_array + THREADS_NUM_BUCKETS) == NULL) {
-    sg_fr_comp_ptr sg_fr_comp;
-    ALLOC_SG_FR_COMP(sg_fr_comp);
-    SgFrComp_answer_trie(sg_fr_comp) = SgFr_answer_trie(sg_fr);
-    SgFrComp_first_answer(sg_fr_comp) = SgFr_first_answer(sg_fr);
-    SgFrComp_last_answer(sg_fr_comp) = SgFr_last_answer(sg_fr);
-    SgFrComp_state(sg_fr_comp) = SgFr_state(sg_fr);
-    if (!BOOL_CAS((sg_fr_array + THREADS_NUM_BUCKETS), NULL, sg_fr_comp))
-      FREE_SG_FR_COMP(sg_fr_comp);
-  }
+  sg_fr_ptr *sg_fr_array;
+  sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
+  if (*sg_fr_array == NULL)
+    BOOL_CAS(sg_fr_array, NULL, sg_fr);
+
+  
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
   UNLOCK_SG_FR(sg_fr);
   return;

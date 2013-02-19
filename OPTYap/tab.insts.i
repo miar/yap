@@ -476,14 +476,14 @@
     MEM2YENV;
 #ifdef THREADS_SUBGOAL_SHARING_NEW
     if (SgFr_state(sg_fr) <= ready) {
-      void **sg_fr_array;
-      sg_fr_array = SgFr_sg_fr_array(sg_fr);
-      if (*(sg_fr_array + THREADS_NUM_BUCKETS) != NULL) {
-	sg_fr_comp_ptr sg_fr_comp = *(sg_fr_array + THREADS_NUM_BUCKETS);
-	SgFr_answer_trie(sg_fr) = SgFrComp_answer_trie(sg_fr_comp);
-	SgFr_first_answer(sg_fr) = SgFrComp_first_answer(sg_fr_comp);
-	SgFr_last_answer(sg_fr) = SgFrComp_last_answer(sg_fr_comp);
-	SgFr_state(sg_fr) = SgFrComp_state(sg_fr_comp);
+      sg_fr_ptr *sg_fr_array;
+      sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
+      if (*sg_fr_array != NULL) {
+	sg_fr_ptr sg_fr_complete = *sg_fr_array;
+	SgFr_answer_trie(sg_fr) = SgFr_answer_trie(sg_fr_complete);
+	SgFr_first_answer(sg_fr) = SgFr_first_answer(sg_fr_complete);
+	SgFr_last_answer(sg_fr) = SgFr_last_answer(sg_fr_complete);
+	SgFr_state(sg_fr) = SgFr_state(sg_fr_complete);
       }
     }
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
@@ -631,20 +631,20 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
-
 #ifdef THREADS_SUBGOAL_SHARING_NEW
     if (SgFr_state(sg_fr) <= ready) {
-      void **sg_fr_array;
-      sg_fr_array = SgFr_sg_fr_array(sg_fr);
-      if (*(sg_fr_array + THREADS_NUM_BUCKETS) != NULL) {
-	sg_fr_comp_ptr sg_fr_comp = *(sg_fr_array + THREADS_NUM_BUCKETS);
-	SgFr_answer_trie(sg_fr) = SgFrComp_answer_trie(sg_fr_comp);
-	SgFr_first_answer(sg_fr) = SgFrComp_first_answer(sg_fr_comp);
-	SgFr_last_answer(sg_fr) = SgFrComp_last_answer(sg_fr_comp);
-	SgFr_state(sg_fr) = SgFrComp_state(sg_fr_comp);
+      sg_fr_ptr *sg_fr_array;
+      sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
+      if (*sg_fr_array != NULL) {
+	sg_fr_ptr sg_fr_complete = *sg_fr_array;
+	SgFr_answer_trie(sg_fr) = SgFr_answer_trie(sg_fr_complete);
+	SgFr_first_answer(sg_fr) = SgFr_first_answer(sg_fr_complete);
+	SgFr_last_answer(sg_fr) = SgFr_last_answer(sg_fr_complete);
+	SgFr_state(sg_fr) = SgFr_state(sg_fr_complete);
       }
     }
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
+
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
@@ -787,17 +787,16 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
-
 #ifdef THREADS_SUBGOAL_SHARING_NEW
     if (SgFr_state(sg_fr) <= ready) {
-      void **sg_fr_array;
-      sg_fr_array = SgFr_sg_fr_array(sg_fr);
-      if (*(sg_fr_array + THREADS_NUM_BUCKETS) != NULL) {
-	sg_fr_comp_ptr sg_fr_comp = *(sg_fr_array + THREADS_NUM_BUCKETS);
-	SgFr_answer_trie(sg_fr) = SgFrComp_answer_trie(sg_fr_comp);
-	SgFr_first_answer(sg_fr) = SgFrComp_first_answer(sg_fr_comp);
-	SgFr_last_answer(sg_fr) = SgFrComp_last_answer(sg_fr_comp);
-	SgFr_state(sg_fr) = SgFrComp_state(sg_fr_comp);
+      sg_fr_ptr *sg_fr_array;
+      sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
+      if (*sg_fr_array != NULL) {
+	sg_fr_ptr sg_fr_complete = *sg_fr_array;
+	SgFr_answer_trie(sg_fr) = SgFr_answer_trie(sg_fr_complete);
+	SgFr_first_answer(sg_fr) = SgFr_first_answer(sg_fr_complete);
+	SgFr_last_answer(sg_fr) = SgFr_last_answer(sg_fr_complete);
+	SgFr_state(sg_fr) = SgFr_state(sg_fr_complete);
       }
     }
 #endif /* THREADS_SUBGOAL_SHARING_NEW */

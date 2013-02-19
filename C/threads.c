@@ -198,6 +198,7 @@ thread_die(int wid, int always_die)
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   DETACH_PAGES(_pages_sg_ent);
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+
   DETACH_PAGES(_pages_sg_fr);
   DETACH_PAGES(_pages_dep_fr);
   DETACH_PAGES(_pages_sg_node);

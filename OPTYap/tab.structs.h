@@ -361,21 +361,6 @@ typedef struct subgoal_entry {
 #define SgEnt_next(X)            ((X)->next)
 
 
-#ifdef THREADS_SUBGOAL_SHARING_NEW
-typedef struct completed_subgoal_frame {
-  struct answer_trie_node *answer_trie;
-  struct answer_trie_node *first_answer;
-  struct answer_trie_node *last_answer;
-  subgoal_state_flag state_flag;  /* complete or compiled : complete for now !! */
-} *sg_fr_comp_ptr;
-
-#define SgFrComp_answer_trie(X)     ((X)->answer_trie)
-#define SgFrComp_first_answer(X)    ((X)->first_answer)
-#define SgFrComp_last_answer(X)     ((X)->last_answer)
-#define SgFrComp_state(X)           ((X)->state_flag)
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-
-
 /****************************
 **      subgoal_frame      **
 ****************************/

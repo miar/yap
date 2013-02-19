@@ -1171,7 +1171,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #endif /* MODE_DIRECTED_TABLING */
     new_subgoal_frame(sg_fr, preg, mode_directed);
 #ifdef THREADS_SUBGOAL_SHARING_NEW
-    SgFr_sg_fr_array(sg_fr) =   (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node))
+    SgFr_sg_fr_array(sg_fr) = (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
 
     *sg_fr_end = sg_fr;
@@ -1497,7 +1497,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       return;
 #endif
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
-  } else {
+  } else {    
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
