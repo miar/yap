@@ -1181,7 +1181,6 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
   if (worker_id == 0) 
     abolish_thread_buckets((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   else {
-#if defined(THREADS_SUBGOAL_SHARING_NEW)
     void **buckets;
     sg_fr_ptr *sg_fr_addr_completed;
     sg_fr_ptr sg_fr_completed;
@@ -1190,7 +1189,6 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
     sg_fr_completed = *sg_fr_addr_completed;
     if (sg_fr == sg_fr_completed)
       sg_fr = NULL;    
-#endif /* THREADS_SUBGOAL_SHARING_NEW  */
     *sg_fr_addr = NULL;
   }
   return sg_fr;
@@ -1486,13 +1484,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* MODE_DIRECTED_TABLING */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
-#ifdef THREADS_SUBGOAL_SHARING_NEW
+#ifdef THREADS_SUBGOAL_SHARING
   sg_fr_ptr *sg_fr_array;
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
   if (*sg_fr_array == NULL)
-    BOOL_CAS(sg_fr_array, NULL, sg_fr);
-  
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
+    BOOL_CAS(sg_fr_array, NULL, sg_fr);  
+#endif /* THREADS_SUBGOAL_SHARING */
   UNLOCK_SG_FR(sg_fr);
   return;
 }

@@ -374,10 +374,9 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
-#ifdef THREADS_SUBGOAL_SHARING_NEW
+#ifdef THREADS_SUBGOAL_SHARING
   void **subgoal_frame_array;
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-
+#endif /* THREADS_SUBGOAL_SHARING*/
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
@@ -408,11 +407,7 @@ typedef struct subgoal_frame {
 #define SgFr_sg_ent_state(X)            (SUBGOAL_ENTRY(X) state_flag)
 #define SgFr_active_workers(X)          (SUBGOAL_ENTRY(X) active_workers)
 /* subgoal_frame fields */
-
-#ifdef THREADS_SUBGOAL_SHARING_NEW
 #define SgFr_sg_fr_array(X)             ((X)->subgoal_frame_array)
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-
 #define SgFr_sg_ent(X)                  ((X)->subgoal_entry)
 #define SgFr_batched_last_answer(X)     ((X)->batched_last_answer)
 #define SgFr_batched_cached_answers(X)  ((X)->batched_cached_answers)

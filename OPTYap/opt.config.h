@@ -58,10 +58,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1 
-#define THREADS_SUBGOAL_SHARING_NEW 1  /* doing this now - NOT READY*/
-
-//#define THREADS_FULL_SHARING 1
+#define THREADS_SUBGOAL_SHARING 1  /* use this with mode_directed_tabling */
+//#define THREADS_FULL_SHARING 1   /* DO NOT USE mode_directed_tabling */
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
@@ -122,7 +120,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-#define MODE_DIRECTED_TABLING 1
+#define MODE_DIRECTED_TABLING 1 /* use threads_subgoal_sharing */
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **

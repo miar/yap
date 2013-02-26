@@ -1169,7 +1169,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     } else
       mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
-#ifdef THREADS_SUBGOAL_SHARING_NEW
+#ifdef THREADS_SUBGOAL_SHARING
     void **buckets;
     sg_fr_ptr *sg_fr_addr_completed;
     sg_fr_ptr sg_fr_completed;
@@ -1184,8 +1184,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     }
 #else
     new_subgoal_frame(sg_fr, preg, mode_directed);
-#endif /* THREADS_SUBGOAL_SHARING_NEW */
-
+#endif /* THREADS_SUBGOAL_SHARING */
     *sg_fr_end = sg_fr;
     __sync_synchronize();
     TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
@@ -1502,10 +1501,12 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       child_mode = TRAVERSE_MODE_DOUBLE_END;
     else
       child_mode = TRAVERSE_MODE_NORMAL;
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (!TrNode_child(current_node))
-      /* if worker != 0 is searching for a subgoal entry (not called by him
-	 during the evaluation) and was not created by another worker */
+      /* if worker != 0 is searching for a subgoal frame bucket array
+	 (SUBGOAL_SHARING or subgoal entry (FULL_SHARING) (not called
+	 by him during the evaluation)) and was still not created by
+	 the other worker */
       return;
 #endif
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
