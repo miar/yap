@@ -1169,9 +1169,21 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     } else
       mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
-    new_subgoal_frame(sg_fr, preg, mode_directed);
 #ifdef THREADS_SUBGOAL_SHARING_NEW
-    SgFr_sg_fr_array(sg_fr) = (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
+    void **buckets;
+    sg_fr_ptr *sg_fr_addr_completed;
+    sg_fr_ptr sg_fr_completed;
+    buckets = (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
+    sg_fr_addr_completed = (sg_fr_ptr *) buckets;
+    sg_fr_completed = *sg_fr_addr_completed;
+    if (sg_fr_completed != NULL)
+      sg_fr = sg_fr_completed;
+    else {
+      new_subgoal_frame(sg_fr, preg, mode_directed);
+      SgFr_sg_fr_array(sg_fr) = buckets;
+    }
+#else
+    new_subgoal_frame(sg_fr, preg, mode_directed);
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
 
     *sg_fr_end = sg_fr;
@@ -1504,7 +1516,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       free_answer_hash_chain(SgFr_hash_chain(sg_fr));
       ans_node = SgFr_answer_trie(sg_fr);
       if (TrNode_child(ans_node))
-	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
       IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
@@ -1563,6 +1575,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 
 void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
   CACHE_REGS
+
   IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 #ifdef TABLING_INNER_CUTS
     if (! IS_ANSWER_LEAF_NODE(current_node) && TrNode_child(current_node)) {
@@ -1615,6 +1628,7 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 void free_answer_hash_chain(ans_hash_ptr hash) {
   CACHE_REGS    
    
+    
   IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
@@ -1692,7 +1706,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #endif  
     ATTACH_PAGES(_pages_gt_node);
     ATTACH_PAGES(_pages_gt_hash);
-    } 
+  } 
 #endif  /* THREADS */
 
 

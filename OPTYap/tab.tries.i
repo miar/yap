@@ -2720,6 +2720,8 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
        SgFr_invalid_chain(SG_FR) = NODE;		\
        UNLOCK_SG_FR(SG_FR) */
 
+
+
 #define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
         TAG_AS_ANSWER_INVALID_NODE(NODE)
 /*       LOCK_SG_FR(SG_FR);				\

@@ -1183,11 +1183,13 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
   else {
 #if defined(THREADS_SUBGOAL_SHARING_NEW)
     void **buckets;
+    sg_fr_ptr *sg_fr_addr_completed;
+    sg_fr_ptr sg_fr_completed;
     buckets = (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
-    sg_fr_ptr *sg_fr_addr_completed = (sg_fr_ptr *) buckets;
-    sg_fr_ptr sg_fr_complete = *sg_fr_addr_completed;    
-    if (sg_fr && SgFr_answer_trie(sg_fr) == SgFr_answer_trie(sg_fr_complete))
-      sg_fr = NULL;
+    sg_fr_addr_completed = (sg_fr_ptr *) buckets;
+    sg_fr_completed = *sg_fr_addr_completed;
+    if (sg_fr == sg_fr_completed)
+      sg_fr = NULL;    
 #endif /* THREADS_SUBGOAL_SHARING_NEW  */
     *sg_fr_addr = NULL;
   }
@@ -1489,7 +1491,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);
   if (*sg_fr_array == NULL)
     BOOL_CAS(sg_fr_array, NULL, sg_fr);
-
   
 #endif /* THREADS_SUBGOAL_SHARING_NEW */
   UNLOCK_SG_FR(sg_fr);
