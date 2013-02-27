@@ -381,6 +381,9 @@ typedef struct subgoal_frame {
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
   struct subgoal_frame *next;
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
+  struct subgoal_frame *next_complete;
+#endif
 } *sg_fr_ptr;
 
 /* subgoal_entry fields */
@@ -414,6 +417,7 @@ typedef struct subgoal_frame {
 #define SgFr_state(X)                   ((X)->state_flag)
 #define SgFr_gen_cp(X)                  ((X)->generator_choice_point)
 #define SgFr_next(X)                    ((X)->next)
+#define SgFr_next_complete(X)           ((X)->next_complete)
 
 /**********************************************************************************************************
 

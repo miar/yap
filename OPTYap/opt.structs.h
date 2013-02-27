@@ -475,6 +475,9 @@ struct local_optyap_data {
 #ifdef TABLING
   /* local data related to tabling */
   struct subgoal_frame *top_subgoal_frame;
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
+  struct subgoal_frame *top_subgoal_frame_complete;
+#endif
   struct dependency_frame *top_dependency_frame;
 #ifdef TABLING_INNER_CUTS
   choiceptr bottom_pruning_scope;
@@ -543,6 +546,7 @@ struct local_optyap_data {
 #define LOCAL_start_trail_copy             (LOCAL_optyap_data.trail_copy.start)
 #define LOCAL_end_trail_copy               (LOCAL_optyap_data.trail_copy.end)
 #define LOCAL_top_sg_fr                    (LOCAL_optyap_data.top_subgoal_frame)
+#define LOCAL_top_sg_fr_complete           (LOCAL_optyap_data.top_subgoal_frame_complete)
 #define LOCAL_top_dep_fr                   (LOCAL_optyap_data.top_dependency_frame)
 #define LOCAL_pruning_scope                (LOCAL_optyap_data.bottom_pruning_scope)
 #ifdef YAPOR_THREADS
@@ -602,6 +606,7 @@ struct local_optyap_data {
 #define REMOTE_start_trail_copy(wid)           (REMOTE(wid)->optyap_data_.trail_copy.start)
 #define REMOTE_end_trail_copy(wid)             (REMOTE(wid)->optyap_data_.trail_copy.end)
 #define REMOTE_top_sg_fr(wid)                  (REMOTE(wid)->optyap_data_.top_subgoal_frame)
+#define REMOTE_top_sg_fr_complete(wid)        (REMOTE(wid)->optyap_data_.top_subgoal_frame_complete)
 #define REMOTE_top_dep_fr(wid)                 (REMOTE(wid)->optyap_data_.top_dependency_frame)
 #define REMOTE_pruning_scope(wid)              (REMOTE(wid)->optyap_data_.bottom_pruning_scope)
 #ifdef YAPOR_THREADS

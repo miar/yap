@@ -233,6 +233,9 @@ void Yap_init_local_optyap_data(int wid) {
 #ifdef TABLING
   /* local data related to tabling */
   REMOTE_top_sg_fr(wid) = NULL; 
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
+  REMOTE_top_sg_fr_complete(wid) = NULL; 
+#endif
   REMOTE_top_dep_fr(wid) = NULL; 
 #ifdef YAPOR
   REMOTE_top_dep_fr(wid) = GLOBAL_root_dep_fr; 

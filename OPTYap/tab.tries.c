@@ -1439,6 +1439,7 @@ void update_answer_trie(sg_fr_ptr sg_fr) {
 void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
   CACHE_REGS
 
+
   if (IS_SUBGOAL_TRIE_HASH(current_node)) {
     sg_node_ptr *bucket, *last_bucket;
     sg_hash_ptr hash;
@@ -1460,21 +1461,19 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 	} while (next_node);
       }
     } while (++bucket != last_bucket);
-    IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES {
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
-      FREE_BUCKETS(SgHash_hash_bkts(hash));
-      /* free old hash buckets */      
-      sg_hash_bkts_ptr old_hash = SgHash_old_hash_bkts(hash);
-      while (old_hash){
-	SgHash_old_hash_bkts(hash) = HashBkts_next(SgHash_old_hash_bkts(hash));
-	FREE_BUCKETS(old_hash);
-	old_hash = SgHash_old_hash_bkts(hash);
-      }
-#else
-      FREE_BUCKETS(Hash_buckets(hash));
-#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
-      FREE_SUBGOAL_TRIE_HASH(hash);
+    FREE_BUCKETS(SgHash_hash_bkts(hash));
+    /* free old hash buckets */      
+    sg_hash_bkts_ptr old_hash = SgHash_old_hash_bkts(hash);
+    while (old_hash){
+      SgHash_old_hash_bkts(hash) = HashBkts_next(SgHash_old_hash_bkts(hash));
+      FREE_BUCKETS(old_hash);
+      old_hash = SgHash_old_hash_bkts(hash);
     }
+#else
+    FREE_BUCKETS(Hash_buckets(hash));
+#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+    FREE_SUBGOAL_TRIE_HASH(hash);    
     return;
   }
   if (! IS_SUBGOAL_LEAF_NODE(current_node)) {
@@ -1501,14 +1500,6 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       child_mode = TRAVERSE_MODE_DOUBLE_END;
     else
       child_mode = TRAVERSE_MODE_NORMAL;
-#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-    if (!TrNode_child(current_node))
-      /* if worker != 0 is searching for a subgoal frame bucket array
-	 (SUBGOAL_SHARING or subgoal entry (FULL_SHARING) (not called
-	 by him during the evaluation)) and was still not created by
-	 the other worker */
-      return;
-#endif
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
   } else {    
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
@@ -1518,7 +1509,6 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       ans_node = SgFr_answer_trie(sg_fr);
       if (TrNode_child(ans_node))
       	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
-      IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1546,7 +1536,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 	}
 #endif /*THREADS_FULL_SHARING */
 #endif /* MODE_DIRECTED_TABLING */
-      }
+      
 #ifdef LIMIT_TABLING
       remove_from_global_sg_fr_list(sg_fr);
 #endif /* LIMIT_TABLING */
@@ -1555,20 +1545,17 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
   }
   if (position == TRAVERSE_POSITION_FIRST) {
     sg_node_ptr next_node = TrNode_next(current_node);
-    IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES {
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
       FREE_SUBGOAL_TRIE_NODE(current_node);
-    }
+    
     while (next_node) {
       current_node = next_node;
       next_node = TrNode_next(current_node);
       free_subgoal_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
     }
   } else {
-    IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES {
-      CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
-      FREE_SUBGOAL_TRIE_NODE(current_node);
-    }
+    CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
+    FREE_SUBGOAL_TRIE_NODE(current_node);    
   }
   return;
 }
@@ -1577,7 +1564,6 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
   CACHE_REGS
 
-  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 #ifdef TABLING_INNER_CUTS
     if (! IS_ANSWER_LEAF_NODE(current_node) && TrNode_child(current_node)) {
 #else
@@ -1621,16 +1607,13 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
       FREE_ANSWER_TRIE_NODE(current_node);
     }
-  }
   return;
 }
 
 
 void free_answer_hash_chain(ans_hash_ptr hash) {
   CACHE_REGS    
-   
-    
-  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
+ 
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
       ans_hash_ptr next_hash;
@@ -1677,7 +1660,6 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
       FREE_ANSWER_TRIE_HASH(hash);
       hash = next_hash;
     }
-  }
   return;
 }
 
@@ -1708,32 +1690,65 @@ void abolish_table(tab_ent_ptr tab_ent) {
     ATTACH_PAGES(_pages_gt_node);
     ATTACH_PAGES(_pages_gt_hash);
   } 
+#ifdef THREADS_SUBGOAL_SHARING
+  else {
+    sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+    while(sg_fr) {      
+      sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
+      ans_node_ptr ans_node;
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      ans_node = SgFr_answer_trie(sg_fr);
+
+      if (TrNode_child(ans_node))
+      	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+	SgFr_hash_chain(sg_fr) = NULL;
+	FREE_ANSWER_TRIE_NODE(ans_node);
+	sg_fr_ptr *sg_fr_addr = (sg_fr_ptr*) get_thread_bucket(SgFr_sg_fr_array(sg_fr));
+	*sg_fr_addr = NULL;
+	FREE_SUBGOAL_FRAME(sg_fr);	
+	sg_fr = next_sg_fr;
+    }
+    LOCAL_top_sg_fr_complete = NULL;
+    return;
+  }
+#elif defined(THREADS_FULL_SHARING)
+  else {
+    sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+    while(sg_fr) {      
+      sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
+      sg_ent_ptr sg_ent = SgFr_sg_ent(sg_fr);
+      sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr(sg_ent));
+      *sg_fr_addr = NULL;
+      FREE_SUBGOAL_FRAME(sg_fr);
+      sg_fr = next_sg_fr;
+    }
+    LOCAL_top_sg_fr_complete = NULL;
+    return;
+  }
+#endif /* THREADS_SUBGOAL_SHARING */
 #endif  /* THREADS */
 
-
   sg_node = get_subgoal_trie_for_abolish(tab_ent PASS_REGS);
+  //printf("5-worker_id = %d\n", worker_id);  
   if (sg_node) {
     if (TrNode_child(sg_node)) {
       if (TabEnt_arity(tab_ent)) {
-	free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+  	free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
       } else {
 	sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(sg_node PASS_REGS);
 	if (sg_fr) {
-	  IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES {
 	    SgFr_hash_chain(sg_fr) = NULL;
 	    FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 	    FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-	  }
+#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */	  
 #ifdef LIMIT_TABLING
 	  remove_from_global_sg_fr_list(sg_fr);
 #endif /* LIMIT_TABLING */
 	  FREE_SUBGOAL_FRAME(sg_fr);
 	}
       }
-      IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES
-	TrNode_child(sg_node) = NULL;
+      TrNode_child(sg_node) = NULL;
     }
 #ifdef THREADS_NO_SHARING
     FREE_SUBGOAL_TRIE_NODE(sg_node);
