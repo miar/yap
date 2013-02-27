@@ -1438,8 +1438,7 @@ void update_answer_trie(sg_fr_ptr sg_fr) {
 
 void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
   CACHE_REGS
-
-
+    
   if (IS_SUBGOAL_TRIE_HASH(current_node)) {
     sg_node_ptr *bucket, *last_bucket;
     sg_hash_ptr hash;
@@ -1690,7 +1689,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
     ATTACH_PAGES(_pages_gt_node);
     ATTACH_PAGES(_pages_gt_hash);
   } 
-#ifdef THREADS_SUBGOAL_SHARING
+#if defined(THREADS_SUBGOAL_SHARING)
   else {
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
     while(sg_fr) {      
@@ -1729,11 +1728,10 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #endif  /* THREADS */
 
   sg_node = get_subgoal_trie_for_abolish(tab_ent PASS_REGS);
-  //printf("5-worker_id = %d\n", worker_id);  
   if (sg_node) {
     if (TrNode_child(sg_node)) {
       if (TabEnt_arity(tab_ent)) {
-  	free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+          free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);  
       } else {
 	sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(sg_node PASS_REGS);
 	if (sg_fr) {
