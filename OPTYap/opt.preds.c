@@ -478,6 +478,9 @@ static Int p_abolish_all_tables( USES_REGS1 ) {
     abolish_table(tab_ent);
     tab_ent = TabEnt_next(tab_ent);
   }
+#ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
+  cputime_by_thread_run++;
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
   return (TRUE);
 }
 
@@ -554,27 +557,30 @@ static Int p_show_cputime_by_thread( USES_REGS1 ) {
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   IOSTREAM *out;
   Term t = Deref(ARG1);
-  
+
   if (IsVarTerm(t) || !IsAtomTerm(t))
     return FALSE;
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))
     return FALSE;
-    
-  if (worker_id != 0) { 
+
+  if (worker_id != 0) {
     Sfprintf(out, "Error - Main thread Only\n");
-    PL_release_stream(out); 
+    PL_release_stream(out);
     return (FALSE);
   }
-    
-  int i = 1;
-  while(cputime_by_thread[i] != (UInt)0 && i < CPUTIME_BY_THREAD_MAX_THREADS) {
-    Sfprintf(out,"cputime_by_thread[%d] = %d \n", i, cputime_by_thread[i]) ;
-    i++;
-  }
-  
-  PL_release_stream(out); 
-#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 
+  int i;
+
+  for (i = 0; i < CPUTIME_BY_THREAD_NR_RUNS ; i++) {
+    int j = 1;
+    while(cputime_by_thread_utime[i][j] != (UInt)-1 && j < CPUTIME_BY_THREAD_MAX_THREADS) {
+      Sfprintf(out,"cputime_by_thread[%d][%d] utime = %d stime = %d \n", i, j, cputime_by_thread_utime[i][j],cputime_by_thread_stime[i][j]) ;
+      j++;
+    }
+  }
+
+  PL_release_stream(out);
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 return (TRUE);
 }
 

@@ -363,19 +363,30 @@ InitTime (void)
   last_time_sys.tv_usec = StartOfTimes_sys.tv_usec = rusage.ru_stime.tv_usec;
 }
 
-
 #if defined(THREADS) && defined(EXTRA_STATISTICS_CPUTIME_BY_THREAD)
+
 UInt
-Yap_cputime_by_thread ( void )
+Yap_cputime_by_thread_stime ( void )
 {
   CACHE_REGS
- struct rusage   rusage;
+    struct rusage   rusage;
+  getrusage(RUSAGE_THREAD, &rusage); /* linux 2.6.26 */
+  return((rusage.ru_stime.tv_sec - StartOfTimes.tv_sec)) * 1000 +
+    ((rusage.ru_stime.tv_usec - StartOfTimes.tv_usec) / 1000);
+}
+
+UInt
+Yap_cputime_by_thread_utime ( void )
+{
+  CACHE_REGS
+    struct rusage   rusage;
 
   getrusage(RUSAGE_THREAD, &rusage); /* linux 2.6.26 */
 
   return((rusage.ru_utime.tv_sec - StartOfTimes.tv_sec)) * 1000 +
-      ((rusage.ru_utime.tv_usec - StartOfTimes.tv_usec) / 1000);
+    ((rusage.ru_utime.tv_usec - StartOfTimes.tv_usec) / 1000);
 }
+
 #endif /* THREADS && EXTRA_STATISTICS_CPUTIME_BY_THREAD */
 
 UInt

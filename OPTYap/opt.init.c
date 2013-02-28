@@ -179,7 +179,15 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
   Stats_answer_trie_nr_paths = 0;
   Stats_answer_trie_depth_all = 0;
 #endif /* EXTRA_STATISTICS */
-
+#ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
+  int j;
+  for (i = 0; i < CPUTIME_BY_THREAD_NR_RUNS; i++)
+    for (j = 0; j < CPUTIME_BY_THREAD_MAX_THREADS; j++) {
+      cputime_by_thread_utime[i][j] = (UInt) -1;
+      cputime_by_thread_stime[i][j] = (UInt) -1;
+    }
+  cputime_by_thread_run = -1;
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 #endif /* TABLING */
   return;
 }

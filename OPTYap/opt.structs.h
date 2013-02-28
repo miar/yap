@@ -26,10 +26,12 @@ long Stats_answer_trie_depth_all;
 #endif /* EXTRA_STATISTICS */
 
 
-
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
-#define CPUTIME_BY_THREAD_MAX_THREADS  50
-UInt  cputime_by_thread[CPUTIME_BY_THREAD_MAX_THREADS];
+#define CPUTIME_BY_THREAD_MAX_THREADS  66
+#define CPUTIME_BY_THREAD_NR_RUNS       5
+int   cputime_by_thread_run;
+UInt  cputime_by_thread_utime[CPUTIME_BY_THREAD_NR_RUNS][CPUTIME_BY_THREAD_MAX_THREADS];
+UInt  cputime_by_thread_stime[CPUTIME_BY_THREAD_NR_RUNS][CPUTIME_BY_THREAD_MAX_THREADS];
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 
 

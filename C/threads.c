@@ -181,7 +181,8 @@ thread_die(int wid, int always_die)
   CACHE_REGS
   tab_ent_ptr tab_ent;
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
-  cputime_by_thread[wid] = Yap_cputime_by_thread()- cputime_by_thread[wid];                  
+  cputime_by_thread_utime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_utime()- cputime_by_thread_utime[cputime_by_thread_run][wid];
+  cputime_by_thread_stime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_stime()- cputime_by_thread_stime[cputime_by_thread_run][wid];
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {
@@ -263,7 +264,8 @@ setup_engine(int myworker_id, int init_thread)
   LOCAL_thread_output = fopen(filename, "w");
 #endif /* OUTPUT_THREADS_TABLING */
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
-  cputime_by_thread[worker_id] = Yap_cputime_by_thread();
+  cputime_by_thread_utime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_utime();
+  cputime_by_thread_stime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_stime();
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 #endif /* TABLING */
   return TRUE;
