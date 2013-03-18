@@ -187,6 +187,9 @@ struct global_pages {
 
 #ifdef TABLING
   struct global_page_entry table_entry_pages;
+#ifdef THREADS_SUBGOAL_SHARING
+  struct global_page_entry sg_fr_array_pages;
+#endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   struct global_page_entry subgoal_entry_pages;
 #endif
@@ -232,6 +235,9 @@ struct local_pages {
   struct local_page_entry void_pages;
 #endif
   struct local_page_entry table_entry_pages;
+#ifdef THREADS_SUBGOAL_SHARING
+  struct local_page_entry sg_fr_array_pages;
+#endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   struct local_page_entry subgoal_entry_pages;
 #endif
@@ -375,6 +381,7 @@ struct global_optyap_data {
 #define GLOBAL_pages_alloc                      (GLOBAL_optyap_data.pages.alloc_pages)
 #define GLOBAL_pages_void                       (GLOBAL_optyap_data.pages.void_pages)
 #define GLOBAL_pages_tab_ent                    (GLOBAL_optyap_data.pages.table_entry_pages)
+#define GLOBAL_pages_sg_fr_array                (GLOBAL_optyap_data.pages.sg_fr_array_pages)
 #define GLOBAL_pages_sg_ent                     (GLOBAL_optyap_data.pages.subgoal_entry_pages)
 #define GLOBAL_pages_sg_fr                      (GLOBAL_optyap_data.pages.subgoal_frame_pages)
 #define GLOBAL_pages_dep_fr                     (GLOBAL_optyap_data.pages.dependency_frame_pages)
@@ -506,6 +513,7 @@ struct local_optyap_data {
 
 #define LOCAL_pages_void                   (LOCAL_optyap_data.pages.void_pages)
 #define LOCAL_pages_tab_ent                (LOCAL_optyap_data.pages.table_entry_pages)
+#define LOCAL_pages_sg_fr_array            (LOCAL_optyap_data.pages.sg_fr_array_pages)
 #define LOCAL_pages_sg_ent                 (LOCAL_optyap_data.pages.subgoal_entry_pages)
 #define LOCAL_pages_sg_fr                  (LOCAL_optyap_data.pages.subgoal_frame_pages)
 #define LOCAL_pages_dep_fr                 (LOCAL_optyap_data.pages.dependency_frame_pages)
@@ -567,6 +575,7 @@ struct local_optyap_data {
  
 #define REMOTE_pages_void(wid)                 (REMOTE(wid)->optyap_data_.pages.void_pages)
 #define REMOTE_pages_tab_ent(wid)              (REMOTE(wid)->optyap_data_.pages.table_entry_pages)
+#define REMOTE_pages_sg_fr_array(wid)          (REMOTE(wid)->optyap_data_.pages.sg_fr_array_pages)
 #define REMOTE_pages_sg_ent(wid)               (REMOTE(wid)->optyap_data_.pages.subgoal_entry_pages)
 #define REMOTE_pages_sg_fr(wid)                (REMOTE(wid)->optyap_data_.pages.subgoal_frame_pages)
 #define REMOTE_pages_dep_fr(wid)               (REMOTE(wid)->optyap_data_.pages.dependency_frame_pages)

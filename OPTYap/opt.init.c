@@ -77,6 +77,9 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
 #endif /* USE_PAGES_MALLOC */
 #ifdef TABLING
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_tab_ent, struct table_entry);
+#ifdef THREADS_SUBGOAL_SHARING
+  INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_sg_fr_array, struct sg_fr_bkt_array);
+#endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_sg_ent, struct subgoal_entry);
 #endif
@@ -207,6 +210,9 @@ void Yap_init_local_optyap_data(int wid) {
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_void(wid), void *);
 #endif
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_tab_ent(wid), struct table_entry);
+#ifdef THREADS_SUBGOAL_SHARING
+  INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_sg_fr_array(wid), struct sg_fr_bkt_array);
+#endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_sg_ent(wid), struct subgoal_entry);
 #endif

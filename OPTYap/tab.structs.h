@@ -544,3 +544,13 @@ typedef struct suspension_frame {
 #define SuspFr_trail_start(X)         ((X)->trail_block.block_start)
 #define SuspFr_trail_size(X)          ((X)->trail_block.block_size)
 #define SuspFr_next(X)                ((X)->next)
+
+
+#ifdef THREADS_SUBGOAL_SHARING
+typedef struct sg_fr_bkt_array {
+void * sg_fr_array[THREADS_NUM_BUCKETS];
+#ifdef USE_PAGES_MALLOC
+  struct sg_fr_bkt_array *next;
+#endif /* USE_PAGES_MALLOC */
+} *sg_fr_bkt_array_ptr;
+#endif /* THREADS_SUBGOAL_SHARING */

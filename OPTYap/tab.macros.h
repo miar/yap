@@ -999,14 +999,14 @@ static inline void **get_insert_thread_bucket(void **buckets
   /* insert indirect bucket */
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
   void ** buckets_aux;
-  ALLOC_BUCKETS(buckets_aux, THREADS_DIRECT_BUCKETS);
+  ALLOC_BUCKETS(buckets_aux, THREADS_INDIRECT_BUCKETS);
   if (!BOOL_CAS(buckets, NULL, buckets_aux)){  
     FREE_BUCKETS(buckets_aux);    
   }
 #else
   LOCK(*buckets_lock);
   if (*buckets == NULL)
-    ALLOC_BUCKETS(*buckets, THREADS_DIRECT_BUCKETS);
+    ALLOC_BUCKETS(*buckets, THREADS_INDIRECT_BUCKETS);
   UNLOCK(*buckets_lock);
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
@@ -1033,9 +1033,14 @@ static inline void **get_thread_bucket(void **buckets) {
 
 
 static inline void abolish_thread_buckets(void **buckets) {
+  
+#ifdef THREADS_SUBGOAL_SHARING
+  CACHE_REGS
+  /* NOT ABOLISHING INDIRECT BUCKETS FOR NOW  */
+  FREE_SG_FR_ARRAY(*buckets);
+#else    
   int i;
-
-  /* abolish indirect buckets */
+  // abolish indirect buckets 
   buckets += THREADS_NUM_BUCKETS;
   for (i = 0; i < THREADS_INDIRECT_BUCKETS; i++) {
     if (*--buckets) {
@@ -1043,12 +1048,7 @@ static inline void abolish_thread_buckets(void **buckets) {
       *buckets = NULL;
     }
   }
-
-#if defined(THREADS_SUBGOAL_SHARING)
-  /* abolish direct buckets */
-  buckets -= THREADS_DIRECT_BUCKETS;
-  FREE_BUCKETS(buckets);
-#endif /* THREADS_SUBGOAL_SHARING */
+#endif 
 }
 #endif /* THREADS */
 
@@ -1099,10 +1099,10 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   
   if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
-    void **new_buckets;
-    ALLOC_BUCKETS(new_buckets, THREADS_NUM_BUCKETS);  
+    sg_fr_bkt_array_ptr new_buckets;
+    ALLOC_SG_FR_ARRAY(new_buckets, THREADS_NUM_BUCKETS);
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
-      FREE_BUCKETS(new_buckets);
+      FREE_SG_FR_ARRAY(new_buckets);
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     sg_ent_ptr sg_ent;
     new_subgoal_entry(sg_ent);
@@ -1131,8 +1131,8 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   if (*sg_fr_addr == NULL) {
     LOCK_SUBGOAL_NODE(sg_node);
     if (*sg_fr_addr == NULL) {
-#if defined(THREADS_SUBGOAL_SHARING)
-      ALLOC_BUCKETS(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS);  
+#if defined(THREADS_SUBGOAL_SHARING)      
+      ALLOC_SG_FR_ARRAY(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS); 
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
       sg_ent_ptr sg_ent;
       new_subgoal_entry(sg_ent);

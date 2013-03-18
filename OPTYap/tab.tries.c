@@ -1684,17 +1684,19 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #if defined(THREADS)
   if (worker_id == 0) {
     ATTACH_PAGES(_pages_tab_ent);
+#ifdef THREADS_SUBGOAL_SHARING
+    ATTACH_PAGES(_pages_sg_fr_array);
+#endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     ATTACH_PAGES(_pages_sg_ent);
-#endif  
+#endif
     ATTACH_PAGES(_pages_sg_fr);
     ATTACH_PAGES(_pages_dep_fr);
     ATTACH_PAGES(_pages_sg_node);
     ATTACH_PAGES(_pages_sg_hash);
-    ATTACH_PAGES(_pages_ans_node);
-    
+    ATTACH_PAGES(_pages_ans_node);    
     ATTACH_PAGES(_pages_ans_hash);
-#if defined(THREADS_FULL_SHARING)
+#ifdef THREADS_FULL_SHARING
     ATTACH_PAGES(_pages_ans_ref_node);
 #endif  
     ATTACH_PAGES(_pages_gt_node);
