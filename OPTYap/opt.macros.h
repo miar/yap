@@ -497,8 +497,8 @@ extern int Yap_page_size;
 #define FREE_TG_ANSWER_FRAME(STR)       FREE_STRUCT(STR, struct table_subgoal_answer_frame, _pages_tg_ans_fr)
 
 
-//#define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)   ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)
-//#define FREE_SG_FR_ARRAY(BUCKET_PTR)                 FREE_BUCKETS(BUCKET_PTR) 
+/*#define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)   ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)
+  #define FREE_SG_FR_ARRAY(BUCKET_PTR)                 FREE_BUCKETS(BUCKET_PTR) */
 
 #define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)			   \
   {  ALLOC_STRUCT(BUCKET_PTR, struct sg_fr_bkt_array, _pages_sg_fr_array); \
