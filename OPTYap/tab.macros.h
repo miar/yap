@@ -1034,13 +1034,14 @@ static inline void **get_thread_bucket(void **buckets) {
 
 static inline void abolish_thread_buckets(void **buckets) {
   
-#ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_SUBGOAL_SHARING_WITH_SG_FR_ARRAY
   CACHE_REGS
   /* NOT ABOLISHING INDIRECT BUCKETS FOR NOW  */
   FREE_SG_FR_ARRAY(*buckets);
 #else    
   int i;
-  // abolish indirect buckets 
+
+  /* abolish indirect buckets */
   buckets += THREADS_NUM_BUCKETS;
   for (i = 0; i < THREADS_INDIRECT_BUCKETS; i++) {
     if (*--buckets) {
@@ -1048,6 +1049,12 @@ static inline void abolish_thread_buckets(void **buckets) {
       *buckets = NULL;
     }
   }
+
+#if defined(THREADS_SUBGOAL_SHARING)
+  /* abolish direct buckets */
+  buckets -= THREADS_DIRECT_BUCKETS;
+  FREE_BUCKETS(buckets);
+#endif /* THREADS_SUBGOAL_SHARING */
 #endif 
 }
 #endif /* THREADS */
@@ -1099,7 +1106,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   
   if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
-    sg_fr_bkt_array_ptr new_buckets;
+    void ** new_buckets;
     ALLOC_SG_FR_ARRAY(new_buckets, THREADS_NUM_BUCKETS);
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
       FREE_SG_FR_ARRAY(new_buckets);

@@ -497,15 +497,19 @@ extern int Yap_page_size;
 #define FREE_TG_ANSWER_FRAME(STR)       FREE_STRUCT(STR, struct table_subgoal_answer_frame, _pages_tg_ans_fr)
 
 
-/*#define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)   ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)
-  #define FREE_SG_FR_ARRAY(BUCKET_PTR)                 FREE_BUCKETS(BUCKET_PTR) */
 
+
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
 #define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)			   \
   {  ALLOC_STRUCT(BUCKET_PTR, struct sg_fr_bkt_array, _pages_sg_fr_array); \
      INIT_BUCKETS(BUCKET_PTR, NUM_BUCKETS); 	                           \
   }
 
 #define FREE_SG_FR_ARRAY(STR)  FREE_STRUCT((sg_fr_bkt_array_ptr) STR, struct sg_fr_bkt_array, _pages_sg_fr_array)
+#else
+#define ALLOC_SG_FR_ARRAY(BUCKET_PTR, NUM_BUCKETS)   ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)
+#define FREE_SG_FR_ARRAY(BUCKET_PTR)                 FREE_BUCKETS(BUCKET_PTR)
+#endif /* THREADS_SUBGOAL_SHARING_WITH_SG_FR_ARRAY */
 
 
 #define VAL_CAS(PTR, OLD, NEW)                 __sync_val_compare_and_swap((PTR), (OLD), (NEW))

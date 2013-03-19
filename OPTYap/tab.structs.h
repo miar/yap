@@ -374,9 +374,11 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
-#ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
+  struct sg_fr_bkt_array **subgoal_frame_array;
+#else
   void **subgoal_frame_array;
-#endif /* THREADS_SUBGOAL_SHARING*/
+#endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
@@ -546,11 +548,9 @@ typedef struct suspension_frame {
 #define SuspFr_next(X)                ((X)->next)
 
 
-#ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
 typedef struct sg_fr_bkt_array {
 void * sg_fr_array[THREADS_NUM_BUCKETS];
-#ifdef USE_PAGES_MALLOC
   struct sg_fr_bkt_array *next;
-#endif /* USE_PAGES_MALLOC */
 } *sg_fr_bkt_array_ptr;
-#endif /* THREADS_SUBGOAL_SHARING */
+#endif

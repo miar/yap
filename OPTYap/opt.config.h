@@ -49,7 +49,9 @@
 /****************************************************************
 **      use shared pages memory alloc scheme ? (optional)      **
 ****************************************************************/
+
 #define USE_PAGES_MALLOC 1
+//DO NOT ACTIVATE THIS . NOT WORKING #define THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY 1 /* enable USE_PAGES_MALLOC. problems with shmget. still missing adjusting the sg_fr back pointers to the array*/
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **

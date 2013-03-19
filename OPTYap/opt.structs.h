@@ -187,7 +187,7 @@ struct global_pages {
 
 #ifdef TABLING
   struct global_page_entry table_entry_pages;
-#ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct global_page_entry sg_fr_array_pages;
 #endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -235,7 +235,7 @@ struct local_pages {
   struct local_page_entry void_pages;
 #endif
   struct local_page_entry table_entry_pages;
-#ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct local_page_entry sg_fr_array_pages;
 #endif
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
