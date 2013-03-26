@@ -179,6 +179,7 @@ thread_die(int wid, int always_die)
 {
 #ifdef TABLING
   CACHE_REGS
+
   tab_ent_ptr tab_ent;
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   cputime_by_thread_utime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_utime()- cputime_by_thread_utime[cputime_by_thread_run][wid];
@@ -254,7 +255,14 @@ setup_engine(int myworker_id, int init_thread)
   pthread_mutex_unlock(&(REMOTE_ThreadHandle(myworker_id).tlock));  
 #ifdef TABLING
   new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
-
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  sg_fr_hash_bkts_ptr sg_fr_hash_bkts; 
+  ALLOC_BLOCK(sg_fr_hash_bkts, sizeof(struct subgoal_frame_hash_buckets), struct subgoal_frame_hash_buckets);
+  SgFrHashBkts_number_of_buckets(sg_fr_hash_bkts) = BASE_SG_FR_HASH_BUCKETS;
+  ALLOC_BLOCK(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS * sizeof(sg_fr_ptr), sg_fr_ptr);
+  INIT_BUCKETS(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS);
+  LOCAL_sg_fr_hash_buckets = sg_fr_hash_bkts;
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #ifdef OUTPUT_THREADS_TABLING
   char thread_name[25];
   char filename[YAP_FILENAME_MAX]; 

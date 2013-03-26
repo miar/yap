@@ -249,6 +249,17 @@ void Yap_init_local_optyap_data(int wid) {
   REMOTE_top_sg_fr(wid) = NULL; 
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   REMOTE_top_sg_fr_complete(wid) = NULL; 
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  if (wid == 0) {
+    /* since yap is reusing some wid's, on the second runs yap does not pass in this code for some workers */
+    sg_fr_hash_bkts_ptr sg_fr_hash_bkts; 
+    ALLOC_BLOCK(sg_fr_hash_bkts, sizeof(struct subgoal_frame_hash_buckets), struct subgoal_frame_hash_buckets);
+    SgFrHashBkts_number_of_buckets(sg_fr_hash_bkts) = BASE_SG_FR_HASH_BUCKETS;
+    ALLOC_BLOCK(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS * sizeof(sg_fr_ptr), sg_fr_ptr);
+    INIT_BUCKETS(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS);
+    REMOTE_sg_fr_hash_buckets(wid) = sg_fr_hash_bkts;
+  }
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif
   REMOTE_top_dep_fr(wid) = NULL; 
 #ifdef YAPOR

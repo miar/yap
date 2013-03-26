@@ -374,17 +374,22 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
-#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
-  struct sg_fr_bkt_array **subgoal_frame_array;
-#else
-  void **subgoal_frame_array;
-#endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
   struct subgoal_frame *next;
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *next_complete;
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  struct subgoal_trie_node *sg_leaf_node;
+  struct subgoal_frame *next_on_hash;
+#else
+#ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
+  struct sg_fr_bkt_array **subgoal_frame_array;
+#else
+  void **subgoal_frame_array;
+#endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
+#endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif
 } *sg_fr_ptr;
 
@@ -420,6 +425,10 @@ typedef struct subgoal_frame {
 #define SgFr_gen_cp(X)                  ((X)->generator_choice_point)
 #define SgFr_next(X)                    ((X)->next)
 #define SgFr_next_complete(X)           ((X)->next_complete)
+#define SgFr_sg_leaf_node(X)            ((X)->sg_leaf_node)
+#define SgFr_next_on_hash(X)            ((X)->next_on_hash)
+
+
 
 /**********************************************************************************************************
 
@@ -554,3 +563,17 @@ void * sg_fr_array[THREADS_NUM_BUCKETS];
   struct sg_fr_bkt_array *next;
 } *sg_fr_bkt_array_ptr;
 #endif
+
+
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+typedef struct subgoal_frame_hash_buckets {
+  int number_of_buckets;
+  struct subgoal_frame **buckets; 
+} *sg_fr_hash_bkts_ptr;
+
+#define SgFrHashBkts_number_of_buckets(X) ((X)->number_of_buckets)
+#define SgFrHashBkts_buckets(X)           ((X)->buckets)
+
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
+

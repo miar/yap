@@ -108,8 +108,6 @@ static inline void CUT_free_tg_solution_frames(tg_sol_fr_ptr);
 static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* TABLING_INNER_CUTS */
 
-
-
 /*********************************
 **      Tabling mode flags      **
 *********************************/
@@ -241,7 +239,11 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define BASE_HASH_BUCKETS               64 //-> DEFAULT
+#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
+#define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))
+
+
 #define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
 #define ANSWER_TRIE_HASH_MARK           0
@@ -1098,11 +1100,13 @@ static inline sg_node_ptr get_subgoal_trie_for_abolish(tab_ent_ptr tab_ent USES_
 
 
 
-
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL
-
 static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_REGS) {
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) &TrNode_sg_fr(sg_node);
+
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  return sg_fr_addr;
+#endif
   
   if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)
@@ -1134,6 +1138,9 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
 
 static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_REGS) {
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) &TrNode_sg_fr(sg_node);
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  return sg_fr_addr;
+#endif
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   if (*sg_fr_addr == NULL) {
     LOCK_SUBGOAL_NODE(sg_node);
@@ -1159,8 +1166,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
                                    &TrNode_lock(sg_node)
 #elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
                                    &HASH_TRIE_LOCK(sg_node)
-#endif
-                             );
+#endif                             );
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   return sg_fr_addr;
 }
@@ -1170,8 +1176,12 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
 
 static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {
 #if defined(THREADS_SUBGOAL_SHARING)
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  return (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
+#else
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   return *sg_fr_addr;
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   return *sg_fr_addr;
@@ -1183,10 +1193,14 @@ static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {
 
 static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_REGS) {
 #if defined(THREADS_SUBGOAL_SHARING)
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  return (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
+#else
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   sg_fr_ptr sg_fr = *sg_fr_addr;
   abolish_thread_buckets((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   return sg_fr;
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   sg_fr_ptr sg_fr = *sg_fr_addr;
@@ -1476,12 +1490,22 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   UNLOCK_SG_FR(sg_fr);
 #ifdef THREADS_SUBGOAL_SHARING
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+  struct subgoal_trie_node * sg_leaf_node;
+  sg_leaf_node = SgFr_sg_leaf_node(sg_fr);
+  if (!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), NULL, (sg_node_ptr)((CELL) sg_fr | (CELL)0x1))) {
+    SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
+    LOCAL_top_sg_fr_complete = sg_fr;
+  }   
+
+#else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
   sg_fr_ptr *sg_fr_array;
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);  
   if (!BOOL_CAS(sg_fr_array, NULL, sg_fr)) {
     SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
     LOCAL_top_sg_fr_complete = sg_fr;
   }
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
 #ifdef THREADS_FULL_SHARING
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;

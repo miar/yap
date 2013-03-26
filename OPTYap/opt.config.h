@@ -51,7 +51,6 @@
 ****************************************************************/
 
 #define USE_PAGES_MALLOC 1
-//DO NOT ACTIVATE THIS . NOT WORKING #define THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY 1 /* enable USE_PAGES_MALLOC. problems with shmget. still missing adjusting the sg_fr back pointers to the array*/
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **
@@ -174,9 +173,13 @@
 /* #define DEBUG_YAPOR 1 */
 
 /**************************************************
-**      enable output checking ? (optional)      **
+**      extra multi-threaded tabling flags       **
 **************************************************/
+
+//DO NOT ACTIVATE THIS . NOT WORKING #define THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY 1 /* enable USE_PAGES_MALLOC. problems with shmget. still missing adjusting the sg_fr back pointers to the array. when implementing, check all from the beginning*/
 /* #define OUTPUT_THREADS_TABLING 1 */
+
+#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags */
 
 /************************************************************************
 **                           Parameter Checks                          **

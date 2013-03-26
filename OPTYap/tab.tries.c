@@ -594,6 +594,7 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 #endif
 
   int *current_arity = NULL, current_str_index = 0, current_mode = 0;
+  //  printf("traverse - current_node = %p sg_fr = %p \n", current_node, TrNode_sg_fr(current_node));
 
   /* test if hashing */
   if (IS_SUBGOAL_TRIE_HASH(current_node)) {
@@ -1166,6 +1167,37 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     RESET_VARIABLE(t);
   }
 
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS 
+  sg_fr_ptr *bucket;
+  int sg_fr_hash_key = HASH_ENTRY_SG_FR(current_sg_node, SgFrHashBkts_number_of_buckets(LOCAL_sg_fr_hash_buckets));
+  /*  if (sg_fr_hash_key != 0)
+      printf("sg_fr_hash_key = %d \n", sg_fr_hash_key); */
+  bucket = SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets) + sg_fr_hash_key;
+  sg_fr = *bucket;
+  while(sg_fr) {
+    if (SgFr_sg_leaf_node(sg_fr) == current_sg_node)
+      return sg_fr;    
+    sg_fr = SgFr_next_on_hash(sg_fr);
+  }
+  sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
+  
+  if (sg_fr != NULL) 
+    return sg_fr;
+  
+  /* new tabled subgoal */
+  if (subs_pos) {
+    ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+    memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+  } else
+    mode_directed = NULL;
+  new_subgoal_frame(sg_fr, preg, mode_directed);
+  SgFr_sg_leaf_node(sg_fr) = current_sg_node;
+  SgFr_next_on_hash(sg_fr) = *bucket;
+  *bucket = sg_fr;
+  return sg_fr;
+
+#else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
    sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
 #ifndef THREADS
   LOCK_SUBGOAL_NODE(current_sg_node);
@@ -1244,6 +1276,9 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   }
   UNLOCK_SUBGOAL_TRIE(tab_ent);
   return sg_fr;
+#endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
+
 }
 
 
@@ -1683,6 +1718,10 @@ void abolish_table(tab_ent_ptr tab_ent) {
   sg_node_ptr sg_node;
 #if defined(THREADS)
   if (worker_id == 0) {
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+    INIT_BUCKETS(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets), SgFrHashBkts_number_of_buckets(LOCAL_sg_fr_hash_buckets));
+#endif
+
     ATTACH_PAGES(_pages_tab_ent);
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
     ATTACH_PAGES(_pages_sg_fr_array);
@@ -1704,6 +1743,11 @@ void abolish_table(tab_ent_ptr tab_ent) {
   } 
 #if defined(THREADS_SUBGOAL_SHARING)
   else {
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+    FREE_BLOCK(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets));
+    FREE_BLOCK(LOCAL_sg_fr_hash_buckets);
+    LOCAL_sg_fr_hash_buckets = NULL;
+#endif
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
@@ -1715,8 +1759,10 @@ void abolish_table(tab_ent_ptr tab_ent) {
       	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
+#ifndef THREADS_LOCAL_SG_FR_HASH_BUCKETS
 	sg_fr_ptr *sg_fr_addr = (sg_fr_ptr*) get_thread_bucket(SgFr_sg_fr_array(sg_fr));
 	*sg_fr_addr = NULL;
+#endif
 	FREE_SUBGOAL_FRAME(sg_fr);	
 	sg_fr = next_sg_fr;
     }
