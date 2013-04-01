@@ -179,7 +179,7 @@
 //DO NOT ACTIVATE THIS . NOT WORKING #define THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY 1 /* enable USE_PAGES_MALLOC. problems with shmget. still missing adjusting the sg_fr back pointers to the array. when implementing, check all from the beginning*/
 /* #define OUTPUT_THREADS_TABLING 1 */
 
-#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags */
+//#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags */
 
 /************************************************************************
 **                           Parameter Checks                          **

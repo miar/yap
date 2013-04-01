@@ -19,7 +19,10 @@ extern int Yap_page_size;
 
 #ifdef USE_PAGES_MALLOC
 #include <sys/shm.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #endif /* USE_PAGES_MALLOC */
+
 
 #define SHMMAX 0x2000000  /* 32 Mbytes: works fine with linux */
 /* #define SHMMAX  0x400000 - 4 Mbytes: shmget limit for Mac (?) */
@@ -262,6 +265,7 @@ extern int Yap_page_size;
           UPDATE_STATS(PgEnt_pages_in_use(GLOBAL_pages_alloc), SHMMAX / Yap_page_size);    \
         }                                                                                  \
         UNLOCK(PgEnt_lock(GLOBAL_pages_alloc))
+
 
 #ifdef LIMIT_TABLING
 #define RECOVER_ALLOC_SPACE(PG_ENT, EXTRA_PG_ENT)					   \

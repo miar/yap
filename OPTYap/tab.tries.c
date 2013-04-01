@@ -1170,8 +1170,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS 
   sg_fr_ptr *bucket;
   int sg_fr_hash_key = HASH_ENTRY_SG_FR(current_sg_node, SgFrHashBkts_number_of_buckets(LOCAL_sg_fr_hash_buckets));
-  /*  if (sg_fr_hash_key != 0)
-      printf("sg_fr_hash_key = %d \n", sg_fr_hash_key); */
   bucket = SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets) + sg_fr_hash_key;
   sg_fr = *bucket;
   while(sg_fr) {
@@ -1744,9 +1742,11 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #if defined(THREADS_SUBGOAL_SHARING)
   else {
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
-    FREE_BLOCK(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets));
-    FREE_BLOCK(LOCAL_sg_fr_hash_buckets);
-    LOCAL_sg_fr_hash_buckets = NULL;
+    if (LOCAL_sg_fr_hash_buckets){
+      FREE_BLOCK(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets));
+      FREE_BLOCK(LOCAL_sg_fr_hash_buckets);
+      LOCAL_sg_fr_hash_buckets = NULL;
+    }
 #endif
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
     while(sg_fr) {      
