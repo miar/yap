@@ -1167,6 +1167,41 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     RESET_VARIABLE(t);
   }
 
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID 
+  sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));  
+  sg_fr_ptr sg_fr_complete = NULL;
+  if (sg_fr) {
+    mode_directed = SgFr_mode_directed(sg_fr);
+    while(sg_fr) {
+      if (SgFr_wid(sg_fr) == worker_id)
+	return sg_fr;
+      if (sg_fr_complete == NULL && SgFr_state(sg_fr) >= complete)
+	sg_fr_complete = sg_fr;
+      sg_fr = SgFr_next_wid(sg_fr);
+    }
+    /* no sg_fr for the wid */
+    if(sg_fr_complete != NULL)
+      return sg_fr_complete;  
+  } else
+    mode_directed = NULL;
+  
+  /* no sg_fr complete for now */
+  if (mode_directed == NULL && subs_pos) {
+    ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+    memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+  }
+  new_subgoal_frame(sg_fr, preg, mode_directed);
+  SgFr_wid(sg_fr) = worker_id;
+  
+  sg_fr_ptr sg_fr_aux;
+  do {
+    sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
+    SgFr_next_wid(sg_fr) = UNTAG_SUBGOAL_NODE(sg_fr_aux);
+  } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
+
+  return sg_fr;
+
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS 
   sg_fr_ptr *bucket;
   int sg_fr_hash_key = HASH_ENTRY_SG_FR(current_sg_node, SgFrHashBkts_number_of_buckets(LOCAL_sg_fr_hash_buckets));
@@ -1193,9 +1228,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   SgFr_next_on_hash(sg_fr) = *bucket;
   *bucket = sg_fr;
   return sg_fr;
-
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-
    sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
 #ifndef THREADS
   LOCK_SUBGOAL_NODE(current_sg_node);
@@ -1275,8 +1308,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   UNLOCK_SUBGOAL_TRIE(tab_ent);
   return sg_fr;
 #endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-
-
+#endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
 }
 
 
@@ -1713,6 +1745,11 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 *****************************************************************************************/
 void abolish_table(tab_ent_ptr tab_ent) {
   CACHE_REGS
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+    printf(" abolish not ready \n");
+    return;
+#endif
+
   sg_node_ptr sg_node;
 #if defined(THREADS)
   if (worker_id == 0) {

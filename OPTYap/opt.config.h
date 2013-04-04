@@ -24,10 +24,9 @@
 #define TRIE_LOCK_BUCKETS  512
 /************************original - inicio ********************/
 //#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
-//#define THREADS_DIRECT_BUCKETS    32
-//%%#define THREADS_DIRECT_BUCKETS    65
-//%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
+//%%#define THREADS_DIRECT_BUCKETS    32
 #define THREADS_DIRECT_BUCKETS    65
+//%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
 #define THREADS_INDIRECT_BUCKETS   0
 #define THREADS_NUM_BUCKETS       (THREADS_DIRECT_BUCKETS + THREADS_INDIRECT_BUCKETS)
 /************************original - fim ********************/
@@ -180,6 +179,7 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags */
+#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING and MODE_DIRECTED flags */
 
 /************************************************************************
 **                           Parameter Checks                          **

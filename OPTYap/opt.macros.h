@@ -19,8 +19,6 @@ extern int Yap_page_size;
 
 #ifdef USE_PAGES_MALLOC
 #include <sys/shm.h>
-#include <sys/mman.h>
-#include <fcntl.h>
 #endif /* USE_PAGES_MALLOC */
 
 

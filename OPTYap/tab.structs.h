@@ -389,6 +389,10 @@ typedef struct subgoal_frame {
 #else
   void **subgoal_frame_array;
 #endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  int wid;
+  struct subgoal_frame *next_wid;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif
 } *sg_fr_ptr;
@@ -427,7 +431,8 @@ typedef struct subgoal_frame {
 #define SgFr_next_complete(X)           ((X)->next_complete)
 #define SgFr_sg_leaf_node(X)            ((X)->sg_leaf_node)
 #define SgFr_next_on_hash(X)            ((X)->next_on_hash)
-
+#define SgFr_wid(X)                     ((X)->wid)
+#define SgFr_next_wid(X)                ((X)->next_wid)
 
 
 /**********************************************************************************************************

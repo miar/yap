@@ -1497,14 +1497,19 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
     LOCAL_top_sg_fr_complete = sg_fr;
   }   
-
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
+  LOCAL_top_sg_fr_complete = sg_fr;
+#else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
   sg_fr_ptr *sg_fr_array;
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);  
   if (!BOOL_CAS(sg_fr_array, NULL, sg_fr)) {
     SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
     LOCAL_top_sg_fr_complete = sg_fr;
   }
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
 #ifdef THREADS_FULL_SHARING
