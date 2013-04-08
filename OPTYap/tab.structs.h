@@ -581,4 +581,26 @@ typedef struct subgoal_frame_hash_buckets {
 
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID_
 
+typedef struct subgoal_frame_hash {
+  int number_of_nodes;
+  struct subgoal_frame *sg_fr_complete;
+  sg_fr_hash_bkts_ptr old_hash_bkts;
+  sg_fr_hash_bkts_ptr hash_bkts;
+  struct subgoal_frame expansion_node;
+} *sg_fr_hash_ptr;
+
+typedef struct subgoal_frame_hash_buckets {
+  int number_of_buckets;
+  struct subgoal_frame **buckets;
+  struct subgoal_fr_hash_buckets *next;
+} *sg_fr_hash_bkts_ptr;
+
+/* answer_trie_hash */
+#define SgFrHash_num_buckets(X)        (HashBkts_number_of_buckets(((X)->hash_bkts)))
+#define SgFrHash_buckets(X)            (HashBkts_buckets(((X)->hash_bkts)))
+#define SgFrHash_hash_bkts(X)          ((X)->hash_bkts)
+#define SgFrHash_old_hash_bkts(X)      ((X)->old_hash_bkts)
+
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */

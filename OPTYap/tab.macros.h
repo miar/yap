@@ -232,7 +232,12 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #define IS_ANSWER_LEAF_NODE(NODE)            ((CELL) TrNode_parent(NODE) & 0x1)
 #define TAG_AS_ANSWER_INVALID_NODE(NODE)     TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x2)
 #define IS_ANSWER_INVALID_NODE(NODE)         ((CELL) TrNode_parent(NODE) & 0x2)
+//#ifdef THREADS_SUBGOAL_FRAME_BY_WID__
+//#define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x3))
+//#else
 #define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x1))
+//#endif 
+
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 
 /* trie hashes */
@@ -1430,12 +1435,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
   LOCK_SG_FR(sg_fr);
-  SgFr_state(sg_fr) = complete;
+
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-  INFO_THREADS(" mark_as_completed sgfr=%p ", SgFr_sg_ent(sg_fr));
-  TABLING_ERROR_CHECKING(mark_as_completed, SgFr_sg_ent_state(sg_fr) > complete);
-  SgFr_active_workers(sg_fr)--;
-  SgFr_sg_ent_state(sg_fr) = complete;
 #ifdef MODE_DIRECTED_TABLING
   if (SgFr_invalid_chain(sg_fr)) {
     ans_node_ptr current_node, next_node;
@@ -1457,6 +1458,10 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }
 #endif /* MODE_DIRECTED_TABLING */
 
+  INFO_THREADS(" mark_as_completed sgfr=%p ", SgFr_sg_ent(sg_fr));
+  TABLING_ERROR_CHECKING(mark_as_completed, SgFr_sg_ent_state(sg_fr) > complete);
+  SgFr_active_workers(sg_fr)--;
+  SgFr_sg_ent_state(sg_fr) = complete;
 #else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
 
 #ifdef MODE_DIRECTED_TABLING
@@ -1488,6 +1493,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }
 #endif /* MODE_DIRECTED_TABLING */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+  SgFr_state(sg_fr) = complete;
   UNLOCK_SG_FR(sg_fr);
 #ifdef THREADS_SUBGOAL_SHARING
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
