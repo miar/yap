@@ -1586,7 +1586,9 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
     else
       child_mode = TRAVERSE_MODE_NORMAL;
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
-  } else {    
+  }
+#ifndef THREADS_SUBGOAL_FRAME_BY_WID
+ else {    
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
@@ -1628,6 +1630,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       FREE_SUBGOAL_FRAME(sg_fr);
     }
   }
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
   if (position == TRAVERSE_POSITION_FIRST) {
     sg_node_ptr next_node = TrNode_next(current_node);
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
@@ -1755,10 +1758,6 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 *****************************************************************************************/
 void abolish_table(tab_ent_ptr tab_ent) {
   CACHE_REGS
-#ifdef THREADS_SUBGOAL_FRAME_BY_WID
-    printf(" abolish not ready \n");
-    return;
-#endif
 
   sg_node_ptr sg_node;
 #if defined(THREADS)
@@ -1796,6 +1795,19 @@ void abolish_table(tab_ent_ptr tab_ent) {
     }
 #endif
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID    
+    sg_fr_ptr sg_fr_last = sg_fr;
+    while(SgFr_next_complete(sg_fr_last))
+      sg_fr_last = SgFr_next_complete(sg_fr_last);
+    
+    do 
+      SgFr_next_complete(sg_fr_last) = REMOTE_top_sg_fr_complete(0);           
+    while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), SgFr_next_complete(sg_fr_last), sg_fr));
+    LOCAL_top_sg_fr_complete = NULL;
+    return;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+      
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
       ans_node_ptr ans_node;
@@ -1807,7 +1819,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
 #ifndef THREADS_LOCAL_SG_FR_HASH_BUCKETS
-	sg_fr_ptr *sg_fr_addr = (sg_fr_ptr*) get_thread_bucket(SgFr_sg_fr_array(sg_fr));
+	sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket(SgFr_sg_fr_array(sg_fr));
 	*sg_fr_addr = NULL;
 #endif
 	FREE_SUBGOAL_FRAME(sg_fr);	
@@ -1838,13 +1850,15 @@ void abolish_table(tab_ent_ptr tab_ent) {
     if (TrNode_child(sg_node)) {
       if (TabEnt_arity(tab_ent)) {
           free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);  
-      } else {
-	sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(sg_node PASS_REGS);
-	if (sg_fr) {
-	    SgFr_hash_chain(sg_fr) = NULL;
-	    FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
+      } 
+#ifndef  THREADS_SUBGOAL_FRAME_BY_WID
+      else {
+        sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(sg_node PASS_REGS);
+        if (sg_fr) {
+	  SgFr_hash_chain(sg_fr) = NULL;
+	  FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-	    FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
+	  FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */	  
 #ifdef LIMIT_TABLING
 	  remove_from_global_sg_fr_list(sg_fr);
@@ -1852,12 +1866,32 @@ void abolish_table(tab_ent_ptr tab_ent) {
 	  FREE_SUBGOAL_FRAME(sg_fr);
 	}
       }
+#endif  /* !THREADS_SUBGOAL_FRAME_BY_WID */
       TrNode_child(sg_node) = NULL;
-    }
+     }
 #ifdef THREADS_NO_SHARING
     FREE_SUBGOAL_TRIE_NODE(sg_node);
 #endif /* THREADS_NO_SHARING */
   }
+
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  /* only wid == 0 is here */
+  sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+  while (sg_fr){
+    sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
+    ans_node_ptr ans_node;
+    free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+    ans_node = SgFr_answer_trie(sg_fr);
+
+    if (TrNode_child(ans_node))
+      free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+    SgFr_hash_chain(sg_fr) = NULL;
+    FREE_ANSWER_TRIE_NODE(ans_node);
+    FREE_SUBGOAL_FRAME(sg_fr);	
+    sg_fr = next_sg_fr;
+  }
+  LOCAL_top_sg_fr_complete = NULL;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
   return;
 }
 
