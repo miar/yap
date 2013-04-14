@@ -1192,7 +1192,13 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   new_subgoal_frame(sg_fr, preg, mode_directed);
   SgFr_wid(sg_fr) = worker_id;
   SgFr_sg_leaf_node(sg_fr) = current_sg_node;
-  SgFr_next_wid(sg_fr) = NULL;
+
+  sg_fr_ptr sg_fr_aux;
+  do {
+    sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
+    SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+  } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
+  
 
   return sg_fr;
 
@@ -1794,7 +1800,8 @@ void abolish_table(tab_ent_ptr tab_ent) {
     while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), SgFr_next_complete(sg_fr_last), sg_fr));
     LOCAL_top_sg_fr_complete = NULL;
     return;
-#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+  }
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
       
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
@@ -1816,6 +1823,8 @@ void abolish_table(tab_ent_ptr tab_ent) {
     LOCAL_top_sg_fr_complete = NULL;
     return;
   }
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+
 #elif defined(THREADS_FULL_SHARING)
   else {
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
@@ -1966,7 +1975,7 @@ void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
 	sg_fr_ptr sg_fr = get_subgoal_frame(sg_node);
 #endif /* THREADS_FULL_SHARING */
 
-#ifdef THREADS_SUBGOAL_SHARING
+#if defined(THREADS_SUBGOAL_SHARING) && !defined(THREADS_SUBGOAL_FRAME_BY_WID)
 	/* just to avoid table differences on the test_suite. */
 	if (sg_fr == NULL) {
 	  void **buckets;
@@ -1978,7 +1987,7 @@ void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
 	  if (sg_fr_completed != NULL)
 	    sg_fr = sg_fr_completed;
 	}
-#endif /* THREADS_SUBGOAL_SHARING */
+#endif /* THREADS_SUBGOAL_SHARING && !THREADS_SUBGOAL_FRAME_BY_WID*/
 	if (sg_fr) {
 	  TrStat_subgoals++;
 	  SHOW_TABLE_STRUCTURE("  ?- %s.\n", AtomName(TabEnt_atom(tab_ent)));

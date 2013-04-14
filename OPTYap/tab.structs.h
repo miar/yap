@@ -383,16 +383,17 @@ typedef struct subgoal_frame {
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
   struct subgoal_trie_node *sg_leaf_node;
   struct subgoal_frame *next_on_hash;
-#else
+#else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  int wid;
+  struct subgoal_trie_node *sg_leaf_node;
+  struct subgoal_frame *next_wid;
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct sg_fr_bkt_array **subgoal_frame_array;
 #else
   void **subgoal_frame_array;
 #endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
-#ifdef THREADS_SUBGOAL_FRAME_BY_WID
-  int wid;
-  struct subgoal_trie_node *sg_leaf_node;
-  struct subgoal_frame *next_wid;
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif

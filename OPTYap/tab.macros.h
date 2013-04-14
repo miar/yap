@@ -1181,7 +1181,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
 
 static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {
 #if defined(THREADS_SUBGOAL_SHARING)
-#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+#if defined(THREADS_LOCAL_SG_FR_HASH_BUCKETS) || defined(THREADS_SUBGOAL_FRAME_BY_WID)
   return (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
 #else
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
@@ -1198,7 +1198,7 @@ static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {
 
 static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_REGS) {
 #if defined(THREADS_SUBGOAL_SHARING)
-#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+#if defined(THREADS_LOCAL_SG_FR_HASH_BUCKETS) || defined(THREADS_SUBGOAL_FRAME_BY_WID)
   return (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
 #else
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
@@ -1434,6 +1434,12 @@ static inline void adjust_freeze_registers(void) {
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
+#ifdef TABLING_EARLY_COMPLETION
+    /* as example the test_single02 passes here more than once with tabling_early_completion*/
+  if (SgFr_state(sg_fr) >= complete)
+    return;  
+#endif
+
   LOCK_SG_FR(sg_fr);
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1509,13 +1515,15 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   sg_leaf_node = SgFr_sg_leaf_node(sg_fr);
   
   sg_fr_ptr sg_fr_aux;
+  sg_fr_ptr sg_fr_aux2;
   do {
     sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(sg_leaf_node);  
-    SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
-    if (SgFr_next_wid(sg_fr) && SgFr_state(SgFr_next_wid(sg_fr)) >= complete)
-      break;
+    sg_fr_aux2 = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+    if (sg_fr_aux2 && SgFr_state(sg_fr_aux2) >= complete)
+      break;    
   } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
   
+
 
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
