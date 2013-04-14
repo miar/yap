@@ -1169,28 +1169,17 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID 
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));  
-
+  
   if (sg_fr) {
-    if (SgFr_state(sg_fr) >= complete)
+    if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
       return sg_fr;
-    sg_fr_ptr sg_fr_wid = NULL;
-    if (SgFr_wid(sg_fr) == worker_id)
-      sg_fr_wid = sg_fr;
-
     mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
-    
-    while(sg_fr && SgFr_state(sg_fr) < complete) {
+    while(sg_fr) {
       if (SgFr_wid(sg_fr) == worker_id)
-	sg_fr_wid = sg_fr;
+	return sg_fr;
       sg_fr = SgFr_next_wid(sg_fr);
     }
-    if (sg_fr) {
-      TrNode_sg_fr(current_sg_node) = (sg_node_ptr)((CELL) sg_fr | 0x1);
-      return sg_fr;
-    }
-    if (sg_fr_wid)
-      return sg_fr_wid; 
   } else
     mode_directed = NULL;
   
@@ -1202,12 +1191,8 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   }
   new_subgoal_frame(sg_fr, preg, mode_directed);
   SgFr_wid(sg_fr) = worker_id;
-  
-  sg_fr_ptr sg_fr_aux;
-  do {
-    sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
-    SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
-  } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
+  SgFr_sg_leaf_node(sg_fr) = current_sg_node;
+  SgFr_next_wid(sg_fr) = NULL;
 
   return sg_fr;
 

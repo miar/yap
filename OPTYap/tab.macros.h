@@ -1504,10 +1504,22 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     LOCAL_top_sg_fr_complete = sg_fr;
   }   
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  struct subgoal_trie_node *sg_leaf_node;
+  sg_leaf_node = SgFr_sg_leaf_node(sg_fr);
+  
+  sg_fr_ptr sg_fr_aux;
+  do {
+    sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(sg_leaf_node);  
+    SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+    if (SgFr_next_wid(sg_fr) && SgFr_state(SgFr_next_wid(sg_fr)) >= complete)
+      break;
+  } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
+  
+
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
+
 #else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
   sg_fr_ptr *sg_fr_array;
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);  
