@@ -1797,6 +1797,9 @@ void abolish_table(tab_ent_ptr tab_ent) {
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID    
+    if (sg_fr == NULL)
+      return;
+    
     sg_fr_ptr sg_fr_last = sg_fr;
     while(SgFr_next_complete(sg_fr_last))
       sg_fr_last = SgFr_next_complete(sg_fr_last);
