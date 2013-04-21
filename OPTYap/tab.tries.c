@@ -1874,7 +1874,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
   /* only wid == 0 is here */
   sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
-  while (sg_fr){
+  while (sg_fr) {
     sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
     ans_node_ptr ans_node;
     free_answer_hash_chain(SgFr_hash_chain(sg_fr));

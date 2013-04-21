@@ -683,12 +683,20 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       child_node = *bucket; 
     }
     
+    int expNodeVisited = 0; 
     while (child_node) {
-      if (TrNode_entry(child_node) == t && !IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
-	if (new_child_node != NULL) 
-	  FREE_SUBGOAL_TRIE_NODE(new_child_node);
-	return child_node;    
-      }
+      if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
+	if (TrNode_entry(child_node) == t) {  
+	  if (new_child_node != NULL) 
+	    FREE_SUBGOAL_TRIE_NODE(new_child_node);
+	  return child_node;    
+	}
+      }  else {
+	if (expNodeVisited == 1)
+	  break;
+	else
+	  expNodeVisited = 1;	
+      }       
       child_node = TrNode_next(child_node);    
     }
     
@@ -697,7 +705,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     }
     
     first_node = NULL;
-    int expNodeVisited = 0; // lock-freedom - 2    
+    expNodeVisited = 0;
     sg_node_ptr first_node_tmp = NULL;
     do {
       count_nodes = 0;
@@ -1748,12 +1756,20 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       child_node = *bucket; 
     }
     
+    int expNodeVisited = 0; 
     while (child_node) {
-      if (TrNode_entry(child_node) == t && !IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
-	if (new_child_node != NULL) 
-	  FREE_ANSWER_TRIE_NODE(new_child_node);
-	return child_node;    
-      }
+      if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
+	if (TrNode_entry(child_node) == t) {
+	  if (new_child_node != NULL) 
+	    FREE_ANSWER_TRIE_NODE(new_child_node);
+	  return child_node;    
+	}
+      } else {
+	if (expNodeVisited == 1)
+	  break;
+	else
+	  expNodeVisited = 1;	
+      }  
       child_node = TrNode_next(child_node);    
     }
     
@@ -1762,7 +1778,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     }
     
     first_node = NULL;        // oldfFirst
-    int expNodeVisited = 0;   // lock-freedom - 4    
+    expNodeVisited = 0;
     ans_node_ptr first_node_tmp = NULL;
     do {
       count_nodes = 0;

@@ -117,8 +117,8 @@
 ** Data structure to be used for locking the trie when using the  **
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
-#define TRIE_LOCK_USING_NODE_FIELD   1
-//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
+//#define TRIE_LOCK_USING_NODE_FIELD   1
+#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **

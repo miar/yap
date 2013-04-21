@@ -1171,7 +1171,8 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
                                    &TrNode_lock(sg_node)
 #elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
                                    &HASH_TRIE_LOCK(sg_node)
-#endif                             );
+#endif                           
+  );
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   return sg_fr_addr;
 }
@@ -1523,8 +1524,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       break;    
   } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
   
-
-
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
 
