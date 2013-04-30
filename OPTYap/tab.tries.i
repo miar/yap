@@ -611,8 +611,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       if (IS_SUBGOAL_TRIE_HASH(child_node))
 	goto subgoal_trie_hash;            
 
-      count_nodes = 0;
-
       while (child_node && child_node != first_node) {
 	if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
 	  if (TrNode_entry(child_node) == t) {
@@ -641,11 +639,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       chain_node = child_node;
       while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (sg_node_ptr)hash_node)) {
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
-	if (IS_SUBGOAL_TRIE_HASH(chain_node)) {
-	  FREE_BUCKETS(new_hash_buckets);
-	  FREE_SUBGOAL_TRIE_HASH(hash_node);    
-	  return child_node;
-	}
       }
 
       // alloc a new hash
@@ -1676,8 +1669,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       if (IS_ANSWER_TRIE_HASH(child_node))
 	goto answer_trie_hash;            
 
-      count_nodes = 0;
-      
       while (child_node && child_node != first_node) {
 	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
 	  if (TrNode_entry(child_node) == t) {
@@ -1721,11 +1712,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       chain_node = child_node;
       while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (ans_node_ptr)hash_node)) {
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
-	if (IS_ANSWER_TRIE_HASH(chain_node)) {
-	  FREE_BUCKETS(new_hash_buckets);
-	  FREE_ANSWER_TRIE_HASH(hash_node);    
-	  return child_node;
-	}
       }
       // alloc a new hash
       count_nodes = adjust_answer_hash_nodes_first_exp(chain_node, new_hash_buckets, 0);
