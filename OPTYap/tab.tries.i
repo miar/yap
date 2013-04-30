@@ -639,8 +639,15 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       struct subgoal_trie_node **new_hash_buckets;
       new_subgoal_trie_hash_atomic_v03(exp_node, hash_node, new_hash_buckets, 0, tab_ent, child_node);
       chain_node = child_node;
-      while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (sg_node_ptr)hash_node))
+      while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (sg_node_ptr)hash_node)) {
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
+	if (IS_SUBGOAL_TRIE_HASH(chain_node)) {
+	  FREE_BUCKETS(new_hash_buckets);
+	  FREE_SUBGOAL_TRIE_HASH(hash_node);    
+	  return child_node;
+	}
+      }
+
       // alloc a new hash
       count_nodes = adjust_subgoal_hash_nodes_first_exp(chain_node, new_hash_buckets, 0);
       Add_HashNode_num_nodes_v03(hash_node, count_nodes);
@@ -1712,12 +1719,18 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       struct answer_trie_node **new_hash_buckets;
       new_answer_trie_hash_atomic_v03(exp_node, hash_node, new_hash_buckets, 0, sg_fr, child_node);
       chain_node = child_node;
-      while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (ans_node_ptr)hash_node))
+      while (!BOOL_CAS(&(TrNode_child(parent_node)), chain_node, (ans_node_ptr)hash_node)) {
 	chain_node = TrNode_next(exp_node) = TrNode_child(parent_node);
+	if (IS_ANSWER_TRIE_HASH(chain_node)) {
+	  FREE_BUCKETS(new_hash_buckets);
+	  FREE_ANSWER_TRIE_HASH(hash_node);    
+	  return child_node;
+	}
+      }
       // alloc a new hash
       count_nodes = adjust_answer_hash_nodes_first_exp(chain_node, new_hash_buckets, 0);
       Add_HashNode_num_nodes_v03(hash_node, count_nodes);
-
+      
       // remove the the expansion node from all buckets
       bucket = new_hash_buckets + BASE_HASH_BUCKETS;
       do {
