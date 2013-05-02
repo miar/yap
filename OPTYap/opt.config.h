@@ -61,8 +61,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1  /* use this with mode_directed_tabling */
-//#define THREADS_FULL_SHARING 1   /* DO NOT USE mode_directed_tabling */
+//#define THREADS_SUBGOAL_SHARING 1  /* use this with mode_directed_tabling */
+#define THREADS_FULL_SHARING 1   /* DO NOT USE mode_directed_tabling */
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
@@ -101,10 +101,10 @@
 //#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
+//%%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag*/
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-//%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+//%%%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
@@ -117,8 +117,8 @@
 ** Data structure to be used for locking the trie when using the  **
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
-//#define TRIE_LOCK_USING_NODE_FIELD   1
-#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
+#define TRIE_LOCK_USING_NODE_FIELD   1
+//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
@@ -179,7 +179,7 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
-#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+//#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 
 /************************************************************************
 **                           Parameter Checks                          **
@@ -375,9 +375,11 @@
 #error LIMIT_TABLING requires USE_PAGES_MALLOC
 #endif
 
+
 #if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 #undef TABLING_EARLY_COMPLETION
 #endif
+
 
 #if defined(YAPOR) || defined(THREADS)
 //#undef MODE_DIRECTED_TABLING

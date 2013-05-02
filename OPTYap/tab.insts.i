@@ -481,13 +481,13 @@
 	SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
 	LOCAL_top_sg_fr_complete = sg_fr;
       	SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
-      }else
+      } else
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
       }
 #endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
-//    INFO_THREADS("table_try_single sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
+
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
