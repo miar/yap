@@ -475,7 +475,7 @@
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-        if (SgFr_state(sg_fr) <= ready) {
+    if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
       if (SgFr_sg_ent_state(sg_fr) >= complete){
 	SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
@@ -484,7 +484,7 @@
       } else
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
-      }
+    } 
 #endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
 
