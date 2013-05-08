@@ -388,6 +388,8 @@
     } else {
       pop_loader_node();
     }
+    
+      
     PREG = (yamop *) CPREG;
     PREFETCH_OP(PREG);
     load_answer(ans_node, subs_ptr);
@@ -551,6 +553,14 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+
+	/////////////////////////////
+if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+      printf("error -1  \n");
+
+
+
+
       if (ans_node == NULL) {
 	/* no answers --> fail */
 	goto fail;
@@ -694,6 +704,13 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+
+	/////////////////////////////
+if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+      printf("error -2 \n");
+
+
+
       if (ans_node == NULL) {
 	/* no answers --> fail */
 	//UNLOCK_SG_FR(sg_fr);
@@ -838,6 +855,13 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+
+
+	/////////////////////////////
+if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+      printf("error 3 \n");
+
+
       if (ans_node == NULL) {
 	/* no answers --> fail */
 	//UNLOCK_SG_FR(sg_fr);
@@ -1891,6 +1915,12 @@ complete_all:
       } else {
         /* subgoal completed */
 	ans_node = SgFr_first_answer(sg_fr);
+
+	/////////////////////////////
+if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+      printf("error 4 \n");
+
+
         if (ans_node == NULL) {
           /* no answers --> fail */
           B = B->cp_b;

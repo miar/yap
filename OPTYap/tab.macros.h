@@ -1446,45 +1446,85 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   SgFr_active_workers(sg_fr)--;
 #ifdef MODE_DIRECTED_TABLING
-  if (SgFr_active_workers(sg_fr) == 0 && SgFr_invalid_chain(sg_fr)) {
-    ans_node_ptr current_node, next_node;
-    /* find first valid answer */
-    current_node = SgFr_first_answer(sg_fr);
-    while (IS_ANSWER_INVALID_NODE(current_node))
-      current_node = TrNode_child(current_node);
-    SgFr_first_answer(sg_fr) = current_node;
-    /* chain next valid answers */
-    next_node = TrNode_child(current_node);
-    while (next_node) {
-      if (!IS_ANSWER_INVALID_NODE(next_node)) {
-	TrNode_child(current_node) = next_node;
-	current_node = next_node;   
-      }
-      next_node = TrNode_child(next_node);
-    }
-    SgFr_last_answer(sg_fr) = current_node;    
+  ans_node_ptr current_node, next_node;
+  if (SgFr_invalid_chain(sg_fr)) {
+    if (SgFr_sg_ent_state(sg_fr) == complete) {
+      if (SgFr_active_workers(sg_fr) == 0) {
+	/* free invalid answer nodes */
+	current_node = SgFr_invalid_chain(sg_fr);
+	SgFr_invalid_chain(sg_fr) = NULL;
+	while (current_node) {
+	  next_node = TrNode_next(current_node);	
+	  ans_node_ptr parent_node, next_parent_node;
+	  parent_node = TrNode_parent(current_node);
+	  while(IS_ANSWER_INVALID_NODE(parent_node)) {
+	    parent_node = (ans_node_ptr) UNTAG_ANSWER_NODE(parent_node);
+	    next_parent_node = TrNode_parent(parent_node);
+	    FREE_ANSWER_TRIE_NODE(parent_node);
+	    parent_node = next_parent_node;
+	  }
 
-    /* free invalid answer nodes */
-    current_node = SgFr_invalid_chain(sg_fr);
-    SgFr_invalid_chain(sg_fr) = NULL;
-
-    while (current_node) {
-      next_node = TrNode_next(current_node);	
-      ans_node_ptr parent_node, next_parent_node;
-      parent_node = TrNode_parent(current_node);
-      while(IS_ANSWER_INVALID_NODE(parent_node)) {
-	parent_node = (ans_node_ptr) UNTAG_ANSWER_NODE(parent_node);
-	next_parent_node = TrNode_parent(parent_node);
-	FREE_ANSWER_TRIE_NODE(parent_node);
-	parent_node = next_parent_node;
+	  //////FREE_ANSWER_TRIE_NODE(current_node); why this does not work ??
+	  current_node = next_node;
+	}
       }
-      FREE_ANSWER_TRIE_NODE(current_node);
-      current_node = next_node;
+    } else /* SgFr_sg_ent_state(sg_fr) != complete */ {
+      if (SgFr_active_workers(sg_fr) == 0) {
+	/* find first valid answer */
+	current_node = SgFr_first_answer(sg_fr);
+	while (IS_ANSWER_INVALID_NODE(current_node))
+	  current_node = TrNode_child(current_node);
+	SgFr_first_answer(sg_fr) = current_node;
+	/* chain next valid answers */
+	next_node = TrNode_child(current_node);
+	while (next_node) {
+	  if (!IS_ANSWER_INVALID_NODE(next_node)) {
+	    TrNode_child(current_node) = next_node;
+	    current_node = next_node;   
+	  }
+	  next_node = TrNode_child(next_node);
+	}
+	SgFr_last_answer(sg_fr) = current_node;    
+	
+	/* free invalid answer nodes */
+	current_node = SgFr_invalid_chain(sg_fr);
+	SgFr_invalid_chain(sg_fr) = NULL;
+	
+	while (current_node) {
+	  next_node = TrNode_next(current_node);	
+	  ans_node_ptr parent_node, next_parent_node;
+	  parent_node = TrNode_parent(current_node);
+	  while(IS_ANSWER_INVALID_NODE(parent_node)) {
+	    parent_node = (ans_node_ptr) UNTAG_ANSWER_NODE(parent_node);
+	    next_parent_node = TrNode_parent(parent_node);
+	    FREE_ANSWER_TRIE_NODE(parent_node);
+	    parent_node = next_parent_node;
+	  }
+	  FREE_ANSWER_TRIE_NODE(current_node);
+	  current_node = next_node;
+	}
+      } else /* SgFr_active_workers(sg_fr) != 0 */  {
+	/* find first valid answer */
+	current_node = SgFr_first_answer(sg_fr);
+	while (IS_ANSWER_INVALID_NODE(current_node))
+	  current_node = TrNode_child(current_node);
+	SgFr_first_answer(sg_fr) = current_node;
+	/* chain next valid answers */
+	next_node = TrNode_child(current_node);
+	while (next_node) {
+	  if (!IS_ANSWER_INVALID_NODE(next_node)) {
+	    TrNode_child(current_node) = next_node;
+	    current_node = next_node;   
+	  }
+	  next_node = TrNode_child(next_node);
+	}
+	SgFr_last_answer(sg_fr) = current_node;
+      }
+
+      SgFr_sg_ent_state(sg_fr) = complete;
     }
-    SgFr_sg_ent_state(sg_fr) = complete;
   }
-#else /* !MODE_DIRECTED_TABLING */
-  SgFr_sg_ent_state(sg_fr) = complete;
+
 #endif /* MODE_DIRECTED_TABLING */
 
 #else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
@@ -1518,8 +1558,9 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }
 #endif /* MODE_DIRECTED_TABLING */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-  SgFr_state(sg_fr) = complete;
   UNLOCK_SG_FR(sg_fr);
+  SgFr_state(sg_fr) = complete;
+
 #ifdef THREADS_SUBGOAL_SHARING
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
   struct subgoal_trie_node * sg_leaf_node;
