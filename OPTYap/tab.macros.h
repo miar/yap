@@ -1464,7 +1464,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 	    parent_node = next_parent_node;
 	  }
 
-	  //////FREE_ANSWER_TRIE_NODE(current_node); why this does not work ??
+	  FREE_ANSWER_TRIE_NODE(current_node); // disable flag  use_pages_malloc
 	  current_node = next_node;
 	}
       }
@@ -1500,7 +1500,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 	    FREE_ANSWER_TRIE_NODE(parent_node);
 	    parent_node = next_parent_node;
 	  }
-	  FREE_ANSWER_TRIE_NODE(current_node);
+	  
+	  FREE_ANSWER_TRIE_NODE(current_node);  // disable flag  use_pages_malloc 
 	  current_node = next_node;
 	}
       } else /* SgFr_active_workers(sg_fr) != 0 */  {
@@ -1520,10 +1521,10 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 	}
 	SgFr_last_answer(sg_fr) = current_node;
       }
-
-      SgFr_sg_ent_state(sg_fr) = complete;
+      TrNode_child(SgFr_last_answer(sg_fr)) = NULL;
     }
   }
+  SgFr_sg_ent_state(sg_fr) = complete;
 
 #endif /* MODE_DIRECTED_TABLING */
 

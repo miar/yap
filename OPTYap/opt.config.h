@@ -49,7 +49,7 @@
 **      use shared pages memory alloc scheme ? (optional)      **
 ****************************************************************/
 
-#define USE_PAGES_MALLOC 1
+//#define USE_PAGES_MALLOC 1  /* disable with full_sharing + mode_directed_tabling */
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **

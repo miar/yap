@@ -555,8 +555,8 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-      printf("error -1  \n");
+      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error -1  \n"); */
 
 
 
@@ -706,8 +706,8 @@ if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-      printf("error -2 \n");
+      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error -2 \n"); */
 
 
 
@@ -858,8 +858,8 @@ if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
 
 
 	/////////////////////////////
-if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-      printf("error 3 \n");
+      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error 3 \n"); */
 
 
       if (ans_node == NULL) {
@@ -1914,11 +1914,13 @@ complete_all:
         goto fail;
       } else {
         /* subgoal completed */
+
 	ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-      printf("error 4 \n");
+
+	/*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	  printf("error 4 \n"); */
 
 
         if (ans_node == NULL) {
