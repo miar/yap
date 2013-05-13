@@ -106,7 +106,6 @@
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
 //%%%%#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
 
-
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
 /* #define GLOBAL_TRIE_ALLOC_BEFORE_CHECK  1 */
@@ -180,6 +179,23 @@
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
 //#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
+
+#if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
+#ifdef USE_PAGES_MALLOC
+#undef USE_PAGES_MALLOC
+#endif
+
+#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1
+
+
+
+
+#endif /* THREADS_FULL_SHARING && MODE_DIRECTED_TABLING */
+
+
+
+
 
 /************************************************************************
 **                           Parameter Checks                          **
@@ -387,3 +403,5 @@
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING
 #endif
+
+

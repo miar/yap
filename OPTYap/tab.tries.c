@@ -1348,6 +1348,10 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 
 
 #ifdef MODE_DIRECTED_TABLING
+
+
+#if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01)
+ 
 ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 #define subs_arity *subs_ptr
   CACHE_REGS
@@ -1435,7 +1439,19 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
   return current_ans_node;
 #undef subs_arity
 }
+
+#endif /* THREADS_NO_SHARING || THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING_MODE_DIRECTED_V01 */
+
+
+
+
 #endif /* MODE_DIRECTED_TABLING */
+
+
+
+
+
+
 
 
 void load_answer(ans_node_ptr current_ans_node, CELL *subs_ptr) {
