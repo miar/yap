@@ -1440,11 +1440,85 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 #undef subs_arity
 }
 
+#elif defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
+
+ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
+#define subs_arity *subs_ptr
+  CACHE_REGS
+  CELL *stack_vars;
+  int i, j, vars_arity;
+  ans_node_ptr current_ans_node, invalid_ans_node;
+  int *mode_directed;
+
+  LOCK_SG_FR(sg_fr); //to remove
+
+  vars_arity = 0;
+  current_ans_node = SgFr_answer_trie(sg_fr);
+  invalid_ans_node = NULL;
+  mode_directed = SgFr_mode_directed(sg_fr);
+  j = 0;
+  i = subs_arity;
+  while (i) {
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
+    int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+    do {
+      TABLING_ERROR_CHECKING(answer_search, IsNonVarTerm(subs_ptr[i]));
+      if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
+	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+      } else {
+	ans_node_ptr parent_ans_node = current_ans_node;
+	if (TrNode_child(current_ans_node) == NULL) {
+	  struct answer_trie_node virtual_ans_node;
+	  AnsNode_init_lock_field(&virtual_ans_node);
+	  TrNode_parent(&virtual_ans_node) = NULL;
+	  TrNode_child(&virtual_ans_node) = NULL;	  
+	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
+	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node;
+	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
+	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
+	  current_ans_node = answer_search_min_max(sg_fr, current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+	  if (invalid_ans_node == TrNode_child(parent_ans_node))  /* worse or equal answer */
+	    invalid_ans_node = NULL;
+	} else if (mode == MODE_DIRECTED_FIRST) {
+	  current_ans_node = NULL;
+	} else {  /* mode == MODE_DIRECTED_LAST */
+	  struct answer_trie_node virtual_ans_node;
+	  invalid_ans_node = TrNode_child(parent_ans_node);
+	  AnsNode_init_lock_field(&virtual_ans_node);
+	  TrNode_parent(&virtual_ans_node) = NULL;
+	  TrNode_child(&virtual_ans_node) = NULL;
+	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
+	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node; 
+	}
+      }
+      n_subs--;
+      i--;
+    } while (n_subs && current_ans_node);
+    if (current_ans_node == NULL)  /* no answer inserted */
+      break;
+    j++;
+  }
+
+
+  if (invalid_ans_node)
+   invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+
+  UNLOCK_SG_FR(sg_fr); //to remove
+ 
+
+  /* reset variables */
+  stack_vars = (CELL *) TR;
+  while (vars_arity--) {
+    Term t = STACK_POP_DOWN(stack_vars);
+    RESET_VARIABLE(t);
+  } 
+  return current_ans_node;
+#undef subs_arity
+}
+
 #endif /* THREADS_NO_SHARING || THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING_MODE_DIRECTED_V01 */
-
-
-
-
 #endif /* MODE_DIRECTED_TABLING */
 
 

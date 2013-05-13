@@ -186,7 +186,8 @@
 #undef USE_PAGES_MALLOC
 #endif
 
-#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1
+//#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not verified in all benchmarks */
+#define THREADS_FULL_SHARING_MODE_DIRECTED_V02  1
 
 
 
