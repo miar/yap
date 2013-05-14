@@ -555,8 +555,8 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	printf("error -1  \n"); */
+      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error -1  \n");
 
 
 
@@ -706,8 +706,8 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	printf("error -2 \n"); */
+      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error -2 \n"); 
 
 
 
@@ -858,8 +858,8 @@
 
 
 	/////////////////////////////
-      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	printf("error 3 \n"); */
+      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	printf("error 3 \n"); 
 
 
       if (ans_node == NULL) {
@@ -1197,6 +1197,15 @@
 #ifndef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
       LOCK_SG_FR(sg_fr);      
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
+
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02___________________________
+      if (IS_ANSWER_INVALID_NODE(ans_node)) {
+	/* small optimization if another thread already marked this node as invalid */
+	UNLOCK_SG_FR(sg_fr);      
+	goto fail;
+      }
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
       if (!IS_ANSWER_LEAF_NODE(ans_node)) { 
 #ifdef THREADS_FULL_SHARING
 	if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {	
@@ -1919,8 +1928,8 @@ complete_all:
 
 	/////////////////////////////
 
-	/*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	  printf("error 4 \n"); */
+	if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
+	  printf("error 4 \n"); 
 
 
         if (ans_node == NULL) {

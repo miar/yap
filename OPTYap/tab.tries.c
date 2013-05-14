@@ -44,7 +44,7 @@ static inline CELL *load_answer_loop(ans_node_ptr USES_REGS);
 static inline CELL *load_substitution_loop(gt_node_ptr, int *, CELL * USES_REGS);
 static inline CELL *exec_substitution_loop(gt_node_ptr, CELL **, CELL * USES_REGS);
 #ifdef MODE_DIRECTED_TABLING
-static inline ans_node_ptr answer_search_min_max(sg_fr_ptr, ans_node_ptr, Term, int USES_REGS);
+static inline ans_node_ptr answer_search_min_max(ans_node_ptr, Term, int USES_REGS);
 static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif /* MODE_DIRECTED_TABLING */
 
@@ -1450,7 +1450,7 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
   ans_node_ptr current_ans_node, invalid_ans_node;
   int *mode_directed;
 
-  LOCK_SG_FR(sg_fr); //to remove
+  //LOCK_SG_FR(sg_fr);  //to remove 
 
   vars_arity = 0;
   current_ans_node = SgFr_answer_trie(sg_fr);
@@ -1458,15 +1458,18 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
   mode_directed = SgFr_mode_directed(sg_fr);
   j = 0;
   i = subs_arity;
+  //  printf("subs_arity = %d\n", subs_arity);
+  LOCK_ANSWER_NODE(SgFr_answer_trie(sg_fr));	
   while (i) {
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
-    int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);   // mode
+    int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);  // mode * reps. Example (index,max,max) = 1 * index + 2 * max
     do {
       TABLING_ERROR_CHECKING(answer_search, IsNonVarTerm(subs_ptr[i]));
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
 	ans_node_ptr parent_ans_node = current_ans_node;
+	//	LOCK_ANSWER_NODE(parent_ans_node);	
 	if (TrNode_child(current_ans_node) == NULL) {
 	  struct answer_trie_node virtual_ans_node;
 	  AnsNode_init_lock_field(&virtual_ans_node);
@@ -1476,36 +1479,27 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
 	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node;
 	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
-	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
-	  current_ans_node = answer_search_min_max(sg_fr, current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
-	  if (invalid_ans_node == TrNode_child(parent_ans_node))  /* worse or equal answer */
+	  invalid_ans_node = TrNode_child(parent_ans_node);       // by default, assume a better answer
+	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+	  if (invalid_ans_node == TrNode_child(parent_ans_node))  // worse or equal answer
 	    invalid_ans_node = NULL;
-	} else if (mode == MODE_DIRECTED_FIRST) {
-	  current_ans_node = NULL;
-	} else {  /* mode == MODE_DIRECTED_LAST */
-	  struct answer_trie_node virtual_ans_node;
-	  invalid_ans_node = TrNode_child(parent_ans_node);
-	  AnsNode_init_lock_field(&virtual_ans_node);
-	  TrNode_parent(&virtual_ans_node) = NULL;
-	  TrNode_child(&virtual_ans_node) = NULL;
-	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
-	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
-	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node; 
 	}
+	//	UNLOCK_ANSWER_NODE(parent_ans_node);
       }
       n_subs--;
       i--;
     } while (n_subs && current_ans_node);
-    if (current_ans_node == NULL)  /* no answer inserted */
+    if (current_ans_node == NULL)  // no answer inserted
       break;
     j++;
   }
+  UNLOCK_ANSWER_NODE(SgFr_answer_trie(sg_fr));	
 
-
+  LOCK_SG_FR(sg_fr);
   if (invalid_ans_node)
    invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
 
-  UNLOCK_SG_FR(sg_fr); //to remove
+  UNLOCK_SG_FR(sg_fr);  // to remove 
  
 
   /* reset variables */
@@ -1520,10 +1514,6 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 
 #endif /* THREADS_NO_SHARING || THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING_MODE_DIRECTED_V01 */
 #endif /* MODE_DIRECTED_TABLING */
-
-
-
-
 
 
 

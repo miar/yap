@@ -2640,7 +2640,7 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
           NODE = new_node;                                                 \
 	}
 
-static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr current_node, Term t, int mode USES_REGS) {
+static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term t, int mode USES_REGS) {
   ans_node_ptr child_node;
   Term child_term;
   Float trie_value = 0, term_value = 0;
