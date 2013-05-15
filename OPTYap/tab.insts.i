@@ -1198,15 +1198,21 @@
       LOCK_SG_FR(sg_fr);      
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
-#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02___________________________
-      if (IS_ANSWER_INVALID_NODE(ans_node)) {
-	/* small optimization if another thread already marked this node as invalid */
+      if (!IS_ANSWER_LEAF_NODE(ans_node)) { 
+
+
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
+      if (SgFr_sg_ent_state(sg_fr) == complete) {
+	printf("error  7 active_workers = %d \n", SgFr_active_workers(sg_fr));
 	UNLOCK_SG_FR(sg_fr);      
 	goto fail;
       }
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
-      if (!IS_ANSWER_LEAF_NODE(ans_node)) { 
+
+
+
+
 #ifdef THREADS_FULL_SHARING
 	if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {	
 	  ANSWER_LEAF_NODE_INSTR_RELATIVE(ans_node);
@@ -1215,7 +1221,7 @@
 	}
 #endif /* THREADS_FULL_SHARING */
 	if (SgFr_last_answer(sg_fr) == NULL)
-	  SgFr_first_answer(sg_fr) = ans_node;
+	  SgFr_first_answer(sg_fr) = ans_node;	    
 	else 
 	  TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
 	SgFr_last_answer(sg_fr) = ans_node;
@@ -1929,7 +1935,7 @@ complete_all:
 	/////////////////////////////
 
 	if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	  printf("error 4 \n"); 
+	  printf("error  4 active_workers = %d \n", SgFr_active_workers(sg_fr));
 
 
         if (ans_node == NULL) {

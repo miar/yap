@@ -1524,7 +1524,10 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       TrNode_child(SgFr_last_answer(sg_fr)) = NULL;
     }
   }
+
+
   SgFr_sg_ent_state(sg_fr) = complete;
+  
 
 #endif /* MODE_DIRECTED_TABLING */
 

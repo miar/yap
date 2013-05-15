@@ -2633,11 +2633,11 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
 **************************************************************/
 
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
-#define ANSWER_SAFE_INSERT_ENTRY(NODE, ENTRY, INSTR)                       \
-        { ans_node_ptr new_node;                                           \
-          NEW_ANSWER_TRIE_NODE(new_node, INSTR, ENTRY, NULL, NODE, NULL);  \
-	  TrNode_child(NODE) = new_node;                                   \
-          NODE = new_node;                                                 \
+#define ANSWER_SAFE_INSERT_ENTRY(PARENT_NODE, ENTRY, INSTR)                       \
+        { ans_node_ptr new_node;                                                  \
+          NEW_ANSWER_TRIE_NODE(new_node, INSTR, ENTRY, NULL, PARENT_NODE, NULL);  \
+	  TrNode_child(PARENT_NODE) = new_node;                                   \
+          PARENT_NODE = new_node;                                                 \
 	}
 
 static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term t, int mode USES_REGS) {
@@ -2729,11 +2729,11 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
 #ifdef THREADS_FULL_SHARING
 
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
-  TAG_AS_ANSWER_INVALID_NODE(NODE) ;			\
-  /* LOCK_SG_FR(SG_FR);	*/				\
-  TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);	\
-  SgFr_invalid_chain(SG_FR) = NODE
-  /*UNLOCK_SG_FR(SG_FR) */
+  if (!IS_ANSWER_INVALID_NODE(NODE)) {                  \
+    TAG_AS_ANSWER_INVALID_NODE(NODE);			\
+    TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);	\
+    SgFr_invalid_chain(SG_FR) = NODE;                   \
+  }
 
 
 
