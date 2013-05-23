@@ -338,12 +338,20 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* YAPOR */
 
 #ifdef MODE_DIRECTED_TABLING
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+#define Init_threads_full_sharing_mode_directed_v02(SG_FR)   \
+        SgEnt_mark_invalid_chain(SG_ENT) = NULL
+#else
+#define Init_threads_full_sharing_mode_directed_v02(SG_FR)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
 #define TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY)  \
         TabEnt_mode_directed(TAB_ENT) = MODE_ARRAY
 #define SgEnt_init_mode_directed_fields(SG_ENT, MODE_ARRAY)   \
         SgEnt_invalid_chain(SG_ENT) = NULL;                   \
         SgEnt_mode_directed(SG_ENT) = MODE_ARRAY
 #define SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY)     \
+        Init_threads_full_sharing_mode_directed_v02(SG_FR);   \
         SgFr_invalid_chain(SG_FR) = NULL;                     \
         SgFr_mode_directed(SG_FR) = MODE_ARRAY
 #define AnsHash_init_previous_field(HASH, SG_FR)              \
@@ -1468,6 +1476,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 	  current_node = next_node;
 	}
       }
+
     } else /* SgFr_sg_ent_state(sg_fr) != complete */ {
       if (SgFr_active_workers(sg_fr) == 0) {
 	/* find first valid answer */
@@ -1525,9 +1534,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     }
   }
 
-
   SgFr_sg_ent_state(sg_fr) = complete;
-  
 
 #endif /* MODE_DIRECTED_TABLING */
 

@@ -2633,6 +2633,102 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
 **************************************************************/
 
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
+
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+
+#define ANSWER_SAFE_INSERT_ENTRY(CURRENT_NODE, ENTRY, INSTR)                       \
+        { ans_node_ptr new_node;                                                   \
+          NEW_ANSWER_TRIE_NODE(new_node, INSTR, ENTRY, NULL, PARENT_NODE, NULL);   \
+	  TrNode_child(CURRENT_NODE) = new_node;                                   \
+          CURRENT_NODE = new_node;                                                 \
+	}
+
+  static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr current_node, Term t, int mode USES_REGS) {
+  ans_node_ptr child_node;
+  Term child_term;
+  Float trie_value = 0, term_value = 0;
+
+  /* start by computing the current value on the trie (trie_value) */
+  child_node = TrNode_child(current_node);
+  child_term = TrNode_entry(child_node);
+  if (IsIntTerm(child_term)) {
+    trie_value = (Float) IntOfTerm(child_term);
+  } else if (IsApplTerm(child_term)) {
+    Functor f = (Functor) RepAppl(child_term);
+    child_node = TrNode_child(child_node);
+    if (f == FunctorLongInt) {
+      trie_value = (Float) TrNode_entry(child_node);
+    } else if (f == FunctorDouble) {
+      union {
+	Term t_dbl[sizeof(Float)/sizeof(Term)];
+	Float dbl;
+      } u;
+      u.t_dbl[0] = TrNode_entry(child_node);
+#if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
+      child_node = TrNode_child(child_node);
+      u.t_dbl[1] = TrNode_entry(child_node);
+#endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
+      trie_value = u.dbl;
+    } else
+      Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_min_max: invalid arithmetic value");
+    child_node = TrNode_child(child_node);
+  }
+
+  /* then compute the value for the new term (term_value) */
+  if (IsAtomOrIntTerm(t))
+    term_value = (Float) IntOfTerm(t);
+  else if (IsApplTerm(t)) {
+    Functor f = FunctorOfTerm(t);
+    if (f == FunctorLongInt)
+      term_value = (Float) LongIntOfTerm(t);
+    else if (f == FunctorDouble)
+      term_value = FloatOfTerm(t);
+    else
+      Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_min_max: invalid arithmetic value");
+  }
+
+  /* ESTOU AQUIIIIIIIII - INICIO */
+
+  /* worse answer */
+  if ((mode == MODE_DIRECTED_MIN && term_value > trie_value) || (mode == MODE_DIRECTED_MAX && term_value < trie_value))
+    return NULL;
+  /* equal answer */
+  if (term_value == trie_value)
+    return child_node;
+  /* better answer */
+
+
+  if (IsAtomOrIntTerm(t)) {
+    ANSWER_SAFE_INSERT_ENTRY(current_node, t, _trie_retry_atom);
+  } else if (IsApplTerm(t)) {
+    Functor f = FunctorOfTerm(t);
+    if (f == FunctorDouble) {
+      union {
+	Term t_dbl[sizeof(Float)/sizeof(Term)];
+	Float dbl;
+      } u;
+      u.dbl = FloatOfTerm(t);
+      ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)f), _trie_retry_null);
+#if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
+      ANSWER_SAFE_INSERT_ENTRY(current_node, u.t_dbl[1], _trie_retry_extension);
+#endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
+      ANSWER_SAFE_INSERT_ENTRY(current_node, u.t_dbl[0], _trie_retry_extension);
+      ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)f), _trie_retry_double);
+    } else if (f == FunctorLongInt) {
+      Int li = LongIntOfTerm(t);
+      ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)f), _trie_retry_null);
+      ANSWER_SAFE_INSERT_ENTRY(current_node, li, _trie_retry_extension);
+      ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)f), _trie_retry_longint);
+    }
+  }
+
+  /* ESTOU AQUIIIIIIIII - FIM */
+
+  return current_node;
+}
+
+#else 
+
 #define ANSWER_SAFE_INSERT_ENTRY(PARENT_NODE, ENTRY, INSTR)                       \
         { ans_node_ptr new_node;                                                  \
           NEW_ANSWER_TRIE_NODE(new_node, INSTR, ENTRY, NULL, PARENT_NODE, NULL);  \
@@ -2716,6 +2812,8 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
   }
   return current_node;
 }
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
 #endif /* INCLUDE_ANSWER_SEARCH_MODE_DIRECTED */
 
 
@@ -2730,30 +2828,26 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
 
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
   if (!IS_ANSWER_INVALID_NODE(NODE)) {                  \
+    /*    printf("1-inv node = %p \n",NODE); */		\
     TAG_AS_ANSWER_INVALID_NODE(NODE);			\
     TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);	\
     SgFr_invalid_chain(SG_FR) = NODE;                   \
   }
 
-
-
 #define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+  /* printf("2-inv node = %p \n",NODE); */		\
   TAG_AS_ANSWER_INVALID_NODE(NODE)
-  /*  FREE_ANSWER_TRIE_NODE(NODE) */
-/*       LOCK_SG_FR(SG_FR);				\
-       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);	\
-       SgFr_invalid_chain(SG_FR) = NODE;		\
-       UNLOCK_SG_FR(SG_FR)*/
 
-#else 
+#else /* !THREADS_FULL_SHARING */
 
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
       TAG_AS_ANSWER_INVALID_NODE(NODE);                 \
       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);    \
        SgFr_invalid_chain(SG_FR) = NODE
 
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)  \
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
         FREE_ANSWER_TRIE_NODE(NODE)
+
 #endif /* THREADS_FULL_SHARING */
 
 
