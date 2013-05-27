@@ -80,6 +80,9 @@ typedef struct answer_trie_node {
 #if defined(ANSWER_TRIE_LOCK_USING_NODE_FIELD) && !defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
   lockvar lock;
 #endif 
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+  struct answer_trie_node *intra_invalid_next;
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 } *ans_node_ptr;
 
 
@@ -93,17 +96,17 @@ typedef struct global_trie_node {
 #endif /* GLOBAL_TRIE_LOCK_USING_NODE_FIELD */
 } *gt_node_ptr;
 
-#define TrNode_instr(X)   ((X)->trie_instruction)
-#define TrNode_or_arg(X)  ((X)->or_arg)
-#define TrNode_entry(X)   ((X)->entry)
-#define TrNode_parent(X)  ((X)->parent)
-#define TrNode_child(X)   ((X)->child)
-#define TrNode_sg_fr(X)   ((X)->child)
-#define TrNode_sg_ent(X)  ((X)->child)
-#define TrNode_next(X)    ((X)->next)
-#define TrNode_lock(X)    ((X)->lock)
-
-#define TrNode_expansion(X) ((X)->expansion)
+#define TrNode_instr(X)              ((X)->trie_instruction)
+#define TrNode_or_arg(X)             ((X)->or_arg)
+#define TrNode_entry(X)              ((X)->entry)
+#define TrNode_parent(X)             ((X)->parent)
+#define TrNode_child(X)              ((X)->child)
+#define TrNode_sg_fr(X)              ((X)->child)
+#define TrNode_sg_ent(X)             ((X)->child)
+#define TrNode_next(X)               ((X)->next)
+#define TrNode_lock(X)               ((X)->lock)
+#define TrNode_expansion(X)          ((X)->expansion)
+#define TrNode_intra_invalid_next(X) ((X)->intra_invalid_next)
 
 
 /******************************
@@ -316,9 +319,9 @@ typedef struct subgoal_entry {
   struct answer_trie_node *last_answer;
 #ifdef MODE_DIRECTED_TABLING
   int* mode_directed_array;
-  struct answer_trie_node *invalid_chain;
+  struct answer_trie_node *invalid_chain;       /* leaf invalid chain */
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
-  struct answer_trie_node *mark_invalid_chain;
+  struct answer_trie_node *intra_invalid_chain;  
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef INCOMPLETE_TABLING
@@ -343,26 +346,26 @@ typedef struct subgoal_entry {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 }* sg_ent_ptr;
 
-#define SgEnt_lock(X)                ((X)->lock)
-#define SgEnt_code(X)                ((X)->code_of_subgoal)
-#define SgEnt_tab_ent(X)             (((X)->code_of_subgoal)->u.Otapl.te)
-#define SgEnt_arity(X)               (((X)->code_of_subgoal)->u.Otapl.s)
-#define SgEnt_hash_chain(X)          ((X)->hash_chain)
-#define SgEnt_old_hash_chain(X)      ((X)->old_hash_chain)
-#define SgEnt_answer_trie(X)         ((X)->answer_trie)
-#define SgEnt_first_answer(X)        ((X)->first_answer)
-#define SgEnt_last_answer(X)         ((X)->last_answer)
-#define SgEnt_mode_directed(X)       ((X)->mode_directed_array)
-#define SgEnt_invalid_chain(X)       ((X)->invalid_chain)
-#define SgEnt_mark_invalid_chain(X)  ((X)->mark_invalid_chain)
-#define SgEnt_try_answer(X)          ((X)->try_answer)
-#define SgEnt_previous(X)            ((X)->previous)
-#define SgEnt_gen_top_or_fr(X)       ((X)->top_or_frame_on_generator_branch)
-#define SgEnt_gen_worker(X)          ((X)->generator_worker)
-#define SgEnt_sg_ent_state(X)        ((X)->state_flag)
-#define SgEnt_active_workers(X)      ((X)->active_workers)
-#define SgEnt_sg_fr(X)               ((X)->subgoal_frame)
-#define SgEnt_next(X)                ((X)->next)
+#define SgEnt_lock(X)                    ((X)->lock)
+#define SgEnt_code(X)                    ((X)->code_of_subgoal)
+#define SgEnt_tab_ent(X)                 (((X)->code_of_subgoal)->u.Otapl.te)
+#define SgEnt_arity(X)                   (((X)->code_of_subgoal)->u.Otapl.s)
+#define SgEnt_hash_chain(X)              ((X)->hash_chain)
+#define SgEnt_old_hash_chain(X)          ((X)->old_hash_chain)
+#define SgEnt_answer_trie(X)             ((X)->answer_trie)
+#define SgEnt_first_answer(X)            ((X)->first_answer)
+#define SgEnt_last_answer(X)             ((X)->last_answer)
+#define SgEnt_mode_directed(X)           ((X)->mode_directed_array)
+#define SgEnt_invalid_chain(X)           ((X)->invalid_chain)
+#define SgEnt_intra_invalid_chain(X)     ((X)->intra_invalid_chain)
+#define SgEnt_try_answer(X)              ((X)->try_answer)
+#define SgEnt_previous(X)                ((X)->previous)
+#define SgEnt_gen_top_or_fr(X)           ((X)->top_or_frame_on_generator_branch)
+#define SgEnt_gen_worker(X)              ((X)->generator_worker)
+#define SgEnt_sg_ent_state(X)            ((X)->state_flag)
+#define SgEnt_active_workers(X)          ((X)->active_workers)
+#define SgEnt_sg_fr(X)                   ((X)->subgoal_frame)
+#define SgEnt_next(X)                    ((X)->next)
 
 
 /****************************
@@ -419,8 +422,8 @@ typedef struct subgoal_frame {
 #define SgFr_first_answer(X)            (SUBGOAL_ENTRY(X) first_answer)
 #define SgFr_last_answer(X)             (SUBGOAL_ENTRY(X) last_answer)
 #define SgFr_mode_directed(X)           (SUBGOAL_ENTRY(X) mode_directed_array)
-#define SgFr_invalid_chain(X)           (SUBGOAL_ENTRY(X) invalid_chain)
-#define SgFr_mark_invalid_chain(X)      (SUBGOAL_ENTRY(X) mark_invalid_chain)
+#define SgFr_invalid_chain(X)           (SUBGOAL_ENTRY(X) invalid_chain) 
+#define SgFr_intra_invalid_chain(X)     (SUBGOAL_ENTRY(X) intra_invalid_chain)
 #define SgFr_try_answer(X)              (SUBGOAL_ENTRY(X) try_answer)
 #define SgFr_previous(X)                (SUBGOAL_ENTRY(X) previous)
 #define SgFr_gen_top_or_fr(X)           (SUBGOAL_ENTRY(X) top_or_frame_on_generator_branch)

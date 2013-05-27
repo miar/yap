@@ -14,6 +14,14 @@
 /*********************
 **      Macros      **
 *********************/
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+#define Init_threads_full_sharing_mode_directed_v02_fields(NODE)	\
+        TrNode_intra_invalid_next(NODE) = NULL  
+#else
+#define Init_threads_full_sharing_mode_directed_v02_fields(NODE)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
+
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
 #define INCREMENT_GLOBAL_TRIE_REFERENCE(ENTRY)                                                          \
@@ -25,7 +33,9 @@
         new_subgoal_trie_node(NODE, ENTRY, CHILD, PARENT, NEXT)
 #define NEW_ANSWER_TRIE_NODE(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)  \
         INCREMENT_GLOBAL_TRIE_REFERENCE(ENTRY);                        \
-        new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)
+        new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT); \
+	Init_threads_full_sharing_mode_directed_v02_fields(NODE)
+
 #define NEW_GLOBAL_TRIE_NODE(NODE, ENTRY, CHILD, PARENT, NEXT)         \
         INCREMENT_GLOBAL_TRIE_REFERENCE(ENTRY);                        \
         new_global_trie_node(NODE, ENTRY, CHILD, PARENT, NEXT)
@@ -33,7 +43,9 @@
 #define NEW_SUBGOAL_TRIE_NODE(NODE, ENTRY, CHILD, PARENT, NEXT)        \
         new_subgoal_trie_node(NODE, ENTRY, CHILD, PARENT, NEXT)
 #define NEW_ANSWER_TRIE_NODE(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)  \
-        new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)
+        new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT); \
+  	Init_threads_full_sharing_mode_directed_v02_fields(NODE)
+
 #define NEW_GLOBAL_TRIE_NODE(NODE, ENTRY, CHILD, PARENT, NEXT)         \
         new_global_trie_node(NODE, ENTRY, CHILD, PARENT, NEXT)
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
@@ -2741,8 +2753,6 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 
   }
     
-
-
 
   while (!BOOL_CAS((&(TrNode_child(current_ans_node))), first_child_node, new_first_node)) {
     /* compute again the current value on the trie (trie_value) */

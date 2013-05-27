@@ -340,7 +340,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #ifdef MODE_DIRECTED_TABLING
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 #define Init_threads_full_sharing_mode_directed_v02(SG_FR)   \
-        SgEnt_mark_invalid_chain(SG_ENT) = NULL
+        SgEnt_intra_invalid_chain(SG_ENT) = NULL
 #else
 #define Init_threads_full_sharing_mode_directed_v02(SG_FR)
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
