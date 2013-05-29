@@ -48,8 +48,8 @@ static inline CELL *exec_substitution_loop(gt_node_ptr, CELL **, CELL * USES_REG
 static inline ans_node_ptr answer_search_min_max(sg_fr_ptr, ans_node_ptr, Term, int USES_REGS);
 #else
 static inline ans_node_ptr answer_search_min_max(ans_node_ptr, Term, int USES_REGS);
-#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 #endif /* MODE_DIRECTED_TABLING */
 
 #ifdef YAPOR
@@ -1449,12 +1449,11 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
   CACHE_REGS
   CELL *stack_vars;
   int i, j, vars_arity;
-  ans_node_ptr current_ans_node, invalid_ans_node;
+  ans_node_ptr current_ans_node;
   int *mode_directed;
 
   vars_arity = 0;
   current_ans_node = SgFr_answer_trie(sg_fr);
-  invalid_ans_node = NULL;
   mode_directed = SgFr_mode_directed(sg_fr);
   j = 0;
   i = subs_arity;
@@ -1497,17 +1496,6 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
       break;
     j++;
   }
-
-  //  LOCK_SG_FR(sg_fr);
-
-  //  if (invalid_ans_node /* && SgFr_sg_ent_state(sg_fr) < complete */ ) {
-  // if (SgFr_sg_ent_state(sg_fr) == complete) {      
-  //   printf("->->-> fa %d la %d \n", IntOfTerm(sg_fr->subgoal_entry->first_answer->entry),IntOfTerm(sg_fr->subgoal_entry->last_answer->entry));      
-  // }
-  // invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);  
-  //}
-  //UNLOCK_SG_FR(sg_fr); 
-  
   
   /* reset variables */
   stack_vars = (CELL *) TR;

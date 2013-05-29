@@ -1927,7 +1927,7 @@ complete_all:
 	/////////////////////////////
 
 	if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	  printf("error  4 active_workers = %d \n", SgFr_active_workers(sg_fr));
+	  printf("error 4 active_workers = %d \n", SgFr_active_workers(sg_fr));
 
 
         if (ans_node == NULL) {

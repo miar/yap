@@ -2659,14 +2659,11 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
 	  LAST_NODE = new_node;                                                 \
         }
 
-
 static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr current_node, Term t, int mode USES_REGS) {
-  /* ESTOU AQUIIIIIIIII - INICIO */
-   ans_node_ptr child_node, first_child_node;
-   Term child_term;
-   Float trie_value = 0, term_value = 0;
-   
-   /* compute the value for the new term (term_value) */
+  ans_node_ptr child_node, first_child_node;
+  Term child_term;
+  Float trie_value = 0, term_value = 0;  
+  /* compute the value for the new term (term_value) */
   if (IsAtomOrIntTerm(t))
     term_value = (Float) IntOfTerm(t);
   else if (IsApplTerm(t)) {
@@ -2677,8 +2674,7 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
       term_value = FloatOfTerm(t);
     else
       Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_min_max: invalid arithmetic value");
-  }
-
+  }  
   /* compute the current value on the trie (trie_value) */
   child_node = first_child_node = TrNode_child(current_node);
   child_term = TrNode_entry(child_node);
@@ -2703,17 +2699,16 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
     } else
       Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_min_max: invalid arithmetic value");
     child_node = TrNode_child(child_node);
-  }
-  
+  }  
   /* worse answer */
   if ((mode == MODE_DIRECTED_MIN && term_value > trie_value) || (mode == MODE_DIRECTED_MAX && term_value < trie_value))
     return NULL;
   /* equal answer */
   if (term_value == trie_value)
     return child_node;
-
-  ans_node_ptr new_first_node = new_last_node = NULL;
-  
+  /* better answer */
+  ans_node_ptr new_first_node = NULL; 
+  ans_node_ptr new_last_node = NULL;
   if (IsAtomOrIntTerm(t)) {
     NEW_MODE_DIRECTED_ANS_FIRST_NODE(new_first_node, new_last_node, current_node, t, _trie_retry_atom);
   } else if (IsApplTerm(t)) {
@@ -2724,7 +2719,7 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 	Float dbl;
       } u;
       u.dbl = FloatOfTerm(t);
-      NEW_MODE_DIRECTED_FIRST_ANS_NODE(new_first_node, new_last_node, current_node, AbsAppl((Term *)f), _trie_retry_null);
+      NEW_MODE_DIRECTED_ANS_FIRST_NODE(new_first_node, new_last_node, current_node, AbsAppl((Term *)f), _trie_retry_null);
 #if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
       NEW_MODE_DIRECTED_ANS_SECOND_NODE(new_last_node, u.t_dbl[1], _trie_retry_extension);
 #endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
@@ -2732,29 +2727,24 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
       NEW_MODE_DIRECTED_ANS_SECOND_NODE(new_last_node, AbsAppl((Term *)f), _trie_retry_double);
     } else if (f == FunctorLongInt) {
       Int li = LongIntOfTerm(t);
-      NEW_MODE_DIRECTED_FIRST_ANS_NODE(new_first_node, new_last_node, current_node, AbsAppl((Term *)f), _trie_retry_null);
+      NEW_MODE_DIRECTED_ANS_FIRST_NODE(new_first_node, new_last_node, current_node, AbsAppl((Term *)f), _trie_retry_null);
       NEW_MODE_DIRECTED_ANS_SECOND_NODE(new_last_node, li, _trie_retry_extension);
       NEW_MODE_DIRECTED_ANS_SECOND_NODE(new_last_node, AbsAppl((Term *)f), _trie_retry_longint);
     }
   }
-  
-  // invalidate answer before connecting the new answer
 
-  //     I'M HERE !!!!!
-
-  if(!IS_ANSWER_INVALID_NODE(first_child_node)) {
+  /* invalidate the answer on the trie before trying to connect the new answer */
+  if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
     LOCK_SG_FR(sg_fr);
-    if(!IS_ANSWER_INVALID_NODE(first_child_node)) {
+    if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+      TrNode_intra_invalid_next(first_child_node) = SgFr_intra_invalid_chain(sg_fr);
+      SgFr_intra_invalid_chain(sg_fr) = first_child_node;	
       TAG_AS_ANSWER_INVALID_NODE(first_child_node);
-      SgFr_mark_invalid_chain(
     }
     UNLOCK_SG_FR(sg_fr);
-
-
   }
-    
 
-  while (!BOOL_CAS((&(TrNode_child(current_ans_node))), first_child_node, new_first_node)) {
+  while (!BOOL_CAS(&(TrNode_child(current_node)), first_child_node, new_first_node)) {
     /* compute again the current value on the trie (trie_value) */
     child_node = first_child_node = TrNode_child(current_node);
     child_term = TrNode_entry(child_node);
@@ -2783,31 +2773,37 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
     
     /* worse answer */
     if ((mode == MODE_DIRECTED_MIN && term_value > trie_value) || (mode == MODE_DIRECTED_MAX && term_value < trie_value)) {
-      /* free answer from new_first_node */
+      /* free answer starting from the new_first_node */
       do {
 	new_last_node = TrNode_child(new_first_node); 
 	FREE_ANSWER_TRIE_NODE(new_first_node);
 	new_first_node = new_last_node;
-      } while(new_first_node);
+      } while (new_first_node);
       return NULL;
     }
     /* equal answer */
     if (term_value == trie_value) {
-      /* free answer from new_first_node */
+      /* free answer starting from the new_first_node */
       do {
 	new_last_node = TrNode_child(new_first_node); 
 	FREE_ANSWER_TRIE_NODE(new_first_node);
 	new_first_node = new_last_node;
-      } while(new_first_node);
+      } while (new_first_node);
       return child_node;
     }
     /* better answer */
-    // invalidate answer before connecting the new answer
-
+    /* invalidate the answer on the trie before trying to connect the new answer */
+    if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+      LOCK_SG_FR(sg_fr);
+      if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+	TrNode_intra_invalid_next(first_child_node) = SgFr_intra_invalid_chain(sg_fr);
+	SgFr_intra_invalid_chain(sg_fr) = first_child_node;	
+	TAG_AS_ANSWER_INVALID_NODE(first_child_node);
+      }
+      UNLOCK_SG_FR(sg_fr);
+    }
   }
-
   return new_last_node;
-  /* ESTOU AQUIIIIIIIII - FIM */
 }
 
 #else /* !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
@@ -2907,6 +2903,8 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
 
 #ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
 
+#ifndef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+
 #ifdef THREADS_FULL_SHARING
 
 #define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
@@ -2963,7 +2961,6 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 	}
       }
     } while (++bucket != last_bucket); 
-    //    LOCK_SG_FR(sg_fr);
     if (Hash_next(hash))
       Hash_previous(Hash_next(hash)) = Hash_previous(hash);
     if (Hash_previous(hash))
@@ -2977,7 +2974,6 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
     FREE_BUCKETS(Hash_buckets(hash));
     FREE_ANSWER_TRIE_HASH(hash);
 #endif /* THREADS_FULL_SHARING */
-    //    UNLOCK_SG_FR(sg_fr);
 
   } else {
     if (position == TRAVERSE_POSITION_FIRST) {
@@ -3004,6 +3000,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
   }
   return;
 }
+#endif /* !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 #endif /* INCLUDE_ANSWER_SEARCH_MODE_DIRECTED */
 
 

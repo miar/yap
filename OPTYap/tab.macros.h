@@ -107,6 +107,7 @@ static inline void CUT_free_tg_solution_frame(tg_sol_fr_ptr);
 static inline void CUT_free_tg_solution_frames(tg_sol_fr_ptr);
 static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* TABLING_INNER_CUTS */
+static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 /*********************************
 **      Tabling mode flags      **
@@ -1441,10 +1442,96 @@ static inline void adjust_freeze_registers(void) {
 }
 
 
+
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+
+#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
+  if (!IS_ANSWER_INVALID_NODE(NODE)) {                  \
+  /*    printf("1-inv node = %p \n",NODE); */         \
+  TAG_AS_ANSWER_INVALID_NODE(NODE);                   \
+  TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);      \
+  SgFr_invalid_chain(SG_FR) = NODE;                   \
+  }
+
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
+  /* printf("2-inv node = %p \n",NODE); */              \
+  TAG_AS_ANSWER_INVALID_NODE(NODE)
+
+static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
+  if (IS_ANSWER_TRIE_HASH(current_node)) {
+    ans_hash_ptr hash;
+    ans_node_ptr *bucket, *last_bucket;
+    hash = (ans_hash_ptr) current_node;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL
+    bucket = AnsHash_buckets(hash);
+    last_bucket = bucket + AnsHash_num_buckets(hash);
+#else
+    bucket = Hash_buckets(hash);
+    last_bucket = bucket + Hash_num_buckets(hash);
+#endif  /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+    do {
+      current_node = *bucket;
+      if (current_node) {
+        ans_node_ptr next_node = TrNode_next(current_node);
+        if (IS_ANSWER_LEAF_NODE(current_node)) {
+          INVALIDATE_ANSWER_TRIE_LEAF_NODE(current_node, sg_fr);
+        } else {
+          invalidate_answer_trie(TrNode_child(current_node), sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+          INVALIDATE_ANSWER_TRIE_NODE(current_node, sg_fr);
+        }
+        while (next_node) {
+          current_node = next_node;
+          next_node = TrNode_next(current_node);
+          invalidate_answer_trie(current_node, sg_fr, TRAVERSE_POSITION_NEXT PASS_REGS);
+        }
+      }
+    } while (++bucket != last_bucket);
+    if (Hash_next(hash))
+      Hash_previous(Hash_next(hash)) = Hash_previous(hash);
+    if (Hash_previous(hash))
+      Hash_next(Hash_previous(hash)) = Hash_next(hash);
+    else
+      SgFr_hash_chain(sg_fr) = Hash_next(hash);
+#ifdef THREADS_FULL_SHARING
+    Hash_next(hash) = SgFr_old_hash_chain(sg_fr);
+    SgFr_old_hash_chain(sg_fr) = hash;
+#else
+    FREE_BUCKETS(Hash_buckets(hash));
+    FREE_ANSWER_TRIE_HASH(hash);
+#endif /* THREADS_FULL_SHARING */
+
+  } else {
+    if (position == TRAVERSE_POSITION_FIRST) {
+      ans_node_ptr next_node = TrNode_next(current_node);
+      if (IS_ANSWER_LEAF_NODE(current_node)) {
+        INVALIDATE_ANSWER_TRIE_LEAF_NODE(current_node, sg_fr);
+      } else {
+        invalidate_answer_trie(TrNode_child(current_node), sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+        INVALIDATE_ANSWER_TRIE_NODE(current_node, sg_fr);
+      }
+      while (next_node) {
+        current_node = next_node;
+        next_node = TrNode_next(current_node);
+        invalidate_answer_trie(current_node, sg_fr, TRAVERSE_POSITION_NEXT PASS_REGS);
+      }
+    } else {
+      if (IS_ANSWER_LEAF_NODE(current_node)) {
+        INVALIDATE_ANSWER_TRIE_LEAF_NODE(current_node, sg_fr);
+      } else {
+        invalidate_answer_trie(TrNode_child(current_node), sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+        INVALIDATE_ANSWER_TRIE_NODE(current_node, sg_fr);
+      }
+    }
+  }
+  return;
+}
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
+
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
-#ifdef TABLING_EARLY_COMPLETION
+#ifdef TABLING_EARLY_COMPLETION_
     /* as example the test_single02 passes here more than once with tabling_early_completion*/
   if (SgFr_state(sg_fr) >= complete)
     return;  
@@ -1454,6 +1541,18 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   SgFr_active_workers(sg_fr)--;
 #ifdef MODE_DIRECTED_TABLING
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+  if (SgFr_sg_ent_state(sg_fr) < complete) {
+    ans_node_ptr invalid_ans_node;
+    invalid_ans_node = SgFr_intra_invalid_chain(sg_fr);
+    while (invalid_ans_node){
+      SgFr_intra_invalid_chain(sg_fr) = TrNode_intra_invalid_next(SgFr_intra_invalid_chain(sg_fr));      
+      invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
+      invalid_ans_node = SgFr_intra_invalid_chain(sg_fr);
+    }
+  }
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
   ans_node_ptr current_node, next_node;
   if (SgFr_invalid_chain(sg_fr)) {
     if (SgFr_sg_ent_state(sg_fr) == complete) {
@@ -1534,10 +1633,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     }
   }
 
-  SgFr_sg_ent_state(sg_fr) = complete;
-
 #endif /* MODE_DIRECTED_TABLING */
-
+  SgFr_sg_ent_state(sg_fr) = complete;
 #else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
 
 #ifdef MODE_DIRECTED_TABLING
