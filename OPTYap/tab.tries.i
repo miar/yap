@@ -22,7 +22,6 @@
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 
-
 #ifdef MODE_GLOBAL_TRIE_ENTRY
 #define INCREMENT_GLOBAL_TRIE_REFERENCE(ENTRY)                                                          \
         { register gt_node_ptr entry_node = (gt_node_ptr) (ENTRY);                                      \
@@ -2704,8 +2703,9 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
   if ((mode == MODE_DIRECTED_MIN && term_value > trie_value) || (mode == MODE_DIRECTED_MAX && term_value < trie_value))
     return NULL;
   /* equal answer */
-  if (term_value == trie_value)
+  if (term_value == trie_value) {
     return child_node;
+  }
   /* better answer */
   ans_node_ptr new_first_node = NULL; 
   ans_node_ptr new_last_node = NULL;
@@ -2734,12 +2734,12 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
   }
 
   /* invalidate the answer on the trie before trying to connect the new answer */
-  if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+  if (!IS_INTRA_ANSWER_INVALID_NODE(first_child_node)) {
     LOCK_SG_FR(sg_fr);
-    if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+    if (!IS_INTRA_ANSWER_INVALID_NODE(first_child_node)) {
       TrNode_intra_invalid_next(first_child_node) = SgFr_intra_invalid_chain(sg_fr);
       SgFr_intra_invalid_chain(sg_fr) = first_child_node;	
-      TAG_AS_ANSWER_INVALID_NODE(first_child_node);
+      TAG_AS_INTRA_ANSWER_INVALID_NODE(first_child_node);
     }
     UNLOCK_SG_FR(sg_fr);
   }
@@ -2793,15 +2793,15 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
     }
     /* better answer */
     /* invalidate the answer on the trie before trying to connect the new answer */
-    if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+    if (!IS_INTRA_ANSWER_INVALID_NODE(first_child_node)) {
       LOCK_SG_FR(sg_fr);
-      if (!IS_ANSWER_INVALID_NODE(first_child_node)) {
+      if (!IS_INTRA_ANSWER_INVALID_NODE(first_child_node)) {
 	TrNode_intra_invalid_next(first_child_node) = SgFr_intra_invalid_chain(sg_fr);
 	SgFr_intra_invalid_chain(sg_fr) = first_child_node;	
-	TAG_AS_ANSWER_INVALID_NODE(first_child_node);
+	TAG_AS_INTRA_ANSWER_INVALID_NODE(first_child_node);
       }
       UNLOCK_SG_FR(sg_fr);
-    }
+    }    
   }
   return new_last_node;
 }

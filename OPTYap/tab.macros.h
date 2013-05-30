@@ -107,7 +107,9 @@ static inline void CUT_free_tg_solution_frame(tg_sol_fr_ptr);
 static inline void CUT_free_tg_solution_frames(tg_sol_fr_ptr);
 static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 #endif /* TABLING_INNER_CUTS */
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 /*********************************
 **      Tabling mode flags      **
@@ -234,7 +236,14 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define TAG_AS_ANSWER_INVALID_NODE(NODE)     TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x2)
 #define IS_ANSWER_INVALID_NODE(NODE)         ((CELL) TrNode_parent(NODE) & 0x2)
 #define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x1))
-#define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02 
+#define TAG_AS_INTRA_ANSWER_INVALID_NODE(NODE) TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x4)
+#define IS_INTRA_ANSWER_INVALID_NODE(NODE)     ((CELL) TrNode_parent(NODE) & 0x4)
+#define UNTAG_ANSWER_NODE(NODE)                ((CELL) (NODE) & ~(0x7))
+#else
+#define UNTAG_ANSWER_NODE(NODE)                ((CELL) (NODE) & ~(0x3))
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
 /* trie hashes */
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
@@ -1442,20 +1451,17 @@ static inline void adjust_freeze_registers(void) {
 }
 
 
-
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 
-#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)   \
-  if (!IS_ANSWER_INVALID_NODE(NODE)) {                  \
-  /*    printf("1-inv node = %p \n",NODE); */         \
-  TAG_AS_ANSWER_INVALID_NODE(NODE);                   \
-  TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);      \
-  SgFr_invalid_chain(SG_FR) = NODE;                   \
-  }
+#define INVALIDATE_ANSWER_TRIE_LEAF_NODE(NODE, SG_FR)         \
+        if (!IS_ANSWER_INVALID_NODE(NODE)) {                  \
+	  TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);      \
+	  SgFr_invalid_chain(SG_FR) = NODE;                   \
+	  TAG_AS_ANSWER_INVALID_NODE(NODE);                   \
+	}
 
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
-  /* printf("2-inv node = %p \n",NODE); */              \
-  TAG_AS_ANSWER_INVALID_NODE(NODE)
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)              \
+        TAG_AS_ANSWER_INVALID_NODE(NODE)
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
   if (IS_ANSWER_TRIE_HASH(current_node)) {
@@ -1631,7 +1637,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       }
       TrNode_child(SgFr_last_answer(sg_fr)) = NULL;
     }
-  }
+  } 
 
 #endif /* MODE_DIRECTED_TABLING */
   SgFr_sg_ent_state(sg_fr) = complete;
