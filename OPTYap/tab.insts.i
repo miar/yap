@@ -1194,13 +1194,20 @@
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
       if (!IS_ANSWER_LEAF_NODE(ans_node)) { 	
-	/*#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
-	  if (SgFr_sg_ent_state(sg_fr) == complete || IS_ANSWER_INVALID_NODE(ans_node)) {
-	printf("error  7 active_workers = %d \n", SgFr_active_workers(sg_fr));
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
+	/* index->index->max/min this means only on the last level of the trie */ 
+	if (TrNode_child(TrNode_parent(ans_node)) != ans_node) {
+	  // FREE_ANSWER_TRIE_NODE(ans_node); missing to release this node 
 	  UNLOCK_SG_FR(sg_fr);      	  
 	  goto fail;
 	}
-	#endif  THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
+	/*if (SgFr_sg_ent_state(sg_fr) == complete || IS_ANSWER_INVALID_NODE(ans_node)) {
+	  printf("error  7 active_workers = %d \n", SgFr_active_workers(sg_fr));
+	  UNLOCK_SG_FR(sg_fr);      	  
+	  goto fail;
+	  }*/
+#endif  /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 
 #ifdef THREADS_FULL_SHARING
@@ -1216,6 +1223,10 @@
 	  TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
 	SgFr_last_answer(sg_fr) = ans_node;
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
+
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
+	UNTAG_INTRA_ANSWER_TEMPORARY_NODE(ans_node);
+#endif  /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
       }
 #ifdef DEBUG_TABLING
       { 

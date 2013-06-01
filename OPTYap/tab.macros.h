@@ -236,12 +236,14 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define TAG_AS_ANSWER_INVALID_NODE(NODE)     TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x2)
 #define IS_ANSWER_INVALID_NODE(NODE)         ((CELL) TrNode_parent(NODE) & 0x2)
 #define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x1))
+#define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02 
-#define TAG_AS_INTRA_ANSWER_INVALID_NODE(NODE) TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x4)
-#define IS_INTRA_ANSWER_INVALID_NODE(NODE)     ((CELL) TrNode_parent(NODE) & 0x4)
-#define UNTAG_ANSWER_NODE(NODE)                ((CELL) (NODE) & ~(0x7))
-#else
-#define UNTAG_ANSWER_NODE(NODE)                ((CELL) (NODE) & ~(0x3))
+#define TAG_AS_INTRA_ANSWER_INVALID_NODE(NODE)   TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) | 0x1)
+#define IS_INTRA_ANSWER_INVALID_NODE(NODE)       ((CELL) TrNode_intra_invalid_next(NODE) & 0x1)
+#define IS_INTRA_ANSWER_TEMPORARY_NODE(NODE)     ((CELL) TrNode_intra_invalid_next(NODE) & 0x2)
+#define UNTAG_INTRA_ANSWER_TEMPORARY_NODE(NODE)  TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) & ~(0x2))
+#define UNTAG_INTRA_ANSWER_INVALID_NODE(NODE)    ((CELL) (NODE) & ~(0x3))
+
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 /* trie hashes */
@@ -1464,6 +1466,10 @@ static inline void adjust_freeze_registers(void) {
         TAG_AS_ANSWER_INVALID_NODE(NODE)
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
+  
+  if (IS_INTRA_ANSWER_TEMPORARY_NODE(current_node))
+    return;
+
   if (IS_ANSWER_TRIE_HASH(current_node)) {
     ans_hash_ptr hash;
     ans_node_ptr *bucket, *last_bucket;
@@ -1550,12 +1556,14 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
   if (SgFr_sg_ent_state(sg_fr) < complete) {
     ans_node_ptr invalid_ans_node;
+    
     invalid_ans_node = SgFr_intra_invalid_chain(sg_fr);
-    while (invalid_ans_node){
-      SgFr_intra_invalid_chain(sg_fr) = TrNode_intra_invalid_next(SgFr_intra_invalid_chain(sg_fr));      
-      invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);
-      invalid_ans_node = SgFr_intra_invalid_chain(sg_fr);
+    while (invalid_ans_node) {      
+      if (!IS_INTRA_ANSWER_TEMPORARY_NODE(invalid_ans_node)) 
+	invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);            
+      invalid_ans_node = (ans_node_ptr) UNTAG_INTRA_ANSWER_INVALID_NODE(TrNode_intra_invalid_next(invalid_ans_node));      
     }
+    SgFr_intra_invalid_chain(sg_fr) = NULL;    
   }
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 

@@ -613,4 +613,4 @@ typedef struct subgoal_frame_hash_buckets {
 #define SgFrHash_hash_bkts(X)          ((X)->hash_bkts)
 #define SgFrHash_old_hash_bkts(X)      ((X)->old_hash_bkts)
 
-#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
