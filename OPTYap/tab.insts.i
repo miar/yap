@@ -1195,7 +1195,7 @@
 
       if (!IS_ANSWER_LEAF_NODE(ans_node)) { 	
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
-	/* index->index->max/min this means only on the last level of the trie */ 
+	/* index->index->max/min this means that only on the last level of the trie is ok for the strategie */ 
 	if (TrNode_child(TrNode_parent(ans_node)) != ans_node) {
 	  // FREE_ANSWER_TRIE_NODE(ans_node); missing to release this node 
 	  UNLOCK_SG_FR(sg_fr);      	  

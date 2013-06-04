@@ -1468,15 +1468,13 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
 	ans_node_ptr parent_ans_node = current_ans_node;
-
 	if (TrNode_child(parent_ans_node) == NULL) {
 	  struct answer_trie_node virtual_ans_node;
 	  AnsNode_init_lock_field(&virtual_ans_node);
 	  TrNode_parent(&virtual_ans_node) = NULL;
 	  TrNode_child(&virtual_ans_node) = NULL;	  
 	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
-	  TrNode_parent(current_ans_node) = parent_ans_node;
-
+	  TrNode_parent(current_ans_node) = parent_ans_node;		  
 	  if (BOOL_CAS((&(TrNode_child(parent_ans_node))), NULL, current_ans_node)) {
 	    n_subs--;
 	    i--;
@@ -1484,10 +1482,10 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	  } else
 	    FREE_ANSWER_TRIE_NODE(current_ans_node);
 	}
-
+	
 	if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
 	  current_ans_node = answer_search_min_max(sg_fr, parent_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
-	}
+	} 
       }
       n_subs--;
       i--;

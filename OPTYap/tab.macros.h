@@ -243,7 +243,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define IS_INTRA_ANSWER_TEMPORARY_NODE(NODE)     ((CELL) TrNode_intra_invalid_next(NODE) & 0x2)
 #define UNTAG_INTRA_ANSWER_TEMPORARY_NODE(NODE)  TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) & ~(0x2))
 #define UNTAG_INTRA_ANSWER_INVALID_NODE(NODE)    ((CELL) (NODE) & ~(0x3))
-
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 /* trie hashes */
@@ -351,10 +350,10 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #ifdef MODE_DIRECTED_TABLING
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
-#define Init_threads_full_sharing_mode_directed_v02(SG_FR)   \
+#define Init_threads_full_sharing_mode_directed_v02(SG_ENT)   \
         SgEnt_intra_invalid_chain(SG_ENT) = NULL
 #else
-#define Init_threads_full_sharing_mode_directed_v02(SG_FR)
+#define Init_threads_full_sharing_mode_directed_v02(SG_ENT)
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 #define TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY)  \
@@ -362,10 +361,11 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define SgEnt_init_mode_directed_fields(SG_ENT, MODE_ARRAY)   \
         SgEnt_invalid_chain(SG_ENT) = NULL;                   \
         SgEnt_mode_directed(SG_ENT) = MODE_ARRAY
+
 #define SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY)     \
-        Init_threads_full_sharing_mode_directed_v02(SG_FR);   \
         SgFr_invalid_chain(SG_FR) = NULL;                     \
         SgFr_mode_directed(SG_FR) = MODE_ARRAY
+
 #define AnsHash_init_previous_field(HASH, SG_FR)              \
         if (SgFr_hash_chain(SG_FR))                           \
           Hash_previous(SgFr_hash_chain(SG_FR)) = HASH;       \
@@ -532,12 +532,12 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
-#define	  Init_mode_directed_full_sharing_fields(SG_ENT)        \
-          SgEnt_old_hash_chain(SG_ENT) = NULL;
+#define Init_mode_directed_full_sharing_fields(SG_ENT)        \
+        SgEnt_old_hash_chain(SG_ENT) = NULL;                  \
+        Init_threads_full_sharing_mode_directed_v02(SG_ENT)
 #else
-#define   Init_mode_directed_full_sharing_fields(SG_ENT)
+#define Init_mode_directed_full_sharing_fields(SG_ENT)
 #endif
-
 
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1467,6 +1467,12 @@ static inline void adjust_freeze_registers(void) {
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
   
+  /* when this function is executed, two things might happen */
+  /* -> the non temporary nodes will not change in the trie, thus no 
+     expansion on the tries occurs. This code is safe */
+  /* -> temporary nodes will not be added to the trie, thus the 
+     worker using this code, can simply avoid it is it finds a temporary
+     node */
   if (IS_INTRA_ANSWER_TEMPORARY_NODE(current_node))
     return;
 
@@ -1543,7 +1549,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
-#ifdef TABLING_EARLY_COMPLETION_
+#ifdef TABLING_EARLY_COMPLETION
     /* as example the test_single02 passes here more than once with tabling_early_completion*/
   if (SgFr_state(sg_fr) >= complete)
     return;  
@@ -1556,11 +1562,10 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
   if (SgFr_sg_ent_state(sg_fr) < complete) {
     ans_node_ptr invalid_ans_node;
-    
     invalid_ans_node = SgFr_intra_invalid_chain(sg_fr);
     while (invalid_ans_node) {      
-      if (!IS_INTRA_ANSWER_TEMPORARY_NODE(invalid_ans_node)) 
-	invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);            
+      invalidate_answer_trie(invalid_ans_node, sg_fr, TRAVERSE_POSITION_FIRST PASS_REGS);    
+      
       invalid_ans_node = (ans_node_ptr) UNTAG_INTRA_ANSWER_INVALID_NODE(TrNode_intra_invalid_next(invalid_ans_node));      
     }
     SgFr_intra_invalid_chain(sg_fr) = NULL;    

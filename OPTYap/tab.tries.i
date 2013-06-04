@@ -14,7 +14,7 @@
 /*********************
 **      Macros      **
 *********************/
-#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02_
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 #define Init_threads_full_sharing_mode_directed_v02_fields(NODE)	\
         TrNode_intra_invalid_next(NODE) = (ans_node_ptr) 0x2
 #else
@@ -2739,7 +2739,7 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
     if (!IS_INTRA_ANSWER_INVALID_NODE(first_child_node)) {
       TrNode_intra_invalid_next(first_child_node) = SgFr_intra_invalid_chain(sg_fr);
       SgFr_intra_invalid_chain(sg_fr) = first_child_node;
-      TAG_AS_INTRA_ANSWER_INVALID_NODE(first_child_node);
+      TAG_AS_INTRA_ANSWER_INVALID_NODE(first_child_node);      
     }
     UNLOCK_SG_FR(sg_fr);
   }
