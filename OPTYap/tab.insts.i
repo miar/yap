@@ -558,9 +558,6 @@
       /*      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
 	      printf("error -1  \n"); */
 
-
-
-
       if (ans_node == NULL) {
 	/* no answers --> fail */
 	goto fail;

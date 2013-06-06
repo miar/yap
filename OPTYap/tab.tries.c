@@ -1699,7 +1699,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       FREE_SUBGOAL_FRAME(sg_fr);
     }
   }
-#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+#endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
   if (position == TRAVERSE_POSITION_FIRST) {
     sg_node_ptr next_node = TrNode_next(current_node);
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);

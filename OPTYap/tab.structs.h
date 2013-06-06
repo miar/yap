@@ -393,7 +393,7 @@ typedef struct subgoal_frame {
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
   int wid;
-  struct subgoal_trie_node *sg_leaf_node;
+  struct subgoal_trie_node *sg_leaf_node;                         /* ONLY NEEDED ON THREADS_SUBGOAL_SHARING MODE ?? */
   struct subgoal_frame *next_wid;
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
@@ -592,7 +592,7 @@ typedef struct subgoal_frame_hash_buckets {
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_
-
+/* NOT IMPLEMENTED YET */
 typedef struct subgoal_frame_hash {
   int number_of_nodes;
   struct subgoal_frame *sg_fr_complete;
