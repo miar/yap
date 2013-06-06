@@ -339,7 +339,11 @@ typedef struct subgoal_entry {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   subgoal_state_flag state_flag;
   int active_workers;
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  struct subgoal_frame *subgoal_frame;
+#else
   struct subgoal_frame *subgoal_frame[THREADS_NUM_BUCKETS];
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef USE_PAGES_MALLOC
   struct subgoal_entry * next; 
 #endif /*USE_PAGES_MALLOC */
@@ -385,6 +389,9 @@ typedef struct subgoal_frame {
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
   struct subgoal_frame *next;
+
+
+
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *next_complete;
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
@@ -392,18 +399,22 @@ typedef struct subgoal_frame {
   struct subgoal_frame *next_on_hash;
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
+#ifdef THREADS_SUBGOAL_SHARING
+  struct subgoal_trie_node *sg_leaf_node;
+#endif /* THREADS_SUBGOAL_SHARING */
   int wid;
-  struct subgoal_trie_node *sg_leaf_node;                         /* ONLY NEEDED ON THREADS_SUBGOAL_SHARING MODE ?? */
   struct subgoal_frame *next_wid;
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct sg_fr_bkt_array **subgoal_frame_array;
-#else
+#else /* !THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
   void **subgoal_frame_array;
 #endif /* THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY */
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
-#endif  /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-#endif
+#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+#endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING */
+
+
 } *sg_fr_ptr;
 
 /* subgoal_entry fields */

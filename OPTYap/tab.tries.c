@@ -1172,6 +1172,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   }
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID 
+#ifdef THREADS_SUBGOAL_SHARING
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));  
   
   if (sg_fr) {
@@ -1203,8 +1204,54 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
   } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
   
-
   return sg_fr;
+
+#else /* THREADS_FULL_SHARING */
+  sg_ent_ptr sg_ent;
+  sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
+  if (sg_ent != NULL) {
+    if (subs_pos) {
+      ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+      memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+    } else
+      mode_directed = NULL;    
+    new_subgoal_entry(sg_ent);
+    SgEnt_mode_directed(sg_ent) = mode_directed;
+    if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))){
+      FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
+      FREE_SUBGOAL_ENTRY(sg_ent);
+      FREE_BLOCK(mode_directed);
+      sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
+    }
+  }
+  
+  if (SgEnt_sg_ent_state(sg_ent) >= complete || SgEnt_sg_fr(sg_ent) == worker_id)
+    return SgEnt_sg_fr(sg_ent);
+  
+  sg_fr = SgEnt_sg_fr(sg_ent);
+  while(sg_fr) {
+    if (SgFr_wid(sg_fr) == worker_id)
+      return sg_fr;
+    sg_fr = SgFr_next_wid(sg_fr);
+  }
+  new_subgoal_frame(sg_fr, sg_ent);
+  SgFr_wid(sg_fr) = worker_id;
+ 
+  LOCK_SG_FR(sg_fr);
+  if (SgEnt_sg_ent_state(sg_ent) < complete) {
+    SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
+    SgEnt_sg_fr(sg_ent) = sg_fr;
+    SgFr_active_workers(sg_fr)++;
+    UNLOCK_SG_FR(sg_fr);
+    return sg_fr;
+  }
+  FREE_SUBGOAL_FRAME(sg_fr);
+  UNLOCK_SG_FR(sg_fr);
+
+  return SgEnt_sg_fr(sg_ent);
+
+#endif /* THREADS_SUBGOAL_SHARING */
+
 
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS 

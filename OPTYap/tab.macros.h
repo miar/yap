@@ -1653,7 +1653,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   } 
 
 #endif /* MODE_DIRECTED_TABLING */
-  SgFr_sg_ent_state(sg_fr) = complete;
 #else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
 
 #ifdef MODE_DIRECTED_TABLING
@@ -1685,8 +1684,24 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }
 #endif /* MODE_DIRECTED_TABLING */
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-  UNLOCK_SG_FR(sg_fr);
+
+#ifdef THREADS_FULL_SHARING
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
   SgFr_state(sg_fr) = complete;
+  if (SgFr_sg_ent_state(sg_fr) < complete) {
+    SgEnt_sg_fr(SgFr_sg_ent(sg_fr)) = sg_fr;
+    SgFr_sg_ent_state(sg_fr) = complete;
+  }
+  UNLOCK_SG_FR(sg_fr);
+#else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
+  SgFr_sg_ent_state(sg_fr) = SgFr_state(sg_fr) = complete;
+  UNLOCK_SG_FR(sg_fr);
+  SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
+  LOCAL_top_sg_fr_complete = sg_fr;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+#else  /* !THREADS_FULL_SHARING */
+  SgFr_state(sg_fr) = complete;
+#endif /* THREADS_FULL_SHARING */
 
 #ifdef THREADS_SUBGOAL_SHARING
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
@@ -1723,10 +1738,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
-#ifdef THREADS_FULL_SHARING
-  SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
-  LOCAL_top_sg_fr_complete = sg_fr;
-#endif /* THREADS_FULL_SHARING */
   return;
 }
 

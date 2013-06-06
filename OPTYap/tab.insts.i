@@ -476,6 +476,7 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
+#ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
@@ -487,8 +488,8 @@
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
     } 
-#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-
+#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /*!THREADS_SUBGOAL_FRAME_BY_WID*/
 
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
@@ -626,7 +627,7 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
-
+#ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
@@ -638,9 +639,8 @@
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
       }
-#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-    //    LOCK_SG_FR(sg_fr);
-    // INFO_THREADS("table_try_me sg_ent=%p state = %d",SgFr_sg_ent(sg_fr),SgFr_sg_ent_state(sg_fr));
+#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /*!THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
@@ -705,8 +705,6 @@
 	/////////////////////////////
       /*      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
 	      printf("error -2 \n");  */
-
-
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
@@ -778,6 +776,7 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
     MEM2YENV;
+#ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
@@ -789,8 +788,8 @@
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
     }
-#endif  /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-
+#endif /*  THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
