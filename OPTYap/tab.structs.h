@@ -390,8 +390,6 @@ typedef struct subgoal_frame {
   choiceptr generator_choice_point;
   struct subgoal_frame *next;
 
-
-
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *next_complete;
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
@@ -413,8 +411,6 @@ typedef struct subgoal_frame {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING */
-
-
 } *sg_fr_ptr;
 
 /* subgoal_entry fields */

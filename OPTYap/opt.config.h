@@ -62,7 +62,7 @@
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
 //#define THREADS_SUBGOAL_SHARING 1  /* use this with mode_directed_tabling */
-#define THREADS_FULL_SHARING 1   /* DO NOT USE mode_directed_tabling */
+#define THREADS_FULL_SHARING 1  
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
@@ -178,7 +178,7 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
-//#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 
 
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)

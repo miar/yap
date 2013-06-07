@@ -589,6 +589,24 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         TabEnt_next(TAB_ENT) = GLOBAL_root_tab_ent;                    \
         GLOBAL_root_tab_ent = TAB_ENT
 
+
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+
+#define new_subgoal_entry(SG_ENT)			            \
+        { register ans_node_ptr ans_node;                           \
+          new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL);   \
+          ALLOC_SUBGOAL_ENTRY(SG_ENT);                              \
+          INIT_LOCK(SgEnt_lock(SG_ENT));		            \
+          SgEnt_hash_chain(SG_ENT) = NULL;		 	    \
+	  Init_mode_directed_full_sharing_fields(SG_ENT);	    \
+          SgEnt_answer_trie(SG_ENT) = ans_node;                     \
+          SgEnt_first_answer(SG_ENT) = NULL;                        \
+          SgEnt_last_answer(SG_ENT) = NULL;		            \
+          SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
+          SgEnt_active_workers(SG_ENT) = 0;                         \
+        }
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
+
 #define new_subgoal_entry(SG_ENT)                                   \
         { register ans_node_ptr ans_node;                           \
           new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL);   \
@@ -604,10 +622,13 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           INIT_BUCKETS(&SgEnt_sg_fr(SG_ENT), THREADS_NUM_BUCKETS);  \
         }
 
+#endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
+
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 #define new_subgoal_frame(SG_FR, SG_ENT)		           \
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
-          SgFr_sg_ent(SG_FR) = SG_ENT ; 		           \
+          SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
+          SgFr_state(SG_FR) = ready;                               \
           SgFr_init_batched_fields(SG_FR);		           \
         }
 
@@ -1555,6 +1576,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     return;  
 #endif
 
+
+
   LOCK_SG_FR(sg_fr);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   SgFr_active_workers(sg_fr)--;
@@ -1692,13 +1715,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     SgEnt_sg_fr(SgFr_sg_ent(sg_fr)) = sg_fr;
     SgFr_sg_ent_state(sg_fr) = complete;
   }
-  UNLOCK_SG_FR(sg_fr);
 #else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
   SgFr_sg_ent_state(sg_fr) = SgFr_state(sg_fr) = complete;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
   UNLOCK_SG_FR(sg_fr);
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
-#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #else  /* !THREADS_FULL_SHARING */
   SgFr_state(sg_fr) = complete;
 #endif /* THREADS_FULL_SHARING */

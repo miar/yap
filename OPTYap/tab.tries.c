@@ -1188,7 +1188,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   } else
     mode_directed = NULL;
   
-
   /* no sg_fr complete for now */
   if (mode_directed == NULL && subs_pos) {
     ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
@@ -1209,15 +1208,19 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #else /* THREADS_FULL_SHARING */
   sg_ent_ptr sg_ent;
   sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
-  if (sg_ent != NULL) {
+  if (sg_ent == NULL) {
     if (subs_pos) {
       ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
       memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
     } else
       mode_directed = NULL;    
+
     new_subgoal_entry(sg_ent);
-    SgEnt_mode_directed(sg_ent) = mode_directed;
-    if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))){
+    SgEnt_init_mode_directed_fields(sg_ent, mode_directed);
+    SgEnt_code(sg_ent) = preg;
+    SgEnt_sg_fr(sg_ent)= NULL;
+
+    if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))) {
       FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
       FREE_SUBGOAL_ENTRY(sg_ent);
       FREE_BLOCK(mode_directed);
@@ -1225,7 +1228,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     }
   }
   
-  if (SgEnt_sg_ent_state(sg_ent) >= complete || SgEnt_sg_fr(sg_ent) == worker_id)
+  if (SgEnt_sg_ent_state(sg_ent) >= complete)
     return SgEnt_sg_fr(sg_ent);
   
   sg_fr = SgEnt_sg_fr(sg_ent);
@@ -1234,25 +1237,22 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
       return sg_fr;
     sg_fr = SgFr_next_wid(sg_fr);
   }
-  new_subgoal_frame(sg_fr, sg_ent);
-  SgFr_wid(sg_fr) = worker_id;
- 
-  LOCK_SG_FR(sg_fr);
+
+  LOCK(SgEnt_lock(sg_ent));
   if (SgEnt_sg_ent_state(sg_ent) < complete) {
+    new_subgoal_frame(sg_fr, sg_ent);
+    SgFr_wid(sg_fr) = worker_id;
     SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
     SgEnt_sg_fr(sg_ent) = sg_fr;
     SgFr_active_workers(sg_fr)++;
-    UNLOCK_SG_FR(sg_fr);
+    UNLOCK(SgEnt_lock(sg_ent));
     return sg_fr;
   }
-  FREE_SUBGOAL_FRAME(sg_fr);
-  UNLOCK_SG_FR(sg_fr);
+  UNLOCK(SgEnt_lock(sg_ent));
 
   return SgEnt_sg_fr(sg_ent);
-
+  
 #endif /* THREADS_SUBGOAL_SHARING */
-
-
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS 
   sg_fr_ptr *bucket;
@@ -1320,8 +1320,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     new_subgoal_frame(sg_fr, sg_ent);
 #ifdef THREADS_CONSUMER_SHARING
     SgFr_state(sg_fr) = ready_external;
-#else
-    SgFr_state(sg_fr) = ready;
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgEnt_sg_ent_state(sg_ent) == ready) {
       LOCK(SgEnt_lock(sg_ent));
@@ -1704,7 +1702,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
     free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
   }
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
- else {    
+  else {    
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
@@ -1881,7 +1879,6 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
     INIT_BUCKETS(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets), SgFrHashBkts_number_of_buckets(LOCAL_sg_fr_hash_buckets));
 #endif
-
     ATTACH_PAGES(_pages_tab_ent);
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
     ATTACH_PAGES(_pages_sg_fr_array);
@@ -1926,8 +1923,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
     LOCAL_top_sg_fr_complete = NULL;
     return;
   }
-#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
-      
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */      
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
       ans_node_ptr ans_node;
@@ -1953,6 +1949,20 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #elif defined(THREADS_FULL_SHARING)
   else {
     sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID    
+    if (sg_fr == NULL)
+      return;
+    sg_fr_ptr sg_fr_last = sg_fr;
+    while(SgFr_next_complete(sg_fr_last))
+      sg_fr_last = SgFr_next_complete(sg_fr_last);
+    
+    do 
+      SgFr_next_complete(sg_fr_last) = REMOTE_top_sg_fr_complete(0);           
+    while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), SgFr_next_complete(sg_fr_last), sg_fr));
+    LOCAL_top_sg_fr_complete = NULL;
+    return;
+  }
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
       sg_ent_ptr sg_ent = SgFr_sg_ent(sg_fr);
@@ -1964,6 +1974,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
     LOCAL_top_sg_fr_complete = NULL;
     return;
   }
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_SUBGOAL_SHARING */
 #endif  /* THREADS */
 
@@ -1998,6 +2009,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
   /* only wid == 0 is here */
+#ifdef THREADS_SUBGOAL_SHARING
   sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
   while (sg_fr) {
     sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
@@ -2013,6 +2025,24 @@ void abolish_table(tab_ent_ptr tab_ent) {
     sg_fr = next_sg_fr;
   }
   LOCAL_top_sg_fr_complete = NULL;
+  
+#else  /* THREADS_FULL_SHARING */
+  sg_fr_ptr sg_fr = LOCAL_top_sg_fr_complete;
+  while (sg_fr) {
+    sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
+    if (SgEnt_sg_fr(SgFr_sg_ent(sg_fr)) == sg_fr) {
+      ans_node_ptr ans_node;
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      ans_node = SgFr_answer_trie(sg_fr);
+      if (TrNode_child(ans_node))
+	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      FREE_ANSWER_TRIE_NODE(ans_node);      
+      FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
+    }
+    FREE_SUBGOAL_FRAME(sg_fr);
+    sg_fr = next_sg_fr;
+  }
+#endif /* THREADS_SUBGOAL_SHARING */
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
   return;
 }
@@ -2089,15 +2119,20 @@ void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
 #ifdef THREADS_FULL_SHARING
 	/* just to avoid table differences on the test_suite. */
 	sg_fr_ptr sg_fr;
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+	sg_fr = SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 	sg_fr_ptr * sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)))
 #ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
 									, &TrNode_lock(sg_node)
 #elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)
 									, &HASH_TRIE_LOCK(sg_node)
-#endif
+#endif /* SUBGOAL_TRIE_LOCK_USING_NODE_FIELD */
 					);
 	sg_fr = *sg_fr_addr;
-#else
+
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+#else /* !THREADS_FULL_SHARING */
 	sg_fr_ptr sg_fr = get_subgoal_frame(sg_node);
 #endif /* THREADS_FULL_SHARING */
 

@@ -1673,7 +1673,7 @@
 #endif /* YAPOR */
 
     /* check for dependency frames with unconsumed answers */
-    dep_fr = LOCAL_top_dep_fr;
+    dep_fr = LOCAL_top_dep_fr;    
     while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
       LOCK_DEP_FR(dep_fr);
       ans_node = DepFr_last_answer(dep_fr);
