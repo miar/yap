@@ -1359,6 +1359,25 @@
     ans_node = DepFr_last_answer(dep_fr);
     if (TrNode_child(ans_node)) {
       /* unconsumed answers */
+#if defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
+      ans_node_ptr curr_ans_node = TrNode_child(ans_node);
+      do {
+	ans_node = curr_ans_node;
+	curr_ans_node = TrNode_child(curr_ans_node);
+      } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node));
+
+      if (curr_ans_node != NULL) {
+	/* valid ans_node */
+	ans_node = curr_ans_node;
+	DepFr_last_answer(dep_fr) = ans_node;
+	UNLOCK_DEP_FR(dep_fr);
+	consume_answer_and_procceed(dep_fr, ans_node);
+      }
+      DepFr_last_answer(dep_fr) = ans_node;
+    }
+    UNLOCK_DEP_FR(dep_fr);    
+#else /* !THREADS_FULL_SHARING_MODE_DIRECTED_V01 && !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
 #ifdef MODE_DIRECTED_TABLING
       if (IS_ANSWER_INVALID_NODE(TrNode_child(ans_node))) {
 	ans_node_ptr old_ans_node;
@@ -1368,7 +1387,7 @@
 	  ans_node = TrNode_child(ans_node);
 	} while (IS_ANSWER_INVALID_NODE(ans_node));
 	TrNode_child(old_ans_node) = ans_node;
-      } else
+	} else 
 #endif /* MODE_DIRECTED_TABLING */
 	ans_node = TrNode_child(ans_node);
       DepFr_last_answer(dep_fr) = ans_node;
@@ -1376,6 +1395,7 @@
       consume_answer_and_procceed(dep_fr, ans_node);
     }
     UNLOCK_DEP_FR(dep_fr);
+#endif /* !THREADS_FULL_SHARING_MODE_DIRECTED_V01 && !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 #ifdef YAPOR
     if (B == DepFr_leader_cp(LOCAL_top_dep_fr)) {
@@ -1424,8 +1444,8 @@
 	    old_ans_node = ans_node;
 	    ans_node = TrNode_child(ans_node);
 	    do {
-	      ans_node = TrNode_child(ans_node);
-	    } while (IS_ANSWER_INVALID_NODE(ans_node));
+  	      ans_node = TrNode_child(ans_node);
+	    } while (IS_ANSWER_INVALID_NODE(ans_node));  
 	    TrNode_child(old_ans_node) = ans_node;
 	  } else
 #endif /* MODE_DIRECTED_TABLING */

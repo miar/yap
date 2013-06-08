@@ -122,7 +122,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-#define MODE_DIRECTED_TABLING 1 /* use threads_subgoal_sharing */
+#define MODE_DIRECTED_TABLING 1 
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **
@@ -186,13 +186,10 @@
 #undef USE_PAGES_MALLOC
 #endif
 
-//#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not verified in all benchmarks */
+//#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not ok at least on table_answer_resolution */
 #define THREADS_FULL_SHARING_MODE_DIRECTED_V02  1
 
 #endif /* THREADS_FULL_SHARING && MODE_DIRECTED_TABLING */
-
-
-
 
 
 /************************************************************************
@@ -396,7 +393,6 @@
 
 
 #if defined(YAPOR) || defined(THREADS)
-//#undef MODE_DIRECTED_TABLING
 #undef INCOMPLETE_TABLING
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING

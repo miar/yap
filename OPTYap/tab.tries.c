@@ -1209,12 +1209,13 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   sg_ent_ptr sg_ent;
   sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
   if (sg_ent == NULL) {
+#ifdef MODE_DIRECTED_TABLING
     if (subs_pos) {
       ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
       memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
     } else
       mode_directed = NULL;    
-
+#endif /* MODE_DIRECTED_TABLING */
     new_subgoal_entry(sg_ent);
     SgEnt_init_mode_directed_fields(sg_ent, mode_directed);
     SgEnt_code(sg_ent) = preg;
@@ -1223,7 +1224,9 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))) {
       FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
       FREE_SUBGOAL_ENTRY(sg_ent);
+#ifdef MODE_DIRECTED_TABLING
       FREE_BLOCK(mode_directed);
+#endif /* MODE_DIRECTED_TABLING */
       sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));
     }
   }
@@ -1238,17 +1241,19 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     sg_fr = SgFr_next_wid(sg_fr);
   }
 
-  LOCK(SgEnt_lock(sg_ent));
   if (SgEnt_sg_ent_state(sg_ent) < complete) {
-    new_subgoal_frame(sg_fr, sg_ent);
-    SgFr_wid(sg_fr) = worker_id;
-    SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
-    SgEnt_sg_fr(sg_ent) = sg_fr;
-    SgFr_active_workers(sg_fr)++;
+    LOCK(SgEnt_lock(sg_ent));
+    if (SgEnt_sg_ent_state(sg_ent) < complete) {
+      new_subgoal_frame(sg_fr, sg_ent);
+      SgFr_wid(sg_fr) = worker_id;
+      SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
+      SgEnt_sg_fr(sg_ent) = sg_fr;
+      SgFr_active_workers(sg_fr)++;
+      UNLOCK(SgEnt_lock(sg_ent));
+      return sg_fr;
+    }
     UNLOCK(SgEnt_lock(sg_ent));
-    return sg_fr;
   }
-  UNLOCK(SgEnt_lock(sg_ent));
 
   return SgEnt_sg_fr(sg_ent);
   
