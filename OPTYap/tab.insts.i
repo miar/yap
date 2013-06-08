@@ -1366,9 +1366,8 @@
 	curr_ans_node = TrNode_child(curr_ans_node);
       } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node));
 
-      if (curr_ans_node != NULL) {
+      if (!IS_ANSWER_INVALID_NODE(ans_node)) {
 	/* valid ans_node */
-	ans_node = curr_ans_node;
 	DepFr_last_answer(dep_fr) = ans_node;
 	UNLOCK_DEP_FR(dep_fr);
 	consume_answer_and_procceed(dep_fr, ans_node);
@@ -1376,7 +1375,7 @@
       DepFr_last_answer(dep_fr) = ans_node;
     }
     UNLOCK_DEP_FR(dep_fr);    
-#else /* !THREADS_FULL_SHARING_MODE_DIRECTED_V01 && !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+#else /* THREADS_FULL_SHARING_MODE_DIRECTED_V01 || THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 #ifdef MODE_DIRECTED_TABLING
       if (IS_ANSWER_INVALID_NODE(TrNode_child(ans_node))) {
@@ -1438,6 +1437,24 @@
         ans_node = DepFr_last_answer(dep_fr);
 	if (TrNode_child(ans_node)) {
           /* dependency frame with unconsumed answers */
+#if defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
+	  ans_node_ptr curr_ans_node = TrNode_child(ans_node);
+	  do {
+	    ans_node = curr_ans_node;
+	    curr_ans_node = TrNode_child(curr_ans_node);
+	  } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node));
+
+	  if (curr_ans_node != NULL)
+	    ans_node = curr_ans_node;
+	  else {	  	    
+	    /* invalid ans_node */
+	    DepFr_last_answer(dep_fr) = ans_node;
+	    UNLOCK_DEP_FR(dep_fr);
+	    dep_fr = DepFr_next(dep_fr);
+	    continue;	    
+	  }
+#else /* !THREADS_FULL_SHARING_MODE_DIRECTED_V01 && !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+
 #ifdef MODE_DIRECTED_TABLING
 	  if (IS_ANSWER_INVALID_NODE(TrNode_child(ans_node))) {
 	    ans_node_ptr old_ans_node;
@@ -1450,6 +1467,7 @@
 	  } else
 #endif /* MODE_DIRECTED_TABLING */
 	    ans_node = TrNode_child(ans_node);
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V01 || THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
           DepFr_last_answer(dep_fr) = ans_node;
 #ifdef YAPOR
           if (YOUNGER_CP(DepFr_backchain_cp(dep_fr), top_chain_cp))

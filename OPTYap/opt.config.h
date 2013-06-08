@@ -186,7 +186,7 @@
 #undef USE_PAGES_MALLOC
 #endif
 
-//#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not ok at least on table_answer_resolution */
+//#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not ok */
 #define THREADS_FULL_SHARING_MODE_DIRECTED_V02  1
 
 #endif /* THREADS_FULL_SHARING && MODE_DIRECTED_TABLING */
