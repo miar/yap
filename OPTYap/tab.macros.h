@@ -1488,13 +1488,14 @@ static inline void adjust_freeze_registers(void) {
 
 static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, int position USES_REGS) {
   
-  /* when this function is executed, two things might happen */
+  /* when this function is executed, three things happen */
   /* -> the non temporary nodes will not change in the trie, thus no 
      expansion on the tries occurs. This code is safe */
   /* -> temporary nodes will not be added to the trie, thus the 
      worker using this code, can simply avoid it is it finds a temporary
      node */
-  if (IS_INTRA_ANSWER_TEMPORARY_NODE(current_node))
+  /* -> the leaf node passed from temporary to non temporary*/
+  if (current_node == NULL || IS_INTRA_ANSWER_TEMPORARY_NODE(current_node))
     return;
 
   if (IS_ANSWER_TRIE_HASH(current_node)) {
@@ -1575,8 +1576,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   if (SgFr_state(sg_fr) >= complete)
     return;  
 #endif
-
-
 
   LOCK_SG_FR(sg_fr);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)

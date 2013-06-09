@@ -1364,9 +1364,17 @@
       do {
 	ans_node = curr_ans_node;
 	curr_ans_node = TrNode_child(curr_ans_node);
-      } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node));
+      } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node)
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+		                 && IS_INTRA_ANSWER_INVALID_NODE(curr_ans_node)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+	       );
 
-      if (!IS_ANSWER_INVALID_NODE(ans_node)) {
+      if (!IS_ANSWER_INVALID_NODE(ans_node) 
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+	  && !IS_INTRA_ANSWER_INVALID_NODE(ans_node)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+	  ) {
 	/* valid ans_node */
 	DepFr_last_answer(dep_fr) = ans_node;
 	UNLOCK_DEP_FR(dep_fr);
@@ -1442,8 +1450,11 @@
 	  do {
 	    ans_node = curr_ans_node;
 	    curr_ans_node = TrNode_child(curr_ans_node);
-	  } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node));
-
+	  } while (curr_ans_node && IS_ANSWER_INVALID_NODE(curr_ans_node) 		   
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+		                 && IS_INTRA_ANSWER_INVALID_NODE(curr_ans_node)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+		   );
 	  if (curr_ans_node != NULL)
 	    ans_node = curr_ans_node;
 	  else {	  	    
