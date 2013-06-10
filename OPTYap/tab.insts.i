@@ -1455,10 +1455,8 @@
 		                 && IS_INTRA_ANSWER_INVALID_NODE(curr_ans_node)
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 		   );
-	  if (curr_ans_node != NULL)
-	    ans_node = curr_ans_node;
-	  else {	  	    
-	    /* invalid ans_node */
+
+	  if (IS_ANSWER_INVALID_NODE(ans_node) || IS_INTRA_ANSWER_INVALID_NODE(ans_node)) {
 	    DepFr_last_answer(dep_fr) = ans_node;
 	    UNLOCK_DEP_FR(dep_fr);
 	    dep_fr = DepFr_next(dep_fr);
