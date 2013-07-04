@@ -644,7 +644,6 @@
 #ifdef THREADS_CONSUMER_SHARING
     if (SgFr_state(sg_fr) == ready_external) {
       init_subgoal_frame(sg_fr);
-      // UNLOCK_SG_FR(sg_fr);
       store_generator_consumer_node(tab_ent, sg_fr, TRUE, PREG->u.Otapl.s);
       PREFETCH_OP(PREG);
       allocate_environment();
@@ -655,7 +654,6 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
-      //UNLOCK_SG_FR(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG->u.Otapl.d);
       PREG = NEXTOP(PREG, Otapl);
       PREFETCH_OP(PREG);
@@ -667,7 +665,6 @@
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      //UNLOCK_SG_FR(sg_fr);
       SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
@@ -681,7 +678,6 @@
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
-      //UNLOCK_SG_FR(sg_fr);
       find_leader_node(leader_cp, leader_dep_on_stack);
       store_consumer_node(tab_ent, sg_fr, leader_cp, leader_dep_on_stack);
 #ifdef DEBUG_OPTYAP
@@ -708,11 +704,9 @@
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;
@@ -855,11 +849,9 @@
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
-	//UNLOCK_SG_FR(sg_fr);
 	goto fail;
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {
 	/* yes answer --> procceed */
-	//UNLOCK_SG_FR(sg_fr);
 	PREG = (yamop *) CPREG;
 	PREFETCH_OP(PREG);
 	YENV = ENV;
@@ -1456,12 +1448,17 @@
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 		   );
 
-	  if (IS_ANSWER_INVALID_NODE(ans_node) || IS_INTRA_ANSWER_INVALID_NODE(ans_node)) {
-	    DepFr_last_answer(dep_fr) = ans_node;
-	    UNLOCK_DEP_FR(dep_fr);
-	    dep_fr = DepFr_next(dep_fr);
-	    continue;	    
-	  }
+	  if (IS_ANSWER_INVALID_NODE(ans_node) 
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02		   
+	      || IS_INTRA_ANSWER_INVALID_NODE(ans_node)
+#endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
+	     ) 
+	    {
+	      DepFr_last_answer(dep_fr) = ans_node;
+	      UNLOCK_DEP_FR(dep_fr);
+	      dep_fr = DepFr_next(dep_fr);
+	      continue;	    
+	    }
 #else /* !THREADS_FULL_SHARING_MODE_DIRECTED_V01 && !THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 #ifdef MODE_DIRECTED_TABLING

@@ -428,19 +428,19 @@ extern int Yap_page_size;
 #endif /***********************************************************************************/
 
 #ifdef THREADS
-#define ALLOC_STRUCT(STR, STR_TYPE, _PG_ENT)                          \
-  GET_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT, GLOBAL##_PG_ENT)
+#define ALLOC_STRUCT(STR, STR_TYPE, _PG_ENT)                                  \
+        { GET_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT, GLOBAL##_PG_ENT); }
 
-#define FREE_STRUCT(STR, STR_TYPE, _PG_ENT)                           \
-        PUT_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT)
+#define FREE_STRUCT(STR, STR_TYPE, _PG_ENT)                                   \
+        { PUT_FREE_STRUCT(STR, STR_TYPE, LOCAL##_PG_ENT); }
 #else
-#define ALLOC_STRUCT(STR, STR_TYPE, _PG_ENT)                          \
-        GET_FREE_STRUCT(STR, STR_TYPE, GLOBAL##_PG_ENT, ___NOT_USED___)
-#define FREE_STRUCT(STR, STR_TYPE, _PG_ENT)                           \
-        PUT_FREE_STRUCT(STR, STR_TYPE, GLOBAL##_PG_ENT)
+#define ALLOC_STRUCT(STR, STR_TYPE, _PG_ENT)                                  \
+        { GET_FREE_STRUCT(STR, STR_TYPE, GLOBAL##_PG_ENT, ___NOT_USED___); }
+#define FREE_STRUCT(STR, STR_TYPE, _PG_ENT)                                   \
+        { PUT_FREE_STRUCT(STR, STR_TYPE, GLOBAL##_PG_ENT); }
 #endif
-#define ALLOC_NEXT_STRUCT(LOCAL_STR, STR, STR_TYPE, _PG_ENT)          \
-        GET_NEXT_FREE_STRUCT(LOCAL_STR, STR, STR_TYPE, GLOBAL##_PG_ENT)
+#define ALLOC_NEXT_STRUCT(LOCAL_STR, STR, STR_TYPE, _PG_ENT)                  \
+        { GET_NEXT_FREE_STRUCT(LOCAL_STR, STR, STR_TYPE, GLOBAL##_PG_ENT); }
 
 #define ALLOC_TABLE_ENTRY(STR)         ALLOC_STRUCT(STR, struct table_entry, _pages_tab_ent)
 #define FREE_TABLE_ENTRY(STR)           FREE_STRUCT(STR, struct table_entry, _pages_tab_ent)
@@ -456,6 +456,7 @@ extern int Yap_page_size;
 
 #define ALLOC_SUBGOAL_TRIE_NODE(STR)   ALLOC_STRUCT(STR, struct subgoal_trie_node, _pages_sg_node)
 #define FREE_SUBGOAL_TRIE_NODE(STR)    FREE_STRUCT(STR, struct subgoal_trie_node, _pages_sg_node)
+
 
 #define ALLOC_SUBGOAL_TRIE_HASH(STR)   ALLOC_STRUCT(STR, struct subgoal_trie_hash, _pages_sg_hash)
 #define FREE_SUBGOAL_TRIE_HASH(STR)     FREE_STRUCT(STR, struct subgoal_trie_hash, _pages_sg_hash)

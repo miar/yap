@@ -508,8 +508,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     child_node  = (sg_node_ptr)((long) child_node & ~(long)0x1);
     while (child_node) {
       if (TrNode_entry(child_node) == t) {
-	if (new_child_node != NULL)
+	if (new_child_node != NULL) 
 	  FREE_SUBGOAL_TRIE_NODE(new_child_node); 
+	
 	return child_node;    
       }
       child_node = TrNode_next(child_node);    
@@ -539,7 +540,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       
       
       while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t){
+	if (TrNode_entry(child_node) == t) {
 	  FREE_SUBGOAL_TRIE_NODE(new_child_node);
 	  return child_node;	
 	}
@@ -698,8 +699,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
     while (child_node) {
       if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
 	if (TrNode_entry(child_node) == t) {  
-	  if (new_child_node != NULL) 
-	    FREE_SUBGOAL_TRIE_NODE(new_child_node);
+	  if (new_child_node != NULL)
+	    FREE_SUBGOAL_TRIE_NODE(new_child_node); 
+	  
 	  return child_node;    
 	}
       }  else {
@@ -1280,7 +1282,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     while (child_node) {
       if (TrNode_entry(child_node) == t) {
 	if (new_child_node != NULL)
-	  FREE_ANSWER_TRIE_NODE(new_child_node); 
+	  FREE_ANSWER_TRIE_NODE(new_child_node); 	
 	return child_node;    
       }
       child_node = TrNode_next(child_node);    
@@ -1309,7 +1311,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       ans_node_ptr first_node_tmp = child_node;
       
       while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t){
+	if (TrNode_entry(child_node) == t) {
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  return child_node;	
 	}
@@ -1478,6 +1480,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       if (TrNode_entry(child_node) == t) {
 	if (new_child_node != NULL) 
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
+	
 	if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
 	  return TrNode_parent(child_node);
 	else
@@ -1507,7 +1510,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       ans_node_ptr first_node_tmp = child_node;      
       
       while (child_node && child_node != first_node) {
-	if (TrNode_entry(child_node) == t){
+	if (TrNode_entry(child_node) == t) {
 	  FREE_ANSWER_TRIE_NODE(new_child_node);
 	  if (IS_ANSWER_TRIE_HASH_EXPANSION(child_node))
 	    return TrNode_parent(child_node);
@@ -1770,8 +1773,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     while (child_node) {
       if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
 	if (TrNode_entry(child_node) == t) {
-	  if (new_child_node != NULL) 
-	    FREE_ANSWER_TRIE_NODE(new_child_node);
+	  if (new_child_node != NULL)
+	    FREE_ANSWER_TRIE_NODE(new_child_node);	  
 	  return child_node;    
 	}
       } else {
@@ -2926,8 +2929,9 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
       TrNode_next(NODE) = SgFr_invalid_chain(SG_FR);    \
        SgFr_invalid_chain(SG_FR) = NODE
 
-#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)        \
-        FREE_ANSWER_TRIE_NODE(NODE)
+#define INVALIDATE_ANSWER_TRIE_NODE(NODE, SG_FR)	\
+          FREE_ANSWER_TRIE_NODE(NODE)
+        
 
 #endif /* THREADS_FULL_SHARING */
 
