@@ -632,9 +632,9 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgFr_init_batched_fields(SG_FR);		           \
         }
 
-#define init_subgoal_frame(SG_FR)                                  \
+#define init_subgoal_frame(SG_FR)				   \
         { SgFr_state(SG_FR) = evaluating;			   \
-          SgFr_next(SG_FR) = LOCAL_top_sg_fr;                      \
+          SgFr_next(SG_FR) = LOCAL_top_sg_fr;			   \
           LOCAL_top_sg_fr = SG_FR;                                 \
 	}
 #else
@@ -1571,7 +1571,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
-#ifdef TABLING_EARLY_COMPLETION
+#ifdef TABLING_EARLY_COMPLETION_
     /* as example the test_single02 passes here more than once with tabling_early_completion*/
   if (SgFr_state(sg_fr) >= complete)
     return;  
@@ -1579,6 +1579,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 
   LOCK_SG_FR(sg_fr);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+  
   SgFr_active_workers(sg_fr)--;
 #ifdef MODE_DIRECTED_TABLING
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
@@ -1611,7 +1612,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 	    FREE_ANSWER_TRIE_NODE(parent_node);
 	    parent_node = next_parent_node;
 	  }
-
 	  FREE_ANSWER_TRIE_NODE(current_node); // disable flag  use_pages_malloc
 	  current_node = next_node;
 	}
@@ -1708,15 +1708,15 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
 #ifdef THREADS_FULL_SHARING
-#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+#if defined(THREADS_SUBGOAL_FRAME_BY_WID) && defined(THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE)
   SgFr_state(sg_fr) = complete;
   if (SgFr_sg_ent_state(sg_fr) < complete) {
     SgEnt_sg_fr(SgFr_sg_ent(sg_fr)) = sg_fr;
     SgFr_sg_ent_state(sg_fr) = complete;
   }
-#else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
+#else  /* !THREADS_SUBGOAL_FRAME_BY_WID || !THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
   SgFr_sg_ent_state(sg_fr) = SgFr_state(sg_fr) = complete;
-#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID && THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
   UNLOCK_SG_FR(sg_fr);
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
@@ -1734,6 +1734,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   }   
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
   struct subgoal_trie_node *sg_leaf_node;
   sg_leaf_node = SgFr_sg_leaf_node(sg_fr);
   
@@ -1746,6 +1747,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
       break;    
   } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
   
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
+
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
   LOCAL_top_sg_fr_complete = sg_fr;
 
@@ -1920,7 +1923,6 @@ static inline CELL *expand_auxiliary_stack(CELL *stack) {
 
 static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
   CACHE_REGS
-    
 #ifdef YAPOR
   if (EQUAL_OR_YOUNGER_CP(GetOrFr_node(LOCAL_top_susp_or_fr), prune_cp))
     pruning_over_tabling_data_structures();

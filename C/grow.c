@@ -1249,6 +1249,8 @@ fix_tabling_info( USES_REGS1 )
     df = DepFr_next(df);
   }
   sg = LOCAL_top_sg_fr;
+
+
   while (sg) {
     if (SgFr_gen_cp(sg))
       SgFr_gen_cp(sg) = GeneratorChoicePtrAdjust(SgFr_gen_cp(sg));

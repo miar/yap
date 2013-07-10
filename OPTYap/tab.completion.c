@@ -329,7 +329,6 @@ void complete_suspension_frames(or_fr_ptr or_fr) {
 void suspend_branch(void) {
   CACHE_REGS
   or_fr_ptr or_frame;
-
   /* suspension only occurs in shared nodes that **
   **   are leaders with younger consumer nodes   */
 #ifdef DEBUG_OPTYAP

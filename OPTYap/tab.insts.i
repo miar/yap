@@ -485,7 +485,7 @@
 	LOCAL_top_sg_fr_complete = sg_fr;
       	SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
       } else 
-	SgFr_active_workers(sg_fr)++;
+	SgFr_active_workers(sg_fr)++;      
       UNLOCK_SG_FR(sg_fr);
     } 
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
@@ -502,8 +502,9 @@
     } else
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
-      /* subgoal new */
-      init_subgoal_frame(sg_fr);
+      /* subgoal new */      
+       init_subgoal_frame(sg_fr);
+
 #ifdef DETERMINISTIC_TABLING
       if (IsMode_Batched(TabEnt_mode(tab_ent))) {
 	store_deterministic_generator_node(tab_ent, sg_fr);
@@ -638,7 +639,7 @@
       }else 
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
-      }
+    }
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 #endif /*!THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_CONSUMER_SHARING
@@ -653,7 +654,11 @@
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
+      if (SgFr_state(sg_fr) != ready) 
+	printf("error state = %d \n", SgFr_state(sg_fr));
+
       init_subgoal_frame(sg_fr);
+
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG->u.Otapl.d);
       PREG = NEXTOP(PREG, Otapl);
       PREFETCH_OP(PREG);
@@ -796,6 +801,9 @@
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
+      if (SgFr_state(sg_fr) != ready) 
+	printf("error state = %d \n", SgFr_state(sg_fr));
+      
       init_subgoal_frame(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
       PREG = PREG->u.Otapl.d;
@@ -1178,7 +1186,7 @@
       }
 #endif /* TABLING_INNER_CUTS */
 #ifndef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
-      LOCK_SG_FR(sg_fr);      
+      LOCK_SG_FR(sg_fr);     
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
       if (!IS_ANSWER_LEAF_NODE(ans_node)) { 	

@@ -1176,7 +1176,11 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));  
   
   if (sg_fr) {
-    if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
+    if (SgFr_wid(sg_fr) == worker_id  
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
+	|| SgFr_state(sg_fr) >= complete
+#endif  /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
+	)
       return sg_fr;
     mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
@@ -1221,7 +1225,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     SgEnt_code(sg_ent) = preg;
     SgEnt_sg_fr(sg_ent)= NULL;
 
-    if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))) {
+    if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), NULL,((CELL)sg_ent | (CELL)0x1))) {
       FREE_ANSWER_TRIE_NODE(SgEnt_answer_trie(sg_ent));
       FREE_SUBGOAL_ENTRY(sg_ent);
 #ifdef MODE_DIRECTED_TABLING
@@ -1231,16 +1235,20 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     }
   }
   
-  if (SgEnt_sg_ent_state(sg_ent) >= complete)
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
+
+  if (SgEnt_sg_ent_state(sg_ent) >= complete) 
     return SgEnt_sg_fr(sg_ent);
-  
+
   sg_fr = SgEnt_sg_fr(sg_ent);
+
   while(sg_fr) {
-    if (SgFr_wid(sg_fr) == worker_id)
+    if (SgFr_wid(sg_fr) == worker_id || SgFr_state(sg_fr) >= complete)
       return sg_fr;
     sg_fr = SgFr_next_wid(sg_fr);
   }
 
+  
   if (SgEnt_sg_ent_state(sg_ent) < complete) {
     LOCK(SgEnt_lock(sg_ent));
     if (SgEnt_sg_ent_state(sg_ent) < complete) {
@@ -1248,14 +1256,32 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
       SgFr_wid(sg_fr) = worker_id;
       SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
       SgEnt_sg_fr(sg_ent) = sg_fr;
-      SgFr_active_workers(sg_fr)++;
+      SgFr_active_workers(sg_fr)++;      
       UNLOCK(SgEnt_lock(sg_ent));
       return sg_fr;
     }
     UNLOCK(SgEnt_lock(sg_ent));
   }
-
+  
   return SgEnt_sg_fr(sg_ent);
+
+#else /* !THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
+
+  sg_fr = SgEnt_sg_fr(sg_ent);
+  while(sg_fr) {
+    if (SgFr_wid(sg_fr) == worker_id)
+      return sg_fr;    
+    sg_fr = SgFr_next_wid(sg_fr);
+  }
+  new_subgoal_frame(sg_fr, sg_ent);
+  SgFr_wid(sg_fr) = worker_id;
+  LOCK(SgEnt_lock(sg_ent));  
+  SgFr_next_wid(sg_fr) = SgEnt_sg_fr(sg_ent);
+  SgEnt_sg_fr(sg_ent) = sg_fr;
+  SgFr_active_workers(sg_fr)++;      
+  UNLOCK(SgEnt_lock(sg_ent));
+  return sg_fr;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
   
 #endif /* THREADS_SUBGOAL_SHARING */
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */

@@ -374,6 +374,7 @@ static
 void share_private_nodes(int worker_q) {
   choiceptr sharing_node = B;
 
+  
 #ifdef DEBUG_OPTYAP
   OPTYAP_ERROR_CHECKING(share_private_nodes, YOUNGER_CP(LOCAL_top_cp, LOCAL_top_cp_on_stack));
   { choiceptr aux_cp = B;

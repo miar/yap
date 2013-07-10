@@ -63,7 +63,7 @@ typedef struct subgoal_trie_node {
   struct subgoal_trie_node *parent;
   struct subgoal_trie_node *child;
   struct subgoal_trie_node *next;
-#if defined(SUBGOAL_TRIE_LOCK_USING_NODE_FIELD )&& !defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL)
+#if defined(SUBGOAL_TRIE_LOCK_USING_NODE_FIELD) && !defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL)
   lockvar lock;
 #endif 
 } *sg_node_ptr;
@@ -377,6 +377,9 @@ typedef struct subgoal_entry {
 ****************************/
 
 typedef struct subgoal_frame {
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID
+  struct subgoal_frame *next_wid;
+#endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   struct subgoal_entry *subgoal_entry;
 #ifdef THREADS_FULL_SHARING
@@ -396,12 +399,12 @@ typedef struct subgoal_frame {
   struct subgoal_trie_node *sg_leaf_node;
   struct subgoal_frame *next_on_hash;
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
 #ifdef THREADS_SUBGOAL_SHARING
   struct subgoal_trie_node *sg_leaf_node;
 #endif /* THREADS_SUBGOAL_SHARING */
   int wid;
-  struct subgoal_frame *next_wid;
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct sg_fr_bkt_array **subgoal_frame_array;
