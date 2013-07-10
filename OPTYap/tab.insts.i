@@ -556,9 +556,6 @@
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
-	/////////////////////////////
-      /*      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	      printf("error -1  \n"); */
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
@@ -654,11 +651,7 @@
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
-      if (SgFr_state(sg_fr) != ready) 
-	printf("error state = %d \n", SgFr_state(sg_fr));
-
       init_subgoal_frame(sg_fr);
-
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG->u.Otapl.d);
       PREG = NEXTOP(PREG, Otapl);
       PREFETCH_OP(PREG);
@@ -702,10 +695,6 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
-
-	/////////////////////////////
-      /*      if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	      printf("error -2 \n");  */
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
@@ -801,9 +790,6 @@
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
-      if (SgFr_state(sg_fr) != ready) 
-	printf("error state = %d \n", SgFr_state(sg_fr));
-      
       init_subgoal_frame(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
       PREG = PREG->u.Otapl.d;
@@ -848,12 +834,6 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
-
-
-	/////////////////////////////
-      /*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	printf("error 3 \n");  */
-
 
       if (ans_node == NULL) {
 	/* no answers --> fail */
