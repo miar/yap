@@ -1170,19 +1170,23 @@
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
 
       if (!IS_ANSWER_LEAF_NODE(ans_node)) { 	
-#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
-	/* index->index->max/min this means that only on the last level of the trie is ok for the strategie */ 
-	if (TrNode_child(TrNode_parent(ans_node)) != ans_node) {
-	  // FREE_ANSWER_TRIE_NODE(ans_node); missing to release this node 
-	  UNLOCK_SG_FR(sg_fr);      	  
+#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
+	ans_node_ptr  ans_node_aux, sg_ans_trie;
+	ans_node_aux = ans_node;
+	sg_ans_trie = SgFr_answer_trie(sg_fr);
+	int invalid_ans = FALSE; 
+	while(ans_node_aux != sg_ans_trie && IS_ANSWER_TEMP_NODE(ans_node_aux)) {
+	  UNTAG_ANSWER_TEMP_NODE(ans_node_aux);
+	  if (IS_INTRA_ANSWER_INVALID_NODE(ans_node_aux))	    
+	    invalid_ans = TRUE; 
+	  ans_node_aux = TrNode_parent(ans_node_aux);
+	}
+	
+	if (invalid_ans == TRUE) {
+	  /* do not add the answer to the chain */
+	  UNLOCK_SG_FR(sg_fr);
 	  goto fail;
 	}
-
-	/*if (SgFr_sg_ent_state(sg_fr) == complete || IS_ANSWER_INVALID_NODE(ans_node)) {
-	  printf("error  7 active_workers = %d \n", SgFr_active_workers(sg_fr));
-	  UNLOCK_SG_FR(sg_fr);      	  
-	  goto fail;
-	  }*/
 #endif  /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 
@@ -1200,9 +1204,6 @@
 	SgFr_last_answer(sg_fr) = ans_node;
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 
-#ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02      
-	UNTAG_INTRA_ANSWER_TEMPORARY_NODE(ans_node);
-#endif  /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
       }
 #ifdef DEBUG_TABLING
       { 

@@ -24,7 +24,7 @@
 #define TRIE_LOCK_BUCKETS  512
 /************************original - inicio ********************/
 //#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
-//%%#define THREADS_DIRECT_BUCKETS    32
+//#define THREADS_DIRECT_BUCKETS    32
 #define THREADS_DIRECT_BUCKETS    65
 //%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
 #define THREADS_INDIRECT_BUCKETS   0
@@ -49,7 +49,7 @@
 **      use shared pages memory alloc scheme ? (optional)      **
 ****************************************************************/
 
-//#define USE_PAGES_MALLOC 1  /* disable with full_sharing + mode_directed_tabling */
+#define USE_PAGES_MALLOC 1  /* disable with full_sharing + mode_directed_tabling */
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **
@@ -61,8 +61,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1
-//#define THREADS_FULL_SHARING 1  
+//#define THREADS_SUBGOAL_SHARING 1
+#define THREADS_FULL_SHARING 1  
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
@@ -86,7 +86,7 @@
 *************************************************************************/
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+//%%%%%%%%%%#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
@@ -97,7 +97,7 @@
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-//%%%%%%%%%%%%%%#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+//%%%%%%#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
@@ -122,7 +122,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-#define MODE_DIRECTED_TABLING 1 
+//#define MODE_DIRECTED_TABLING 1 
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **
@@ -178,9 +178,9 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
-#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+//#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 
-#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
+//#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
 /* -> missing to implement with THREADS_SUBGOAL_SHARING */
 
 

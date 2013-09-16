@@ -517,6 +517,16 @@ extern int Yap_page_size;
 #define BOOL_CAS(PTR, OLD, NEW)                __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
 #define atomic_inc(P)                          __sync_add_and_fetch((P), 1)
 
+
+
+
+//#define BOOL_CAS(PTR, OLD, NEW)                __sync_lock_test_and_set((PTR), (OLD), (NEW))
+// __sync_lock_test_and_set
+
+//#define BOOL_CAS(PTR, OLD, NEW)                (*(PTR) == (OLD) ? __sync_bool_compare_and_swap((PTR), (OLD), (NEW)) : 0)
+
+
+
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
 
 #define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)

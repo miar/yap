@@ -15,7 +15,7 @@
 **      Macros      **
 *********************/
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
-#define Init_threads_full_sharing_mode_directed_v02_fields(NODE)	\
+#define Init_threads_full_sharing_mode_directed_v02_fields(NODE)	                                \
         TrNode_intra_invalid_next(NODE) = (ans_node_ptr) 0x2
 #else
 #define Init_threads_full_sharing_mode_directed_v02_fields(NODE)
@@ -735,7 +735,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       
       first_node_tmp = child_node;
 
-      while (child_node != first_node) {
+      while (child_node && child_node != first_node) {
 	if (!IS_SUBGOAL_TRIE_HASH_EXPANSION(child_node)) {
 	  if (TrNode_entry(child_node) == t) {
 	    FREE_SUBGOAL_TRIE_NODE(new_child_node);
@@ -1808,7 +1808,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
       first_node_tmp = child_node;   // first
 
-      while (child_node != first_node) {
+      while (child_node && child_node != first_node) {
 	if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)) {
 	  if (TrNode_entry(child_node) == t) {
 	    FREE_ANSWER_TRIE_NODE(new_child_node);

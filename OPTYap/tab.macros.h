@@ -111,6 +111,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr, int);
 static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
+
 /*********************************
 **      Tabling mode flags      **
 *********************************/
@@ -238,18 +239,18 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x1))
 #define UNTAG_ANSWER_NODE(NODE)              ((CELL) (NODE) & ~(0x3))
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02 
-#define TAG_AS_INTRA_ANSWER_INVALID_NODE(NODE)   TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) | 0x1)
-#define IS_INTRA_ANSWER_INVALID_NODE(NODE)       ((CELL) TrNode_intra_invalid_next(NODE) & 0x1)
-#define IS_INTRA_ANSWER_TEMPORARY_NODE(NODE)     ((CELL) TrNode_intra_invalid_next(NODE) & 0x2)
-#define UNTAG_INTRA_ANSWER_TEMPORARY_NODE(NODE)  TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) & ~(0x2))
-#define UNTAG_INTRA_ANSWER_INVALID_NODE(NODE)    ((CELL) (NODE) & ~(0x3))
+#define TAG_AS_INTRA_ANSWER_INVALID_NODE(NODE)  TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) | 0x1)
+#define IS_INTRA_ANSWER_INVALID_NODE(NODE)      ((CELL) TrNode_intra_invalid_next(NODE) & 0x1)
+#define IS_ANSWER_TEMP_NODE(NODE)               ((CELL) TrNode_intra_invalid_next(NODE) & 0x2)
+#define UNTAG_ANSWER_TEMP_NODE(NODE)            TrNode_intra_invalid_next(NODE) = (ans_node_ptr)((CELL) TrNode_intra_invalid_next(NODE) & ~(0x2))
+#define UNTAG_INTRA_ANSWER_INVALID_NODE(NODE)   ((CELL) (NODE) & ~(0x3))
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 /* trie hashes */
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define BASE_HASH_BUCKETS               64 //-> DEFAULT
-#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
+//#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))
 
@@ -1495,7 +1496,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
      worker using this code, can simply avoid it is it finds a temporary
      node */
   /* -> the leaf node passed from temporary to non temporary*/
-  if (current_node == NULL || IS_INTRA_ANSWER_TEMPORARY_NODE(current_node))
+  if (current_node == NULL || IS_ANSWER_TEMP_NODE(current_node))
     return;
 
   if (IS_ANSWER_TRIE_HASH(current_node)) {
@@ -2418,3 +2419,4 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr solutions
   }
 }
 #endif /* TABLING_INNER_CUTS */
+

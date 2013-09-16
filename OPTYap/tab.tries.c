@@ -1429,7 +1429,6 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 
 #ifdef MODE_DIRECTED_TABLING
 
-
 #if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01)
  
 ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
@@ -1561,7 +1560,8 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	
 	if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
 	  current_ans_node = answer_search_min_max(sg_fr, parent_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
-	} 
+	} else if (mode == MODE_DIRECTED_FIRST)
+	  current_ans_node = NULL;
       }
       n_subs--;
       i--;
