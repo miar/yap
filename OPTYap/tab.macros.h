@@ -249,7 +249,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 /* trie hashes */
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
 #define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
-#define BASE_HASH_BUCKETS               64 //-> DEFAULT
+//#define BASE_HASH_BUCKETS               64 //-> DEFAULT
+#define BASE_HASH_BUCKETS               8 //-> V04 DEFAULT
 //#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))
@@ -892,6 +893,21 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
   AnsHash_init_chain_fields(HASH_NODE, sg_fr)
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 */
+
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 
+#define SHIFT_SIZE                                      3
+
+#define V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) ((ENTRY) >> (SHIFT_SIZE * (N_SHIFTS)))
+#define V04_HASH_ENTRY(ENTRY, N_SHIFTS)  (V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) & (BASE_HASH_BUCKETS - 1))
+#define V04_IS_EMPTY_BUCKET(BUCKET, BASE_BUCKET)   (BUCKET == (ans_node_ptr) BASE_BUCKET)
+#define V04_TAG(PTR)                               ((long)(PTR) |  (long)0x1)
+#define V04_UNTAG(PTR)                             ((long)(PTR) & ~(long)(0x1))
+#define V04_IS_EQUAL_ENTRY(X, T)                   (TrNode_entry(X) == T)
+#define V04_IS_HASH(PTR)                           ((long)(PTR) &  (long)(0x1))
+#define V04_GET_HASH_BUCKET(BUCKET, HASH, T, NS)   (BUCKET = (ans_node_ptr *) V04_UNTAG(HASH) + V04_HASH_ENTRY(T, NS))
+#define V04_GET_PREV_HASH(PREV_HASH, CURR_HASH)    (PREV_HASH = (ans_node_ptr *) *(((ans_node_ptr *) V04_UNTAG(CURR_HASH)) - 1))
+#define V04_SET_HASH_BUCKET(BUCKET, V)             (*(BUCKET) = (ans_node_ptr) V)
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 #endif
 
 #ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL

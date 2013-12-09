@@ -14,6 +14,7 @@
 /*********************
 **      Macros      **
 *********************/
+
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 #define Init_threads_full_sharing_mode_directed_v02_fields(NODE)	                                \
         TrNode_intra_invalid_next(NODE) = (ans_node_ptr) 0x2
@@ -1903,7 +1904,218 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     return child_node;    
   }
 }
+#elif defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
 
+#ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
+
+static inline void insert_bucket_chain(ans_node_ptr *curr_hash, ans_node_ptr chain_node, ans_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
+  Term t = TrNode_entry(adjust_node);
+  int cn = count_nodes + 1;
+  ans_node_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (!V04_IS_HASH(chain_next))
+    return insert_bucket_chain(curr_hash, chain_next, adjust_node, n_shifts, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer
+  if ((ans_node_ptr *)chain_next == curr_hash) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_node_ptr *new_hash;
+      ans_node_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, curr_hash);
+      new_hash = (ans_node_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
+      V04_SET_HASH_BUCKET(bucket, chain_node);
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
+	V04_SET_HASH_BUCKET(bucket, new_hash);
+	//	curr_hash = new_hash;
+	return insert_bucket_array(new_hash, adjust_node, (n_shifts + 1) PASS_REGS);
+      } else 
+	FREE_TRIE_HASH_BUCKETS(new_hash);  
+    } else {
+      TrNode_next(adjust_node) = (ans_node_ptr) curr_hash;
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, adjust_node)) 
+	return;           
+    }
+    chain_next = TrNode_next(chain_node);
+    if (!V04_IS_HASH(chain_next))
+      return insert_bucket_chain(curr_hash, chain_next, adjust_node, n_shifts, cn PASS_REGS);      
+  }
+
+  // chain_next is pointing to an hash which is newer than mine. I must jump to the correct hash.
+  ans_node_ptr *jump_hash, *prev_hash;
+  jump_hash = (ans_node_ptr *) chain_next;
+  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  while (prev_hash != curr_hash) {
+    jump_hash = prev_hash;
+    V04_GET_PREV_HASH(prev_hash, jump_hash);
+  }
+  return insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) PASS_REGS);
+} 
+
+
+static inline void insert_bucket_array(ans_node_ptr *curr_hash, ans_node_ptr chain_node, long n_shifts USES_REGS) {
+  ans_node_ptr *bucket; 
+  TrNode_next(chain_node) = (ans_node_ptr) curr_hash;
+  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) 
+    if (BOOL_CAS(bucket, curr_hash, chain_node)) 
+      return;  
+  ans_node_ptr bucket_next = *bucket;
+  if (V04_IS_HASH(bucket_next))
+    return insert_bucket_array((ans_node_ptr *)bucket_next, chain_node, (n_shifts + 1) PASS_REGS);
+  else 
+    return insert_bucket_chain(curr_hash, bucket_next, chain_node, n_shifts, 0 PASS_REGS);
+}
+
+static inline void adjust_chain_nodes(ans_node_ptr *new_hash, ans_node_ptr chain_node, ans_node_ptr last_node, long n_shifts USES_REGS) {
+  if (chain_node == last_node)
+    return;
+  adjust_chain_nodes(new_hash, TrNode_next(chain_node), last_node, n_shifts PASS_REGS);
+  return insert_bucket_array(new_hash, chain_node, (n_shifts + 1) PASS_REGS);
+}
+
+
+static inline ans_node_ptr check_insert_bucket_chain(ans_node_ptr *curr_hash, ans_node_ptr chain_node, ans_node_ptr parent_node, Term t, int instr,long n_shifts, int count_nodes USES_REGS) {
+  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+    return chain_node;  
+  int cn = count_nodes + 1;
+  ans_node_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (!V04_IS_HASH(chain_next))
+    return check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, instr, n_shifts, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer
+  if ((ans_node_ptr *)chain_next == curr_hash) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_node_ptr *new_hash;
+      ans_node_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, curr_hash);
+      new_hash = (ans_node_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
+      V04_SET_HASH_BUCKET(bucket, chain_node);
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
+	V04_SET_HASH_BUCKET(bucket, new_hash);
+	//	curr_hash = new_hash;
+	return check_insert_bucket_array(new_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
+      } else 
+	FREE_TRIE_HASH_BUCKETS(new_hash);  
+    } else {
+      ans_node_ptr new_node; 
+      NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, curr_hash);
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_node)) 
+	return new_node;    
+  
+      FREE_ANSWER_TRIE_NODE(new_node);
+    }
+    chain_next = TrNode_next(chain_node);
+    if (!V04_IS_HASH(chain_next))
+      return check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, instr, n_shifts, cn PASS_REGS);  
+  }
+
+  // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
+  ans_node_ptr *jump_hash, *prev_hash;
+  jump_hash = (ans_node_ptr *) chain_next;
+  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  while (prev_hash != curr_hash) {
+    jump_hash = prev_hash;
+    V04_GET_PREV_HASH(prev_hash, jump_hash);
+  }
+
+  return check_insert_bucket_array(jump_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);  
+}
+
+static inline ans_node_ptr check_insert_bucket_array(ans_node_ptr *curr_hash, ans_node_ptr parent_node, Term t, int instr, long n_shifts USES_REGS) {
+  ans_node_ptr *bucket; 
+  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) {
+    ans_node_ptr new_node; 
+    NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, curr_hash);
+    if (BOOL_CAS(bucket, curr_hash, new_node))
+      return new_node;        
+    FREE_ANSWER_TRIE_NODE(new_node);
+  }
+  ans_node_ptr bucket_next = *bucket;
+  if (V04_IS_HASH(bucket_next))
+    return check_insert_bucket_array((ans_node_ptr *)bucket_next, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
+  else 
+    return check_insert_bucket_chain(curr_hash, bucket_next, parent_node, t, instr, n_shifts, 0 PASS_REGS);
+}
+
+
+static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans_node_ptr parent_node, Term t, int instr, int count_nodes USES_REGS) {
+  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+    return chain_node;  
+  int cn = count_nodes + 1;
+  ans_node_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (chain_next && !V04_IS_HASH(chain_next))
+    return check_insert_first_chain(chain_next, parent_node, t, instr, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer or the end of the chain
+  if ((ans_node_ptr *)chain_next == NULL) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_node_ptr *new_hash;
+      ans_node_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, NULL);
+      new_hash = (ans_node_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0);
+      V04_SET_HASH_BUCKET(bucket, chain_node);
+      if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
+	adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, -1 PASS_REGS);
+	TrNode_child(parent_node) = new_hash;
+	return check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
+      } else 
+	FREE_TRIE_HASH_BUCKETS(new_hash);  
+    } else {
+      ans_node_ptr new_node; 
+      NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, NULL);
+      if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_node)) 
+	return new_node;    
+      FREE_ANSWER_TRIE_NODE(new_node);
+    }
+    chain_next = TrNode_next(chain_node);
+    if (!V04_IS_HASH(chain_next))
+      return check_insert_first_chain(chain_next, parent_node, t, instr, cn PASS_REGS);  
+  }
+  // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
+  ans_node_ptr *jump_hash, *prev_hash;
+  jump_hash = (ans_node_ptr *) chain_next;
+  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  while (prev_hash != NULL) {
+    jump_hash = prev_hash;
+    V04_GET_PREV_HASH(prev_hash, jump_hash);
+  }
+  return check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
+}
+
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
+
+#ifdef MODE_GLOBAL_TRIE_ENTRY
+static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
+#else
+static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
+#endif /* MODE_GLOBAL_TRIE_ENTRY */
+  ans_node_ptr child_node ;
+  child_node = (ans_node_ptr) TrNode_child(parent_node);
+  if (child_node == NULL) {
+    ans_node_ptr new_child_node ;
+    NEW_ANSWER_TRIE_NODE(new_child_node, instr, t, NULL, parent_node, NULL);
+    if (BOOL_CAS(&(TrNode_child(parent_node)), NULL, new_child_node))
+      return new_child_node;
+    FREE_ANSWER_TRIE_NODE(new_child_node);
+    child_node = (ans_node_ptr) TrNode_child(parent_node);
+  }
+  
+  if (IS_ANSWER_TRIE_HASH(child_node))
+    return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0 PASS_REGS);
+  
+  return check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
+}
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */
 

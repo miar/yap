@@ -21,6 +21,15 @@
 #include "YapHeap.h"
 #include "tab.macros.h"
 
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+static inline void insert_bucket_chain(ans_node_ptr *, ans_node_ptr, ans_node_ptr, long, int USES_REGS);
+static inline void insert_bucket_array(ans_node_ptr *, ans_node_ptr, long USES_REGS);
+static inline void adjust_chain_nodes(ans_node_ptr *, ans_node_ptr, ans_node_ptr, long USES_REGS);
+static inline ans_node_ptr check_insert_bucket_chain(ans_node_ptr *, ans_node_ptr, ans_node_ptr, Term, int, long, int USES_REGS);
+static inline ans_node_ptr check_insert_bucket_array(ans_node_ptr *, ans_node_ptr, Term, int, long USES_REGS);
+static inline ans_node_ptr check_insert_first_chain(ans_node_ptr, ans_node_ptr, Term, int, int USES_REGS); 
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr, sg_node_ptr, Term USES_REGS);
 static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr, sg_node_ptr, Term USES_REGS);
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr, ans_node_ptr, Term, int USES_REGS);

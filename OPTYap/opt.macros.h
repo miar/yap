@@ -571,6 +571,27 @@ extern int Yap_page_size;
 #define OPEN_SG_HASH_V03(HASH)                   (SgHash_hash_bkts(HASH) = (sg_hash_bkts_ptr)((CELL) SgHash_hash_bkts(HASH) & ~(CELL)0x1))
 #endif 
 
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+
+#define V04_INIT_BUCKETS(BUCKET_PTR, PREV_HASH)                       \
+  { int i; void **init_bucket_ptr;                                    \
+  *BUCKET_PTR++ = (void *) (PREV_HASH);                               \
+  init_bucket_ptr = (void **) BUCKET_PTR;                             \
+  for (i = BASE_HASH_BUCKETS; i != 0; i--)                            \
+    *init_bucket_ptr++ = (void *) V04_TAG(BUCKET_PTR);                \
+  }
+
+
+#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)                                   \
+  void **alloc_bucket_ptr;                                                         \
+  ALLOC_BLOCK(alloc_bucket_ptr, (BASE_HASH_BUCKETS + 1) * sizeof(void *), void *); \
+  V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);                                   \
+  BUCKET_PTR = (struct answer_trie_node **) alloc_bucket_ptr
+
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+
+
+
 
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
