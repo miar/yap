@@ -2006,7 +2006,7 @@ static inline ans_node_ptr check_insert_bucket_chain(ans_node_ptr *curr_hash, an
 	FREE_TRIE_HASH_BUCKETS(new_hash);  
     } else {
       ans_node_ptr new_node; 
-      NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, curr_hash);
+      NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, (ans_node_ptr) curr_hash);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_node)) 
 	return new_node;    
   
@@ -2034,7 +2034,7 @@ static inline ans_node_ptr check_insert_bucket_array(ans_node_ptr *curr_hash, an
   V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
   if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) {
     ans_node_ptr new_node; 
-    NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, curr_hash);
+    NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, (ans_node_ptr) curr_hash);
     if (BOOL_CAS(bucket, curr_hash, new_node))
       return new_node;        
     FREE_ANSWER_TRIE_NODE(new_node);
@@ -2057,7 +2057,7 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
     return check_insert_first_chain(chain_next, parent_node, t, instr, cn PASS_REGS);  
   
   // chain_next is a hash pointer or the end of the chain
-  if ((ans_node_ptr *)chain_next == NULL) {
+  if (chain_next == NULL) {
     if (cn == MAX_NODES_PER_BUCKET) {
       ans_node_ptr *new_hash;
       ans_node_ptr *bucket;
@@ -2067,7 +2067,7 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
       V04_SET_HASH_BUCKET(bucket, chain_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
 	adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, -1 PASS_REGS);
-	TrNode_child(parent_node) = new_hash;
+	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
 	return check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
       } else 
 	FREE_TRIE_HASH_BUCKETS(new_hash);  
@@ -2111,10 +2111,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
     child_node = (ans_node_ptr) TrNode_child(parent_node);
   }
   
-  if (IS_ANSWER_TRIE_HASH(child_node))
-    return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0 PASS_REGS);
-  
-  return check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
+  if (!V04_IS_HASH(child_node))
+    return check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
+  return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0 PASS_REGS);
 }
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */
