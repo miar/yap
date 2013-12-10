@@ -759,9 +759,6 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 }
 
 
-
-
-
 #ifdef EXTRA_STATISTICS
  static void traverse_answer_trie(long ans_dep, ans_node_ptr current_node, char *str, int str_index, int *arity, int var_index, int mode, int position USES_REGS) {
 #else

@@ -24,7 +24,6 @@
 #define TRIE_LOCK_BUCKETS  512
 /************************original - inicio ********************/
 //#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
-//#define THREADS_DIRECT_BUCKETS    32
 #define THREADS_DIRECT_BUCKETS    65
 //%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
 #define THREADS_INDIRECT_BUCKETS   0
