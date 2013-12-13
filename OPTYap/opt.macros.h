@@ -468,6 +468,7 @@ extern int Yap_page_size;
 #endif
 #define FREE_ANSWER_TRIE_NODE(STR)      FREE_STRUCT(STR, struct answer_trie_node, _pages_ans_node)
 
+
 #define ALLOC_ANSWER_TRIE_HASH(STR)    ALLOC_STRUCT(STR, struct answer_trie_hash, _pages_ans_hash)
 #define FREE_ANSWER_TRIE_HASH(STR)      FREE_STRUCT(STR, struct answer_trie_hash, _pages_ans_hash)
 

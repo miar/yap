@@ -66,6 +66,11 @@
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
+//#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* answer_search only */
+
+#define THREADS_FULL_SHARING_FTNA  1    /* FTNA - fast table_new_answer -use only with local scheduling. check first for mode_direct_tabling */
+
+
 
 /*************************************************************************
 **      tries locking scheme (mandatory, define one per trie type)      **
@@ -341,6 +346,7 @@
 #undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01
 #undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02
 #undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
+
 #endif
 #else /* ! TABLING || ! THREADS */
 #undef THREADS_NO_SHARING
@@ -399,5 +405,11 @@
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING
 #endif
+
+#ifndef THREADS_FULL_SHARING
+#ifdef THREADS_FULL_SHARING_FTNA
+#undef THREADS_FULL_SHARING_FTNA
+#endif /* THREADS_FULL_SHARING_FTNA */
+#endif /* THREADS_FULL_SHARING */
 
 

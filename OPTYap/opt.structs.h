@@ -34,6 +34,13 @@ UInt  cputime_by_thread_utime[CPUTIME_BY_THREAD_NR_RUNS][CPUTIME_BY_THREAD_MAX_T
 UInt  cputime_by_thread_stime[CPUTIME_BY_THREAD_NR_RUNS][CPUTIME_BY_THREAD_MAX_THREADS];
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
 
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#define WALLTIME_BY_THREAD_MAX_THREADS  66
+#define WALLTIME_BY_THREAD_NR_RUNS       1
+int   walltime_by_thread_run;
+float  walltime_by_thread[WALLTIME_BY_THREAD_NR_RUNS][WALLTIME_BY_THREAD_MAX_THREADS];
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
 
 /**********************
 **      typedefs     **

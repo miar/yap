@@ -2092,7 +2092,11 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
     V04_GET_PREV_HASH(prev_hash, jump_hash);
   }
   return check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
-}
+  } 
+
+
+
+
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
 
@@ -2116,6 +2120,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   if (!V04_IS_HASH(child_node))
     return check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
   return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0 PASS_REGS);
+
 }
 
 

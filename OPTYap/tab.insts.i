@@ -393,6 +393,7 @@
     PREG = (yamop *) CPREG;
     PREFETCH_OP(PREG);
     load_answer(ans_node, subs_ptr);
+
     YENV = ENV;
     GONext();
   ENDPBOp();
@@ -404,6 +405,7 @@
 ************************************************************************/
 
   PBOp(table_try_answer, Otapl)
+
 #ifdef INCOMPLETE_TABLING
     sg_fr_ptr sg_fr;
     ans_node_ptr ans_node;
@@ -470,7 +472,6 @@
   PBOp(table_try_single, Otapl)
     tab_ent_ptr tab_ent;
     sg_fr_ptr sg_fr;
-
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
@@ -619,7 +620,6 @@
   PBOp(table_try_me, Otapl)
     tab_ent_ptr tab_ent;
     sg_fr_ptr sg_fr;
-
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
@@ -762,7 +762,22 @@
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
+
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -1031,7 +1046,15 @@
     }
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
 #ifdef MODE_DIRECTED_TABLING
+
     if (SgFr_mode_directed(sg_fr)) {
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr);
   
@@ -1042,7 +1065,14 @@
       }
     } else
 #endif /* MODE_DIRECTED_TABLING */
-      ans_node = answer_search(sg_fr, subs_ptr);
+     ans_node = answer_search(sg_fr, subs_ptr);
+
+    
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
 
     if (! IS_ANSWER_LEAF_NODE(ans_node)) { 
       /* new answer */
@@ -1165,11 +1195,31 @@
         SCHEDULER_GET_WORK();
       }
 #endif /* TABLING_INNER_CUTS */
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+#ifdef THREADS_FULL_SHARING_FTNA
+    ans_node_ptr dummy;
+
+    dummy = (ans_node_ptr) ((CELL) TrNode_parent(ans_node) & ~(CELL)0x1);
+    if (!BOOL_CAS(&(TrNode_parent(ans_node)), dummy, ((CELL) dummy | (CELL)0x1))) {
+      /*TAG_AS_ANSWER_LEAF_NODE(ans_node); */
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+      gettimeofday(&tv2, NULL);
+      walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+      goto fail;
+    }    
+#endif /* THREADS_FULL_SHARING_FTNA */
+
 #ifndef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
       LOCK_SG_FR(sg_fr);     
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
-
-      if (!IS_ANSWER_LEAF_NODE(ans_node)) { 	
+#ifndef THREADS_FULL_SHARING_FTNA
+      if (!IS_ANSWER_LEAF_NODE(ans_node))
+#endif /* THREADS_FULL_SHARING_FTNA */
+      {
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 	ans_node_ptr  ans_node_aux, sg_ans_trie;
 	ans_node_aux = ans_node;
@@ -1202,8 +1252,9 @@
 	else 
 	  TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
 	SgFr_last_answer(sg_fr) = ans_node;
+#ifndef THREADS_FULL_SHARING_FTNA
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
-
+#endif /* THREADS_FULL_SHARING_FTNA */
       }
 #ifdef DEBUG_TABLING
       { 
@@ -1215,6 +1266,13 @@
       }
 #endif /* DEBUG_TABLING */
       UNLOCK_SG_FR(sg_fr);
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
 
       if (IS_BATCHED_GEN_CP(gcp)) {
 #ifdef THREADS_FULL_SHARING

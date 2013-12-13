@@ -190,7 +190,15 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
       cputime_by_thread_stime[i][j] = (UInt) -1;
     }
   cputime_by_thread_run = -1;
-#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD */
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  int k;
+  for (i = 0; i < WALLTIME_BY_THREAD_NR_RUNS; i++)
+    for (k = 0; k < WALLTIME_BY_THREAD_MAX_THREADS; k++)
+      walltime_by_thread[i][k] = -1;    
+  walltime_by_thread_run = -1;
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 #endif /* TABLING */
   return;
 }

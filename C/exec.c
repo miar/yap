@@ -999,7 +999,9 @@ exec_absmi(int top USES_REGS)
   }
   YENV = ASP;
   YENV[E_CB] = Unsigned (B);
+  ////timee
   out = Yap_absmi(0);
+  ////timee
   /* make sure we don't leave a FAIL signal hanging around */ 
   LOCAL_ActiveSignals &= ~YAP_FAIL_SIGNAL;
   if (!LOCAL_ActiveSignals)
@@ -1060,7 +1062,6 @@ do_goal(Term t, yamop *CodeAdr, int arity, CELL *pt, int top USES_REGS)
 {
   choiceptr saved_b = B;
   Int out;
-
   init_stack(arity, pt, top, saved_b PASS_REGS);
   P = (yamop *) CodeAdr;
   S = CellPtr (RepPredProp (PredPropByFunc (Yap_MkFunctor(AtomCall, 1),0)));	/* A1 mishaps */
@@ -1289,6 +1290,7 @@ Yap_RunTopGoal(Term t)
   }
 #endif
   goal_out = do_goal(t, CodeAdr, arity, pt, TRUE PASS_REGS);
+
   return goal_out;
 }
 

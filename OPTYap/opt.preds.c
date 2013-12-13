@@ -46,6 +46,7 @@ static Int p_show_tabled_predicates( USES_REGS1 );
 static Int p_show_table( USES_REGS1 );
 static Int p_show_all_tables( USES_REGS1 );
 static Int p_show_cputime_by_thread( USES_REGS1 );
+static Int p_show_walltime_by_thread( USES_REGS1 );
 static Int p_show_global_trie( USES_REGS1 );
 static Int p_show_statistics_table( USES_REGS1 );
 static Int p_show_statistics_tabling( USES_REGS1 );
@@ -213,6 +214,7 @@ void Yap_init_optyap_preds(void) {
   Yap_InitCPred("$c_show_table", 3, p_show_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("show_all_tables", 1, p_show_all_tables, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("show_cputime_by_thread", 1, p_show_cputime_by_thread, SafePredFlag|SyncPredFlag);
+  Yap_InitCPred("show_walltime_by_thread", 1, p_show_walltime_by_thread, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("show_global_trie", 1, p_show_global_trie, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("$c_table_statistics", 3, p_show_statistics_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("tabling_statistics", 1, p_show_statistics_tabling, SafePredFlag|SyncPredFlag);
@@ -480,7 +482,11 @@ static Int p_abolish_all_tables( USES_REGS1 ) {
   }
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   cputime_by_thread_run++;
-#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
+#endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD */
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  walltime_by_thread_run++;
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
   return (TRUE);
 }
 
@@ -585,6 +591,35 @@ return (TRUE);
 }
 
 
+static Int p_show_walltime_by_thread( USES_REGS1 ) {
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  IOSTREAM *out;
+  Term t = Deref(ARG1);
+
+  if (IsVarTerm(t) || !IsAtomTerm(t))
+    return FALSE;
+  if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))
+    return FALSE;
+
+  if (worker_id != 0) {
+    Sfprintf(out, "Error - Main thread Only\n");
+    PL_release_stream(out);
+    return (FALSE);
+  }
+
+  int i;
+  for (i = 0; i < WALLTIME_BY_THREAD_NR_RUNS ; i++) {
+    int j = 1;
+    while(walltime_by_thread[i][j] != -1 && j < WALLTIME_BY_THREAD_MAX_THREADS) {
+      Sfprintf(out,"walltime_by_thread[%d][%d] time = %0.0lf \n", i, j, walltime_by_thread[i][j]) ;
+      j++;
+    }
+  }
+
+  PL_release_stream(out);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD*/
+return (TRUE);
+}
 
 
 static Int p_show_global_trie( USES_REGS1 ) {
@@ -599,13 +634,6 @@ static Int p_show_global_trie( USES_REGS1 ) {
   PL_release_stream(out);
   return (TRUE);
 }
-
-
-
-
-
-
-
 
 
 static Int p_show_statistics_table( USES_REGS1 ) {

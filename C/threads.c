@@ -1,3 +1,4 @@
+
 /*************************************************************************
 *									 *
 *	 YAP Prolog 							 *
@@ -185,6 +186,16 @@ thread_die(int wid, int always_die)
   cputime_by_thread_utime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_utime()- cputime_by_thread_utime[cputime_by_thread_run][wid];
   cputime_by_thread_stime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_stime()- cputime_by_thread_stime[cputime_by_thread_run][wid];
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
+
+  
+  //#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  //struct timeval tv1;
+  //gettimeofday(&tv2, NULL);
+  //walltime_by_thread[walltime_by_thread_run][worker_id] += ((int)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+  //#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
+
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {
     abolish_table(tab_ent);
@@ -275,6 +286,16 @@ setup_engine(int myworker_id, int init_thread)
   cputime_by_thread_utime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_utime();
   cputime_by_thread_stime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_stime();
 #endif /* EXTRA_STATISTICS_CPUTIME_BY_THREAD*/
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  walltime_by_thread[walltime_by_thread_run][worker_id] = 0;
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD*/
+
+  //#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+  //  struct timeval tv1, tv2;
+  //  gettimeofday(&tv1, NULL);
+  //#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
 #endif /* TABLING */
   return TRUE;
 }
@@ -289,6 +310,7 @@ static void *
 thread_run(void *widp)
 {
   CACHE_REGS
+
   Term tgoal, t;
   Term tgs[2];
   int myworker_id = *((int *)widp); 
@@ -317,7 +339,9 @@ thread_run(void *widp)
   REMOTE_ThreadHandle(myworker_id).tgoal = NULL;
   tgs[1] = LOCAL_ThreadHandle.tdetach;
   tgoal = Yap_MkApplTerm(FunctorThreadRun, 2, tgs);
+  ////////timee
   Yap_RunTopGoal(tgoal);
+  ////////timee
   thread_die(worker_id, FALSE);
   return NULL;
 }
