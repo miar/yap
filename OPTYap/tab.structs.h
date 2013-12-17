@@ -316,7 +316,9 @@ typedef struct subgoal_entry {
 #endif
   struct answer_trie_node *answer_trie;
   struct answer_trie_node *first_answer;
+#ifndef THREADS_FULL_SHARING_FTNA 
   struct answer_trie_node *last_answer;
+#endif /* THREADS_FULL_SHARING_FTNA */
 #ifdef MODE_DIRECTED_TABLING
   int* mode_directed_array;
   struct answer_trie_node *invalid_chain;       /* leaf invalid chain */
@@ -358,7 +360,9 @@ typedef struct subgoal_entry {
 #define SgEnt_old_hash_chain(X)          ((X)->old_hash_chain)
 #define SgEnt_answer_trie(X)             ((X)->answer_trie)
 #define SgEnt_first_answer(X)            ((X)->first_answer)
+#ifndef THREADS_FULL_SHARING_FTNA 
 #define SgEnt_last_answer(X)             ((X)->last_answer)
+#endif /* THREADS_FULL_SHARING_FTNA */
 #define SgEnt_mode_directed(X)           ((X)->mode_directed_array)
 #define SgEnt_invalid_chain(X)           ((X)->invalid_chain)
 #define SgEnt_intra_invalid_chain(X)     ((X)->intra_invalid_chain)
@@ -383,6 +387,9 @@ typedef struct subgoal_frame {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   struct subgoal_entry *subgoal_entry;
 #ifdef THREADS_FULL_SHARING
+#ifdef THREADS_FULL_SHARING_FTNA 
+  struct answer_trie_node *last_answer;
+#endif /* THREADS_FULL_SHARING_FTNA */
   struct answer_trie_node *batched_last_answer;
   struct answer_ref_node *batched_cached_answers;
 #endif /* THREADS_FULL_SHARING */
@@ -430,7 +437,11 @@ typedef struct subgoal_frame {
 #define SgFr_old_hash_chain(X)          (SUBGOAL_ENTRY(X) old_hash_chain)
 #define SgFr_answer_trie(X)             (SUBGOAL_ENTRY(X) answer_trie)
 #define SgFr_first_answer(X)            (SUBGOAL_ENTRY(X) first_answer)
+#ifdef THREADS_FULL_SHARING_FTNA
+#define SgFr_last_answer(X)             ((X)->last_answer)
+#else
 #define SgFr_last_answer(X)             (SUBGOAL_ENTRY(X) last_answer)
+#endif /* THREADS_FULL_SHARING_FTNA */
 #define SgFr_mode_directed(X)           (SUBGOAL_ENTRY(X) mode_directed_array)
 #define SgFr_invalid_chain(X)           (SUBGOAL_ENTRY(X) invalid_chain) 
 #define SgFr_intra_invalid_chain(X)     (SUBGOAL_ENTRY(X) intra_invalid_chain)

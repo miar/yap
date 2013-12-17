@@ -66,9 +66,9 @@
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
-//#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* answer_search only */
+#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* answer_search only */
 
-#define THREADS_FULL_SHARING_FTNA  1    /* FTNA - fast table_new_answer -use only with local scheduling. check first for mode_direct_tabling */
+#define THREADS_FULL_SHARING_FTNA  1    /* not good walltime FTNA - fast table_new_answer -use only with local scheduling. check first for mode_direct_tabling */
 
 
 
@@ -108,8 +108,8 @@
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1        /* !MGL_BUFFER_ALLOC */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1        /* !MGL_BUFFER_ALLOC */
 
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */

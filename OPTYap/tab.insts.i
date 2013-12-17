@@ -763,20 +763,16 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
-
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
     gettimeofday(&tv2, NULL);
     walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
-
 
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
@@ -1047,7 +1043,7 @@
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1068,7 +1064,7 @@
      ans_node = answer_search(sg_fr, subs_ptr);
 
     
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     gettimeofday(&tv2, NULL);
     walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1199,27 +1195,66 @@
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-#ifdef THREADS_FULL_SHARING_FTNA
-    ans_node_ptr dummy;
 
-    dummy = (ans_node_ptr) ((CELL) TrNode_parent(ans_node) & ~(CELL)0x1);
-    if (!BOOL_CAS(&(TrNode_parent(ans_node)), dummy, ((CELL) dummy | (CELL)0x1))) {
-      /*TAG_AS_ANSWER_LEAF_NODE(ans_node); */
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-      gettimeofday(&tv2, NULL);
-      walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#ifdef THREADS_FULL_SHARING_FTNA
+    if (SgFr_first_answer(sg_fr) == NULL) {
+      if (BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node)) {
+	TAG_AS_ANSWER_LEAF_NODE(ans_node);
+	SgFr_last_answer(sg_fr) = ans_node;
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+	gettimeofday(&tv2, NULL);
+	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-      goto fail;
-    }    
-#endif /* THREADS_FULL_SHARING_FTNA */
+	goto fail;
+      }
+    }
+	ans_node_ptr last_answer;
+	
+    if (SgFr_last_answer(sg_fr) == NULL) {
+      SgFr_last_answer(sg_fr) = last_answer = SgFr_first_answer(sg_fr);
+      if (last_answer == ans_node) {
+	TAG_AS_ANSWER_LEAF_NODE(ans_node);
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	gettimeofday(&tv2, NULL);
+	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+	goto fail;
+      }	
+    } else
+      last_answer = SgFr_last_answer(sg_fr);
+    
+    do {
+      if (TrNode_child(last_answer)) {
+	do {
+	  last_answer = TrNode_child(last_answer);
+	  if (last_answer == ans_node) {
+	    TAG_AS_ANSWER_LEAF_NODE(ans_node);
+	    SgFr_last_answer(sg_fr) = last_answer;
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	    gettimeofday(&tv2, NULL);
+	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+	    goto fail;
+	  }
+	} while(TrNode_child(last_answer));
+      }
+      
+      if (BOOL_CAS(&(TrNode_child(last_answer)), NULL, ans_node)) {
+	TAG_AS_ANSWER_LEAF_NODE(ans_node);
+	SgFr_last_answer(sg_fr) = ans_node;
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	gettimeofday(&tv2, NULL);
+	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+	goto fail;      
+      }
+    } while(1);
+#else  /* !THREADS_FULL_SHARING_FTNA */
 
 #ifndef ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL
       LOCK_SG_FR(sg_fr);     
 #endif /* ! ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL */
-#ifndef THREADS_FULL_SHARING_FTNA
-      if (!IS_ANSWER_LEAF_NODE(ans_node))
-#endif /* THREADS_FULL_SHARING_FTNA */
-      {
+      if (!IS_ANSWER_LEAF_NODE(ans_node)) {
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 	ans_node_ptr  ans_node_aux, sg_ans_trie;
 	ans_node_aux = ans_node;
@@ -1252,9 +1287,7 @@
 	else 
 	  TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
 	SgFr_last_answer(sg_fr) = ans_node;
-#ifndef THREADS_FULL_SHARING_FTNA
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
-#endif /* THREADS_FULL_SHARING_FTNA */
       }
 #ifdef DEBUG_TABLING
       { 
@@ -1271,7 +1304,7 @@
     gettimeofday(&tv2, NULL);
     walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
+#endif /*THREADS_FULL_SHARING_FTNA */
 
 
       if (IS_BATCHED_GEN_CP(gcp)) {
@@ -2005,7 +2038,20 @@ complete_all:
       else	 
 #endif /* DETERMINISTIC_TABLING */
 	sg_fr = GEN_CP(B)->cp_sg_fr;
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_______________
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
       private_completion(sg_fr);
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD________________
+	gettimeofday(&tv2, NULL);
+	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
+
 #ifdef THREADS_CONSUMER_SHARING
       if (IS_BATCHED_GEN_CP(B) || SgFr_gen_worker(sg_fr) != worker_id) {  /* if it is an gen_cons node then all the answers were already consumed */
 #else
@@ -2021,11 +2067,6 @@ complete_all:
 	ans_node = SgFr_first_answer(sg_fr);
 
 	/////////////////////////////
-
-	/*if (ans_node && IS_ANSWER_INVALID_NODE(ans_node))
-	  printf("error 4 \n"); */
-
-
         if (ans_node == NULL) {
           /* no answers --> fail */
           B = B->cp_b;

@@ -383,6 +383,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 #define INIT_LOCK_SG_FR(SG_FR)  INIT_LOCK(SgFr_lock(SG_FR))
 #define LOCK_SG_FR(SG_FR)       LOCK(SgFr_lock(SG_FR))
+#define TRYLOCK_SG_FR(SG_FR)    TRY_LOCK(SgFr_lock(SG_FR))
 #define UNLOCK_SG_FR(SG_FR)     UNLOCK(SgFr_lock(SG_FR))
 #else
 #define INIT_LOCK_SG_FR(SG_FR)
@@ -544,6 +545,18 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+
+#ifdef THREADS_FULL_SHARING_FTNA
+#define SgEnt_init_fs_ftna_last_answer(SG_FR)
+#define SgFr_init_fs_ftna_last_answer(SG_FR)   \
+     SgFr_last_answer(SG_FR) = NULL
+#else
+#define SgEnt_init_fs_ftna_last_answer(SG_ENT) \
+     SgEnt_last_answer(SG_ENT) = NULL
+#define SgFr_init_fs_ftna_last_answer(SG_FR)
+#endif /* THREADS_FULL_SHARING_FTNA */
+
+
 #define DepFr_init_last_answer_field(DEP_FR, SG_FR)                                               \
         /* start with TrNode_child(DepFr_last_answer(DEP_FR)) ... */                              \
         /* ... pointing to SgEnt_first_answer(SgFr_sg_ent(SG_FR)) */	                          \
@@ -604,7 +617,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  Init_mode_directed_full_sharing_fields(SG_ENT);	    \
           SgEnt_answer_trie(SG_ENT) = ans_node;                     \
           SgEnt_first_answer(SG_ENT) = NULL;                        \
-          SgEnt_last_answer(SG_ENT) = NULL;		            \
+          SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
         }
@@ -619,7 +632,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  Init_mode_directed_full_sharing_fields(SG_ENT);	    \
           SgEnt_answer_trie(SG_ENT) = ans_node;                     \
           SgEnt_first_answer(SG_ENT) = NULL;                        \
-          SgEnt_last_answer(SG_ENT) = NULL;		            \
+          SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
           INIT_BUCKETS(&SgEnt_sg_fr(SG_ENT), THREADS_NUM_BUCKETS);  \
@@ -628,11 +641,13 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+
 #define new_subgoal_frame(SG_FR, SG_ENT)		           \
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
           SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
           SgFr_state(SG_FR) = ready;                               \
           SgFr_init_batched_fields(SG_FR);		           \
+	  SgFr_init_fs_ftna_last_answer(SG_FR);                    \
         }
 
 #define init_subgoal_frame(SG_FR)				   \
