@@ -461,9 +461,6 @@ struct local_optyap_data {
 #if defined(TABLING) && (defined(YAPOR) || defined(THREADS))
   /* local data related to memory management */
   struct local_pages pages;
-#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
-  struct subgoal_frame_hash_buckets *sg_fr_hash_buckets;
-#endif
 #endif /* TABLING && (YAPOR || THREADS) */
 
 #ifdef YAPOR
@@ -494,6 +491,9 @@ struct local_optyap_data {
   struct subgoal_frame *top_subgoal_frame;
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *top_subgoal_frame_complete;
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC
+  void ** answer_trie_buckets_buffer;
+#endif
 #endif
   struct dependency_frame *top_dependency_frame;
 #ifdef TABLING_INNER_CUTS
@@ -519,6 +519,7 @@ struct local_optyap_data {
 #endif /* (TABLING || !YAPOR_COW) && MULTI_ASSIGNMENT_VARIABLES */
 };
 
+                                            
 #define LOCAL_pages_void                   (LOCAL_optyap_data.pages.void_pages)
 #define LOCAL_pages_tab_ent                (LOCAL_optyap_data.pages.table_entry_pages)
 #define LOCAL_pages_sg_fr_array            (LOCAL_optyap_data.pages.sg_fr_array_pages)
@@ -533,7 +534,9 @@ struct local_optyap_data {
 #define LOCAL_pages_gt_node                (LOCAL_optyap_data.pages.global_trie_node_pages)
 #define LOCAL_pages_gt_hash                (LOCAL_optyap_data.pages.global_trie_hash_pages)
 #define LOCAL_next_free_ans_node           (LOCAL_optyap_data.pages.next_free_answer_trie_node)
-#define LOCAL_sg_fr_hash_buckets           (LOCAL_optyap_data.sg_fr_hash_buckets)
+
+#define LOCAL_answer_trie_buckets_buffer   (LOCAL_optyap_data.answer_trie_buckets_buffer)
+
 #define LOCAL_lock                         (LOCAL_optyap_data.lock)
 #define LOCAL_load                         (LOCAL_optyap_data.load)
 #ifdef YAPOR_THREADS

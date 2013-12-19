@@ -1931,10 +1931,9 @@ static inline void insert_bucket_chain(ans_node_ptr *curr_hash, ans_node_ptr cha
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
 	adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
 	V04_SET_HASH_BUCKET(bucket, new_hash);
-	//	curr_hash = new_hash;
 	return insert_bucket_array(new_hash, adjust_node, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
     } else {
       TrNode_next(adjust_node) = (ans_node_ptr) curr_hash;
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, adjust_node)) 
@@ -2001,10 +2000,9 @@ static inline ans_node_ptr check_insert_bucket_chain(ans_node_ptr *curr_hash, an
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
 	adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
 	V04_SET_HASH_BUCKET(bucket, new_hash);
-	//	curr_hash = new_hash;
 	return check_insert_bucket_array(new_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
     } else {
       ans_node_ptr new_node; 
       NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, (ans_node_ptr) curr_hash);
@@ -2071,7 +2069,7 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
 	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
 	return check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
     } else {
       ans_node_ptr new_node; 
       NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, NULL);
@@ -2092,11 +2090,7 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
     V04_GET_PREV_HASH(prev_hash, jump_hash);
   }
   return check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
-  } 
-
-
-
-
+} 
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
 

@@ -266,7 +266,7 @@ setup_engine(int myworker_id, int init_thread)
   pthread_mutex_unlock(&(REMOTE_ThreadHandle(myworker_id).tlock));  
 #ifdef TABLING
   new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
-#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
+#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS_____________ /* not working */
   sg_fr_hash_bkts_ptr sg_fr_hash_bkts; 
   ALLOC_BLOCK(sg_fr_hash_bkts, sizeof(struct subgoal_frame_hash_buckets), struct subgoal_frame_hash_buckets);
   SgFrHashBkts_number_of_buckets(sg_fr_hash_bkts) = BASE_SG_FR_HASH_BUCKETS;
@@ -274,6 +274,10 @@ setup_engine(int myworker_id, int init_thread)
   INIT_BUCKETS(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS);
   LOCAL_sg_fr_hash_buckets = sg_fr_hash_bkts;
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC
+  LOCAL_answer_trie_buckets_buffer = NULL;
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC */
+
 #ifdef OUTPUT_THREADS_TABLING
   char thread_name[25];
   char filename[YAP_FILENAME_MAX]; 

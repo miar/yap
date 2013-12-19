@@ -1064,7 +1064,7 @@
      ans_node = answer_search(sg_fr, subs_ptr);
 
     
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________
     gettimeofday(&tv2, NULL);
     walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1191,7 +1191,7 @@
         SCHEDULER_GET_WORK();
       }
 #endif /* TABLING_INNER_CUTS */
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1201,7 +1201,7 @@
       if (BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node)) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
 	gettimeofday(&tv2, NULL);
 	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1400,6 +1400,10 @@
       }
 #endif /* THREADS_FULL_SHARING */
       UNLOCK_ANSWER_TRIE(sg_fr);
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
       goto fail;
     }
   ENDPBOp();

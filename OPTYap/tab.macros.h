@@ -923,7 +923,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define V04_GET_HASH_BUCKET(BUCKET, HASH, T, NS)   (BUCKET = (ans_node_ptr *) V04_UNTAG(HASH) + V04_HASH_ENTRY(T, NS))
 #define V04_GET_PREV_HASH(PREV_HASH, CURR_HASH)    (PREV_HASH = (ans_node_ptr *) *(((ans_node_ptr *) V04_UNTAG(CURR_HASH)) - 1))
 #define V04_SET_HASH_BUCKET(BUCKET, V)             (*(BUCKET) = (ans_node_ptr) V)
-#define V04_FREE_TRIE_HASH_BUCKETS(STR)            FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1)
+
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 #endif
 
