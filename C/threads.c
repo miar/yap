@@ -221,6 +221,9 @@ thread_die(int wid, int always_die)
   DETACH_PAGES(_pages_ans_hash);
 #if defined(THREADS_FULL_SHARING)
   DETACH_PAGES(_pages_ans_ref_node);
+#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+  DETACH_PAGES(_pages_trie_hash_buckets);
+#endif
 #endif /* THREADS_FULL_SHARING */
   DETACH_PAGES(_pages_gt_node);
   DETACH_PAGES(_pages_gt_hash);

@@ -913,7 +913,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 
 #define SHIFT_SIZE                                    3
 
-#define V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) ((ENTRY) >> (SHIFT_SIZE * (N_SHIFTS)))
+#define V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) ((ENTRY) >> ((SHIFT_SIZE * (N_SHIFTS)) + NumberOfLowTagBits))
 #define V04_HASH_ENTRY(ENTRY, N_SHIFTS)  (V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) & (BASE_HASH_BUCKETS - 1))
 #define V04_IS_EMPTY_BUCKET(BUCKET, BASE_BUCKET)   (BUCKET == (ans_node_ptr) BASE_BUCKET)
 #define V04_TAG(PTR)                               ((long)(PTR) |  (long)0x1)

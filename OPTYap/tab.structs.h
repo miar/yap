@@ -635,3 +635,17 @@ typedef struct subgoal_frame_hash_buckets {
 #define SgFrHash_old_hash_bkts(X)      ((X)->old_hash_bkts)
 
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
+
+
+
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) && defined(USE_PAGES_MALLOC)
+#define BASE_HASH_BUCKETS_2               8 
+
+union trie_hash_buckets {
+  void *next;
+  void *hash_buckets[BASE_HASH_BUCKETS_2 + 1];
+};
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 && USE_PAGES_MALLOC */
+
+
+

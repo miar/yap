@@ -91,6 +91,9 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_ans_hash, struct answer_trie_hash);
 #if defined(THREADS_FULL_SHARING)
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_ans_ref_node, struct answer_ref_node);
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+  INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_trie_hash_buckets, union trie_hash_buckets);
+#endif
 #endif
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_gt_node, struct global_trie_node);
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_gt_hash, struct global_trie_hash);
@@ -231,6 +234,9 @@ void Yap_init_local_optyap_data(int wid) {
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_ans_node(wid), struct answer_trie_node);
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_ans_hash(wid), struct answer_trie_hash);
 #if defined(THREADS_FULL_SHARING)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+  INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_trie_hash_buckets(wid), union trie_hash_buckets);
+#endif
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_ans_ref_node(wid), struct answer_ref_node);
 #endif
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_gt_node(wid), struct global_trie_node);

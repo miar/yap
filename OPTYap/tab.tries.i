@@ -2024,8 +2024,7 @@ static inline ans_node_ptr check_insert_bucket_chain(ans_node_ptr *curr_hash, an
     jump_hash = prev_hash;
     V04_GET_PREV_HASH(prev_hash, jump_hash);
   }
-
-  return check_insert_bucket_array(jump_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);  
+  return check_insert_bucket_array(jump_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
 }
 
 static inline ans_node_ptr check_insert_bucket_array(ans_node_ptr *curr_hash, ans_node_ptr parent_node, Term t, int instr, long n_shifts USES_REGS) {
@@ -2062,12 +2061,12 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
       ans_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, NULL);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits);
       V04_SET_HASH_BUCKET(bucket, chain_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
-	adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (-1) PASS_REGS);
+	adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (NumberOfLowTagBits - 1) PASS_REGS);
 	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
-	return check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
+	return check_insert_bucket_array(new_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);
       } else 
 	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
     } else {
@@ -2089,7 +2088,7 @@ static inline ans_node_ptr check_insert_first_chain(ans_node_ptr chain_node, ans
     jump_hash = prev_hash;
     V04_GET_PREV_HASH(prev_hash, jump_hash);
   }
-  return check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
+  return check_insert_bucket_array(jump_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);  
 } 
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
@@ -2100,7 +2099,7 @@ static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, an
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   ans_node_ptr child_node;
-  //  printf(" term = %d \n", t>>3);
+  //printf(" term = %d \n", t>>3);
   child_node = (ans_node_ptr) TrNode_child(parent_node);
   if (child_node == NULL) {
     ans_node_ptr new_child_node;
@@ -2113,10 +2112,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   
   if (!V04_IS_HASH(child_node))
     return check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
-  return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0 PASS_REGS);
-
+  return check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, NumberOfLowTagBits  PASS_REGS);
 }
-
 
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_ANSWER_TRIE_CHECK_INSERT */

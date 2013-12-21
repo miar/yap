@@ -1043,10 +1043,6 @@
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-    struct timeval tv1, tv2;
-    gettimeofday(&tv1, NULL);
-#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
 
 #ifdef MODE_DIRECTED_TABLING
@@ -1062,6 +1058,15 @@
     } else
 #endif /* MODE_DIRECTED_TABLING */
      ans_node = answer_search(sg_fr, subs_ptr);
+
+
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    struct timeval tv1, tv2;
+    if (worker_id == 1)
+      gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
 
     
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________
@@ -1202,8 +1207,10 @@
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-	gettimeofday(&tv2, NULL);
-	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	if (worker_id == 1) {
+	  gettimeofday(&tv2, NULL);
+	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 	goto fail;
       }
@@ -1215,8 +1222,10 @@
       if (last_answer == ans_node) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-	gettimeofday(&tv2, NULL);
-	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	if (worker_id == 1) {
+	  gettimeofday(&tv2, NULL);
+	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 	goto fail;
       }	
@@ -1231,8 +1240,10 @@
 	    TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	    SgFr_last_answer(sg_fr) = last_answer;
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-	    gettimeofday(&tv2, NULL);
-	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	if (worker_id == 1) {
+	  gettimeofday(&tv2, NULL);
+	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 	    goto fail;
 	  }
@@ -1243,8 +1254,10 @@
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	if (worker_id == 1) {
 	gettimeofday(&tv2, NULL);
 	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 	goto fail;      
       }
@@ -1301,8 +1314,10 @@
       UNLOCK_SG_FR(sg_fr);
 
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-    gettimeofday(&tv2, NULL);
-    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	if (worker_id == 1) {
+	  gettimeofday(&tv2, NULL);
+	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 #endif /*THREADS_FULL_SHARING_FTNA */
 
@@ -1401,8 +1416,10 @@
 #endif /* THREADS_FULL_SHARING */
       UNLOCK_ANSWER_TRIE(sg_fr);
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-    gettimeofday(&tv2, NULL);
-    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+      	if (worker_id == 1) {
+      gettimeofday(&tv2, NULL);
+      walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+    }
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
       goto fail;
     }

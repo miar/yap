@@ -472,6 +472,14 @@ extern int Yap_page_size;
 #define ALLOC_ANSWER_TRIE_HASH(STR)    ALLOC_STRUCT(STR, struct answer_trie_hash, _pages_ans_hash)
 #define FREE_ANSWER_TRIE_HASH(STR)      FREE_STRUCT(STR, struct answer_trie_hash, _pages_ans_hash)
 
+#define V04_ALLOC_THB(STR)						\
+  union trie_hash_buckets *aux;						\
+  ALLOC_STRUCT(aux, union trie_hash_buckets, _pages_trie_hash_buckets); \
+  STR = aux->hash_buckets
+
+
+#define V04_FREE_THB(STR)               //FREE_STRUCT((union trie_hash_buckets*)STR, union trie_hash_buckets, _pages_trie_hash_buckets)
+
 #define ALLOC_ANSWER_REF_NODE(STR)     ALLOC_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
 #define FREE_ANSWER_REF_NODE(STR)       FREE_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
 
@@ -517,8 +525,6 @@ extern int Yap_page_size;
 #define VAL_CAS(PTR, OLD, NEW)                 __sync_val_compare_and_swap((PTR), (OLD), (NEW))
 #define BOOL_CAS(PTR, OLD, NEW)                __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
 #define atomic_inc(P)                          __sync_add_and_fetch((P), 1)
-
-
 
 
 //#define BOOL_CAS(PTR, OLD, NEW)                __sync_lock_test_and_set((PTR), (OLD), (NEW))
@@ -587,7 +593,7 @@ extern int Yap_page_size;
 #define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)  			                \
   { void **alloc_bucket_ptr;						                \
     if(LOCAL_answer_trie_buckets_buffer == NULL) {				        \
-      ALLOC_BLOCK(alloc_bucket_ptr, (BASE_HASH_BUCKETS + 1) * sizeof(void *), void *);  \
+      V04_ALLOC_THB(alloc_bucket_ptr);					                \
       V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);			                \
     } else {								                \
       alloc_bucket_ptr = LOCAL_answer_trie_buckets_buffer;		                \
@@ -604,14 +610,17 @@ extern int Yap_page_size;
 
 #else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 
-#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)                                   \
-  void **alloc_bucket_ptr;                                                         \
-  ALLOC_BLOCK(alloc_bucket_ptr, (BASE_HASH_BUCKETS + 1) * sizeof(void *), void *); \
-  V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);                                   \
-  BUCKET_PTR = (struct answer_trie_node **) alloc_bucket_ptr
+#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)                                     \
+  { void **alloc_bucket_ptr;						             \
+    V04_ALLOC_THB(alloc_bucket_ptr);					             \
+    V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);                                   \
+    BUCKET_PTR = (struct answer_trie_node **) alloc_bucket_ptr;                      \
+  }
 
 #define V04_FREE_TRIE_HASH_BUCKETS(STR, BKT)		                           \
-  FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1)
+  V04_FREE_THB(((ans_node_ptr *) V04_UNTAG(STR)) - 1) /* DOES NOT DO ANYTHING */
+  /*  FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1) */
+
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */

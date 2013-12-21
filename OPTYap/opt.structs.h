@@ -205,6 +205,9 @@ struct global_pages {
   struct global_page_entry answer_trie_node_pages;
   struct global_page_entry answer_trie_hash_pages;
 #if defined(THREADS_FULL_SHARING)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+  struct global_page_entry trie_hash_buckets_pages;
+#endif  
   struct global_page_entry answer_ref_node_pages;
 #endif
   struct global_page_entry global_trie_node_pages;
@@ -253,6 +256,9 @@ struct local_pages {
   struct local_page_entry answer_trie_node_pages;
   struct local_page_entry answer_trie_hash_pages;
 #if defined(THREADS_FULL_SHARING)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+  struct local_page_entry trie_hash_buckets_pages;
+#endif  
   struct local_page_entry answer_ref_node_pages;
 #endif
   struct local_page_entry global_trie_node_pages;
@@ -394,6 +400,7 @@ struct global_optyap_data {
 #define GLOBAL_pages_sg_hash                    (GLOBAL_optyap_data.pages.subgoal_trie_hash_pages)
 #define GLOBAL_pages_ans_node                   (GLOBAL_optyap_data.pages.answer_trie_node_pages)
 #define GLOBAL_pages_ans_hash                   (GLOBAL_optyap_data.pages.answer_trie_hash_pages)
+#define GLOBAL_pages_trie_hash_buckets          (GLOBAL_optyap_data.pages.trie_hash_buckets_pages)
 #define GLOBAL_pages_ans_ref_node               (GLOBAL_optyap_data.pages.answer_ref_node_pages)
 #define GLOBAL_pages_gt_node                    (GLOBAL_optyap_data.pages.global_trie_node_pages)
 #define GLOBAL_pages_gt_hash                    (GLOBAL_optyap_data.pages.global_trie_hash_pages)
@@ -530,6 +537,7 @@ struct local_optyap_data {
 #define LOCAL_pages_sg_hash                (LOCAL_optyap_data.pages.subgoal_trie_hash_pages)
 #define LOCAL_pages_ans_node               (LOCAL_optyap_data.pages.answer_trie_node_pages)
 #define LOCAL_pages_ans_hash               (LOCAL_optyap_data.pages.answer_trie_hash_pages)
+#define LOCAL_pages_trie_hash_buckets      (LOCAL_optyap_data.pages.trie_hash_buckets_pages)
 #define LOCAL_pages_ans_ref_node           (LOCAL_optyap_data.pages.answer_ref_node_pages)
 #define LOCAL_pages_gt_node                (LOCAL_optyap_data.pages.global_trie_node_pages)
 #define LOCAL_pages_gt_hash                (LOCAL_optyap_data.pages.global_trie_hash_pages)
@@ -595,6 +603,7 @@ struct local_optyap_data {
 #define REMOTE_pages_sg_hash(wid)              (REMOTE(wid)->optyap_data_.pages.subgoal_trie_hash_pages)
 #define REMOTE_pages_ans_node(wid)             (REMOTE(wid)->optyap_data_.pages.answer_trie_node_pages)
 #define REMOTE_pages_ans_hash(wid)             (REMOTE(wid)->optyap_data_.pages.answer_trie_hash_pages)
+#define REMOTE_pages_trie_hash_buckets(wid)    (REMOTE(wid)->optyap_data_.pages.trie_hash_buckets_pages)
 #define REMOTE_pages_ans_ref_node(wid)         (REMOTE(wid)->optyap_data_.pages.answer_ref_node_pages)
 #define REMOTE_pages_gt_node(wid)              (REMOTE(wid)->optyap_data_.pages.global_trie_node_pages)
 #define REMOTE_pages_gt_hash(wid)              (REMOTE(wid)->optyap_data_.pages.global_trie_hash_pages)
