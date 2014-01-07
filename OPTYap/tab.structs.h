@@ -639,7 +639,7 @@ typedef struct subgoal_frame_hash_buckets {
 
 
 #if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) && defined(USE_PAGES_MALLOC)
-#define BASE_HASH_BUCKETS_2               8 
+#define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
 
 union trie_hash_buckets {
   void *next;
