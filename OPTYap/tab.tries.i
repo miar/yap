@@ -851,17 +851,17 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
     if (cn == MAX_NODES_PER_BUCKET) {
       sg_node_ptr *new_hash;
       sg_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, curr_hash);
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
-      V04_SET_HASH_BUCKET(bucket, chain_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
-	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
 	subgoal_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
-	V04_SET_HASH_BUCKET(bucket, new_hash);
+	V04_SET_HASH_BUCKET(bucket, new_hash, struct subgoal_trie_node);
 	return subgoal_trie_insert_bucket_array(new_hash, adjust_node, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node);  
     } else {
       TrNode_next(adjust_node) = (sg_node_ptr) curr_hash;
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, adjust_node)) 
@@ -875,10 +875,10 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
   // chain_next is pointing to an hash which is newer than mine. I must jump to the correct hash.
   sg_node_ptr *jump_hash, *prev_hash;
   jump_hash = (sg_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   while (prev_hash != curr_hash) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   }
   return subgoal_trie_insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) PASS_REGS);
 } 
@@ -886,8 +886,8 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
 static inline void subgoal_trie_insert_bucket_array(sg_node_ptr *curr_hash, sg_node_ptr chain_node, long n_shifts USES_REGS) {
   sg_node_ptr *bucket; 
   TrNode_next(chain_node) = (sg_node_ptr) curr_hash;
-  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts);
-  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) 
+  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts, struct subgoal_trie_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct subgoal_trie_node)) 
     if (BOOL_CAS(bucket, curr_hash, chain_node)) 
       return;  
   sg_node_ptr bucket_next = *bucket;
@@ -918,17 +918,17 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *cu
     if (cn == MAX_NODES_PER_BUCKET) {
       sg_node_ptr *new_hash;
       sg_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, curr_hash);  // to change
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
-      V04_SET_HASH_BUCKET(bucket, chain_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
-	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
 	subgoal_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
-	V04_SET_HASH_BUCKET(bucket, new_hash);
+	V04_SET_HASH_BUCKET(bucket, new_hash, struct subgoal_trie_node);
 	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node);  
     } else {
       sg_node_ptr new_node; 
       NEW_SUBGOAL_TRIE_NODE(new_node, t, NULL, parent_node, (sg_node_ptr) curr_hash);
@@ -944,18 +944,18 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *cu
   // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
   sg_node_ptr *jump_hash, *prev_hash;
   jump_hash = (sg_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   while (prev_hash != curr_hash) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   }
   return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
 }
 
 static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *curr_hash, sg_node_ptr parent_node, Term t, long n_shifts USES_REGS) {
   sg_node_ptr *bucket; 
-  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
-  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) {
+  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct subgoal_trie_node)) {
     sg_node_ptr new_node; 
     NEW_SUBGOAL_TRIE_NODE(new_node, t, NULL, parent_node, (sg_node_ptr) curr_hash);
     if (BOOL_CAS(bucket, curr_hash, new_node))
@@ -983,16 +983,16 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
     if (cn == MAX_NODES_PER_BUCKET) {
       sg_node_ptr *new_hash;
       sg_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, NULL);    //  TO CHANGE - add STR_TYPE
+      V04_ALLOC_BUCKETS(new_hash, NULL, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits); //  TO CHANGE - add STR_TYPE
-      V04_SET_HASH_BUCKET(bucket, chain_node); //  TO CHANGE - add STR_TYPE
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits, struct subgoal_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
 	subgoal_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (NumberOfLowTagBits - 1) PASS_REGS);
 	TrNode_child(parent_node) = (sg_node_ptr) new_hash;
-	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);
+	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, NumberOfLowTagBits PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  // TO CHECK 
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node); 
     } else {
       sg_node_ptr new_node; 
       NEW_SUBGOAL_TRIE_NODE(new_node, t, NULL, parent_node, NULL);
@@ -1007,17 +1007,15 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
   // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
   sg_node_ptr *jump_hash, *prev_hash;
   jump_hash = (sg_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   while (prev_hash != NULL) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   }
   return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, NumberOfLowTagBits PASS_REGS);  
 } 
 
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
-
-////////////////////////////////////////  HERE    !!!
 
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
@@ -2131,17 +2129,17 @@ static inline void answer_trie_insert_bucket_chain(ans_node_ptr *curr_hash, ans_
     if (cn == MAX_NODES_PER_BUCKET) {
       ans_node_ptr *new_hash;
       ans_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, curr_hash);
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
-      V04_SET_HASH_BUCKET(bucket, chain_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
-	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_trie_node);
 	answer_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
-	V04_SET_HASH_BUCKET(bucket, new_hash);
+	V04_SET_HASH_BUCKET(bucket, new_hash, struct answer_trie_node);
 	return answer_trie_insert_bucket_array(new_hash, adjust_node, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct answer_trie_node);  
     } else {
       TrNode_next(adjust_node) = (ans_node_ptr) curr_hash;
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, adjust_node)) 
@@ -2155,10 +2153,10 @@ static inline void answer_trie_insert_bucket_chain(ans_node_ptr *curr_hash, ans_
   // chain_next is pointing to an hash which is newer than mine. I must jump to the correct hash.
   ans_node_ptr *jump_hash, *prev_hash;
   jump_hash = (ans_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   while (prev_hash != curr_hash) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   }
   return answer_trie_insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) PASS_REGS);
 } 
@@ -2167,8 +2165,8 @@ static inline void answer_trie_insert_bucket_chain(ans_node_ptr *curr_hash, ans_
 static inline void answer_trie_insert_bucket_array(ans_node_ptr *curr_hash, ans_node_ptr chain_node, long n_shifts USES_REGS) {
   ans_node_ptr *bucket; 
   TrNode_next(chain_node) = (ans_node_ptr) curr_hash;
-  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts);
-  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) 
+  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts, struct answer_trie_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct answer_trie_node)) 
     if (BOOL_CAS(bucket, curr_hash, chain_node)) 
       return;  
   ans_node_ptr bucket_next = *bucket;
@@ -2200,17 +2198,17 @@ static inline ans_node_ptr answer_trie_check_insert_bucket_chain(ans_node_ptr *c
     if (cn == MAX_NODES_PER_BUCKET) {
       ans_node_ptr *new_hash;
       ans_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, curr_hash);
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1);
-      V04_SET_HASH_BUCKET(bucket, chain_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
-	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_trie_node);
 	answer_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
-	V04_SET_HASH_BUCKET(bucket, new_hash);
+	V04_SET_HASH_BUCKET(bucket, new_hash, struct answer_trie_node);
 	return answer_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct answer_trie_node);  
     } else {
       ans_node_ptr new_node; 
       NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, (ans_node_ptr) curr_hash);
@@ -2227,18 +2225,18 @@ static inline ans_node_ptr answer_trie_check_insert_bucket_chain(ans_node_ptr *c
   // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
   ans_node_ptr *jump_hash, *prev_hash;
   jump_hash = (ans_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   while (prev_hash != curr_hash) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   }
   return answer_trie_check_insert_bucket_array(jump_hash, parent_node, t, instr, (n_shifts + 1) PASS_REGS);
 }
 
 static inline ans_node_ptr answer_trie_check_insert_bucket_array(ans_node_ptr *curr_hash, ans_node_ptr parent_node, Term t, int instr, long n_shifts USES_REGS) {
   ans_node_ptr *bucket; 
-  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts);
-  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash)) {
+  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_trie_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct answer_trie_node)) {
     ans_node_ptr new_node; 
     NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, (ans_node_ptr) curr_hash);
     if (BOOL_CAS(bucket, curr_hash, new_node))
@@ -2267,16 +2265,16 @@ static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr cha
     if (cn == MAX_NODES_PER_BUCKET) {
       ans_node_ptr *new_hash;
       ans_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, NULL);
+      V04_ALLOC_BUCKETS(new_hash, NULL, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits);
-      V04_SET_HASH_BUCKET(bucket, chain_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits, struct answer_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
 	answer_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (NumberOfLowTagBits - 1) PASS_REGS);
 	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
 	return answer_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket);  
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct answer_trie_node);  
     } else {
       ans_node_ptr new_node; 
       NEW_ANSWER_TRIE_NODE(new_node, instr, t, NULL, parent_node, NULL);
@@ -2291,10 +2289,10 @@ static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr cha
   // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
   ans_node_ptr *jump_hash, *prev_hash;
   jump_hash = (ans_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash);
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   while (prev_hash != NULL) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash);
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   }
   return answer_trie_check_insert_bucket_array(jump_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);  
 } 

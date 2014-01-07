@@ -204,8 +204,8 @@ struct global_pages {
   struct global_page_entry subgoal_trie_hash_pages;
   struct global_page_entry answer_trie_node_pages;
   struct global_page_entry answer_trie_hash_pages;
-#if defined(THREADS_FULL_SHARING)
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined (THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) 
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
   struct global_page_entry trie_hash_buckets_pages;
 #endif  
   struct global_page_entry answer_ref_node_pages;
@@ -255,8 +255,8 @@ struct local_pages {
   struct local_page_entry subgoal_trie_hash_pages;
   struct local_page_entry answer_trie_node_pages;
   struct local_page_entry answer_trie_hash_pages;
-#if defined(THREADS_FULL_SHARING)
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined (THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) 
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
   struct local_page_entry trie_hash_buckets_pages;
 #endif  
   struct local_page_entry answer_ref_node_pages;
@@ -498,8 +498,8 @@ struct local_optyap_data {
   struct subgoal_frame *top_subgoal_frame;
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *top_subgoal_frame_complete;
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC
-  void ** answer_trie_buckets_buffer;
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC)
+  void ** trie_buckets_buffer;
 #endif
 #endif
   struct dependency_frame *top_dependency_frame;
@@ -543,7 +543,7 @@ struct local_optyap_data {
 #define LOCAL_pages_gt_hash                (LOCAL_optyap_data.pages.global_trie_hash_pages)
 #define LOCAL_next_free_ans_node           (LOCAL_optyap_data.pages.next_free_answer_trie_node)
 
-#define LOCAL_answer_trie_buckets_buffer   (LOCAL_optyap_data.answer_trie_buckets_buffer)
+#define LOCAL_trie_buckets_buffer          (LOCAL_optyap_data.trie_buckets_buffer)
 
 #define LOCAL_lock                         (LOCAL_optyap_data.lock)
 #define LOCAL_load                         (LOCAL_optyap_data.load)

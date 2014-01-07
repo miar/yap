@@ -578,7 +578,7 @@ extern int Yap_page_size;
 #define OPEN_SG_HASH_V03(HASH)                   (SgHash_hash_bkts(HASH) = (sg_hash_bkts_ptr)((CELL) SgHash_hash_bkts(HASH) & ~(CELL)0x1))
 #endif 
 
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) ||  defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) 
 
 #define V04_INIT_BUCKETS(BUCKET_PTR, PREV_HASH)                       \
   { int i; void **init_bucket_ptr;                                    \
@@ -588,37 +588,37 @@ extern int Yap_page_size;
     *init_bucket_ptr++ = (void *) V04_TAG(BUCKET_PTR);                \
   }
 
-#ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC)  || defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC)
 
-#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)  			                \
+#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH, STR)	   		                \
   { void **alloc_bucket_ptr;						                \
-    if(LOCAL_answer_trie_buckets_buffer == NULL) {				        \
+    if(LOCAL_trie_buckets_buffer == NULL) {				                \
       V04_ALLOC_THB(alloc_bucket_ptr);					                \
       V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);			                \
     } else {								                \
-      alloc_bucket_ptr = LOCAL_answer_trie_buckets_buffer;		                \
-      LOCAL_answer_trie_buckets_buffer = NULL;				                \
+      alloc_bucket_ptr = LOCAL_trie_buckets_buffer;		                        \
+      LOCAL_trie_buckets_buffer = NULL;				                        \
       *alloc_bucket_ptr++ = (void *) (PREV_HASH);			                \
     }									                \
-    BUCKET_PTR = (struct answer_trie_node **) alloc_bucket_ptr;	   	                \
+    BUCKET_PTR = (STR **) alloc_bucket_ptr;	                	                \
   }
 
-#define V04_FREE_TRIE_HASH_BUCKETS(STR, BKT)   				       \
-  { V04_SET_HASH_BUCKET(BKT, STR);					       \
-    LOCAL_answer_trie_buckets_buffer = (((void**)V04_UNTAG(STR)) - 1);         \
+#define V04_FREE_TRIE_HASH_BUCKETS(PTR, BKT, STR)		               \
+  { V04_SET_HASH_BUCKET(BKT, PTR, STR);					       \
+    LOCAL_trie_buckets_buffer = (((void**)V04_UNTAG(PTR)) - 1);                \
   }
 
 #else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 
-#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH)                                     \
+#define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH, STR)	                             \
   { void **alloc_bucket_ptr;						             \
     V04_ALLOC_THB(alloc_bucket_ptr);					             \
     V04_INIT_BUCKETS(alloc_bucket_ptr, PREV_HASH);                                   \
-    BUCKET_PTR = (struct answer_trie_node **) alloc_bucket_ptr;                      \
+    BUCKET_PTR = (STR **) alloc_bucket_ptr;                                          \
   }
 
-#define V04_FREE_TRIE_HASH_BUCKETS(STR, BKT)		                           \
-  V04_FREE_THB(((ans_node_ptr *) V04_UNTAG(STR)) - 1) /* DOES NOT DO ANYTHING */
+#define V04_FREE_TRIE_HASH_BUCKETS(PTR, BKT, STR)				     \
+   V04_FREE_THB(((STR *) V04_UNTAG(PTR)) - 1) /* DOES NOT DO ANYTHING */
   /*  FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1) */
 
 

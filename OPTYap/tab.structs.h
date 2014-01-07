@@ -638,14 +638,17 @@ typedef struct subgoal_frame_hash_buckets {
 
 
 
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) && defined(USE_PAGES_MALLOC)
-#define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
 
+#ifdef USE_PAGES_MALLOC
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
 union trie_hash_buckets {
   void *next;
   void *hash_buckets[BASE_HASH_BUCKETS_2 + 1];
 };
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 && USE_PAGES_MALLOC */
+#endif
+#endif /* USE_PAGES_MALLOC */
+
 
 
 

@@ -21,6 +21,15 @@
 #include "YapHeap.h"
 #include "tab.macros.h"
 
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *, sg_node_ptr, sg_node_ptr, long, int USES_REGS);
+static inline void subgoal_trie_insert_bucket_array(sg_node_ptr *, sg_node_ptr, long USES_REGS);
+static inline void subgoal_trie_adjust_chain_nodes(sg_node_ptr *, sg_node_ptr, sg_node_ptr, long USES_REGS);
+static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *, sg_node_ptr, sg_node_ptr, Term, long, int USES_REGS);
+static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *, sg_node_ptr, Term, long USES_REGS);
+static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr, sg_node_ptr, Term, int USES_REGS);
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
 static inline void answer_trie_insert_bucket_chain(ans_node_ptr *, ans_node_ptr, ans_node_ptr, long, int USES_REGS);
 static inline void answer_trie_insert_bucket_array(ans_node_ptr *, ans_node_ptr, long USES_REGS);
