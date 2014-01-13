@@ -1043,7 +1043,7 @@
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
 
-
+    //	goto fail; --> to delete
 
 #ifdef MODE_DIRECTED_TABLING
 
@@ -1067,6 +1067,7 @@
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
 
+    //	goto fail; --> to delete
 
     
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________

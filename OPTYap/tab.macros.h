@@ -875,8 +875,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03
 
-#define ANSWER_TRIE_HASH_EXPANSION_MARK       (-1)
-#define IS_ANSWER_TRIE_HASH_EXPANSION(NODE)   (TrNode_instr(NODE) == ANSWER_TRIE_HASH_EXPANSION_MARK)
+#define ANSWER_TRIE_HASH_EXPANSION_MARK       (ANSWER_TRIE_HASH_MARK)
+#define IS_ANSWER_TRIE_HASH_EXPANSION(NODE)   (TrNode_instr(NODE) == ANSWER_TRIE_HASH_EXPANSION_MARK) 
 
 #define init_atomic_new_answer_trie_hash(EXP_NODE, HASH, BUCKETS, NUM_NODES, CHILD_NODE)   	                   \
   Hash_num_nodes(HASH) = NUM_NODES;					                                           \

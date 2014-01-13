@@ -1867,7 +1867,6 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   first_node = child_node = (ans_node_ptr) TrNode_child(parent_node);
   
   if (child_node == NULL || !IS_ANSWER_TRIE_HASH(child_node)) {
-
     while (child_node) {
       if (!IS_ANSWER_TRIE_HASH_EXPANSION(child_node)){
 	if (TrNode_entry(child_node) == t) 

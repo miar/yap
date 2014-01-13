@@ -319,6 +319,7 @@ typedef struct subgoal_entry {
 #ifndef THREADS_FULL_SHARING_FTNA 
   struct answer_trie_node *last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA */
+
 #ifdef MODE_DIRECTED_TABLING
   int* mode_directed_array;
   struct answer_trie_node *invalid_chain;       /* leaf invalid chain */
