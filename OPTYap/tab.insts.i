@@ -1043,7 +1043,7 @@
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
 
-    //	goto fail; --> to delete
+    //  goto fail; //--> to delete
 
 #ifdef MODE_DIRECTED_TABLING
 
@@ -1066,9 +1066,40 @@
       gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
+#ifdef THREADS_FULL_SHARING_FTNA_2
 
-    //	goto fail; --> to delete
+    if (IS_ANSWER_LEAF_NODE(ans_node)) 
+      goto fail;
 
+    if (SgFr_first_answer(sg_fr) == NULL) {
+      if (BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node)) {
+	TAG_AS_ANSWER_LEAF_NODE(ans_node);
+      }
+    }
+    
+    if (SgFr_last_answer(sg_fr) == NULL)
+      (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), NULL, SgFr_first_answer(sg_fr));
+    
+    do {      
+      if (IS_ANSWER_LEAF_NODE(ans_node))
+	goto fail;
+        
+      ans_node_ptr last = SgFr_last_answer(sg_fr);
+      if (SgFr_last_answer(sg_fr) != ans_node && TrNode_child(ans_node) == NULL) {
+	if (BOOL_CAS(&(TrNode_child(SgFr_last_answer(sg_fr))), NULL, ans_node)) {
+	  TAG_AS_ANSWER_LEAF_NODE(ans_node);
+	  if (SgFr_last_answer(sg_fr) == last)
+	    SgFr_last_answer(sg_fr) = ans_node;
+	  break;
+	}
+      } else
+	break;
+    } while (1);
+    goto fail;	      
+    
+#endif /* THREADS_FULL_SHARING_FTNA_2 */
+
+    //goto fail; //--> to delete
     
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________
     gettimeofday(&tv2, NULL);
