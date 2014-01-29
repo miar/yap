@@ -69,7 +69,12 @@
 //#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* answer_search only */
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) -use only with local scheduling. check first for mode_direct_tabling */
-#define THREADS_FULL_SHARING_FTNA_2  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) -use only with local scheduling. check first for mode_direct_tabling
+//#define THREADS_FULL_SHARING_FTNA_2_1  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) -use only with local scheduling. check first for mode_direct_tabling */
+
+//#define THREADS_FULL_SHARING_FTNA_2_2  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) -use only with local scheduling. check first for mode_direct_tabling. -> just for testing. not working for show_tables/abolish_tables */
+
+#define THREADS_FULL_SHARING_FTNA_2_3  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) -use only with local scheduling. check first for mode_direct_tabling */
+
 
 /*************************************************************************
 **      tries locking scheme (mandatory, define one per trie type)      **
@@ -95,8 +100,8 @@
 
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 
@@ -108,8 +113,8 @@
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 

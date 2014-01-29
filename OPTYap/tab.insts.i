@@ -1008,7 +1008,11 @@
     CELL *subs_ptr;
     choiceptr gcp;
     sg_fr_ptr sg_fr;
+#ifdef THREADS_FULL_SHARING_FTNA_2_3
+    volatile ans_node_ptr ans_node;
+#else
     ans_node_ptr ans_node;
+#endif /* THREADS_FULL_SHARING_FTNA_2_3 */
 
     gcp = NORM_CP(YENV[E_B]);
 #ifdef DETERMINISTIC_TABLING
@@ -1066,8 +1070,7 @@
       gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
-#ifdef THREADS_FULL_SHARING_FTNA_2
-
+#ifdef THREADS_FULL_SHARING_FTNA_2_1
     if (IS_ANSWER_LEAF_NODE(ans_node)) 
       goto fail;
 
@@ -1095,9 +1098,62 @@
       } else
 	break;
     } while (1);
-    goto fail;	      
+    goto fail;	          
+#endif /* THREADS_FULL_SHARING_FTNA_2_1 */
+
+#ifdef THREADS_FULL_SHARING_FTNA_2_2
+    if (SgFr_last_answer(sg_fr) == ans_node || TrNode_child(ans_node) != NULL)
+      goto fail;
     
-#endif /* THREADS_FULL_SHARING_FTNA_2 */
+    if (SgFr_first_answer(sg_fr) == NULL)
+      (void) BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node);
+    
+    if (SgFr_last_answer(sg_fr) == NULL)
+      (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), NULL, SgFr_first_answer(sg_fr));
+    
+    do {      
+      ans_node_ptr last = SgFr_last_answer(sg_fr);
+      if (SgFr_last_answer(sg_fr) != ans_node && TrNode_child(ans_node) == NULL) {
+	if (BOOL_CAS(&(TrNode_child(SgFr_last_answer(sg_fr))), NULL, ans_node)) {
+	  if (SgFr_last_answer(sg_fr) == last)
+	    SgFr_last_answer(sg_fr) = ans_node;
+	  break;
+	}
+      } else
+	break;
+    } while (1);
+    goto fail;	          
+#endif /* THREADS_FULL_SHARING_FTNA_2_2 */
+
+#ifdef THREADS_FULL_SHARING_FTNA_2_3
+
+    if (SgFr_first_answer(sg_fr) == NULL)
+      (void) BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node);
+   
+    if (SgFr_last_answer(sg_fr) == NULL)
+      (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), NULL, SgFr_first_answer(sg_fr));
+    
+    ans_node_ptr last = SgFr_last_answer(sg_fr);
+    ans_node_ptr last2 = last;
+
+    /*    if (TrNode_child(ans_node) == NULL) {
+      (void) __sync_fetch_and_add(&(TrNode_child(ans_node)), 0);
+      } */
+
+    if (TrNode_child(ans_node) == NULL) { /* ans_node must be  volatile */
+      do {
+        if (last2 == ans_node)
+	  break;	
+	if (BOOL_CAS(&(TrNode_child(last2)), NULL, ans_node)) {
+	  (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), last, ans_node);
+	  break;
+	}
+	last2 = TrNode_child(last2);
+      } while(1);
+    }
+
+    goto fail;   
+#endif /* THREADS_FULL_SHARING_FTNA_2_3 */
 
     //goto fail; //--> to delete
     
