@@ -546,6 +546,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 
+/************HERE FTNA***********/
 #ifdef THREADS_FULL_SHARING_FTNA
 #define SgEnt_init_fs_ftna_last_answer(SG_FR)
 #define SgFr_init_fs_ftna_last_answer(SG_FR)   \
@@ -647,6 +648,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
           SgFr_state(SG_FR) = ready;                               \
           SgFr_init_batched_fields(SG_FR);		           \
+	  /************HERE ***********/
 	  SgFr_init_fs_ftna_last_answer(SG_FR);                    \
         }
 

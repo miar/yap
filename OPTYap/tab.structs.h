@@ -393,6 +393,10 @@ typedef struct subgoal_frame {
   struct answer_trie_node *last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA */
   struct answer_trie_node *batched_last_answer;
+#ifdef THREADS_FULL_SHARING_FTNA_3
+  struct answer_ref_node *consumer_ref_answer;
+  struct answer_ref_node *consumer_ref_last_answer;
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
   struct answer_ref_node *batched_cached_answers;
 #endif /* THREADS_FULL_SHARING */
 #else
@@ -467,6 +471,8 @@ typedef struct subgoal_frame {
 #define SgFr_wid(X)                     ((X)->wid)
 #define SgFr_next_wid(X)                ((X)->next_wid)
 
+#define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer) 
+#define SgFr_cons_ref_last_ans(X)       ((X)->consumer_ref_answer) 
 
 /**********************************************************************************************************
 
@@ -638,7 +644,7 @@ typedef struct subgoal_frame_hash_buckets {
 
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
 #define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
 union trie_hash_buckets {
   void *next;
