@@ -251,7 +251,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 //#define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define MAX_NODES_PER_BUCKET            4
 //#define BASE_HASH_BUCKETS               64 //-> DEFAULT
-#define BASE_HASH_BUCKETS               8  //-> V04 DEFAULT
+#define BASE_HASH_BUCKETS               8  //-> V04 BASE_HASH_BUCKETS_2  DEFAULT
 //#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))

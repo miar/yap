@@ -1008,12 +1008,8 @@
     CELL *subs_ptr;
     choiceptr gcp;
     sg_fr_ptr sg_fr;
-#ifdef THREADS_FULL_SHARING_FTNA_2_3
-    volatile ans_node_ptr ans_node;
-#else
     ans_node_ptr ans_node;
-#endif /* THREADS_FULL_SHARING_FTNA_2_3 */
-
+    
     gcp = NORM_CP(YENV[E_B]);
 #ifdef DETERMINISTIC_TABLING
     if (IS_DET_GEN_CP(gcp)){  
@@ -1062,7 +1058,6 @@
     } else
 #endif /* MODE_DIRECTED_TABLING */
      ans_node = answer_search(sg_fr, subs_ptr);
-
 
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     struct timeval tv1, tv2;
@@ -1126,25 +1121,35 @@
 #endif /* THREADS_FULL_SHARING_FTNA_2_2 */
 
 #ifdef THREADS_FULL_SHARING_FTNA_2_3
+    if (IS_ANSWER_LEAF_NODE(ans_node))
+      goto fail; 
 
     if (SgFr_first_answer(sg_fr) == NULL)
       (void) BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node);
-   
+    
     if (SgFr_last_answer(sg_fr) == NULL)
       (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), NULL, SgFr_first_answer(sg_fr));
     
     ans_node_ptr last = SgFr_last_answer(sg_fr);
     ans_node_ptr last2 = last;
 
-    /*    if (TrNode_child(ans_node) == NULL) {
-      (void) __sync_fetch_and_add(&(TrNode_child(ans_node)), 0);
-      } */
 
-    if (TrNode_child(ans_node) == NULL) { /* ans_node must be  volatile */
+//    if (TrNode_child(ans_node) == NULL) { /* ans_node must be volatile */
+    if (! IS_ANSWER_LEAF_NODE(ans_node)) { 
+      /* if ans_node not volatile then use this code */
+	 __sync_synchronize();
+//	 if (TrNode_child(ans_node) != NULL)
+      if ( IS_ANSWER_LEAF_NODE(ans_node))
+	goto fail; 
+
       do {
-        if (last2 == ans_node)
+        if (last2 == ans_node) {
+         if (! IS_ANSWER_LEAF_NODE(ans_node))
+	   TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	  break;	
+        }
 	if (BOOL_CAS(&(TrNode_child(last2)), NULL, ans_node)) {
+	  TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	  (void) BOOL_CAS(&(SgFr_last_answer(sg_fr)), last, ans_node);
 	  break;
 	}

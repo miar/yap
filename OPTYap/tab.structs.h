@@ -638,8 +638,6 @@ typedef struct subgoal_frame_hash_buckets {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
 
 
-
-
 #ifdef USE_PAGES_MALLOC
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
 #define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
@@ -649,6 +647,14 @@ union trie_hash_buckets {
 };
 #endif
 #endif /* USE_PAGES_MALLOC */
+
+
+#ifdef THREADS_FULL_SHARING_FTNA_3
+
+
+
+
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
 
 
 
