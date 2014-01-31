@@ -114,17 +114,18 @@ typedef struct global_trie_node {
 ******************************/
 
 #ifdef THREADS_FULL_SHARING
+/* used in FTNA_3 and in Batched Mode */
 typedef struct answer_ref_node {
   struct answer_trie_node *ans_node;
   struct answer_ref_node *next;
-  struct answer_ref_node *previous;
+  struct answer_ref_node *child; /* for batched mode this is the previous */
 } *ans_ref_ptr;
 #endif /* THREADS_FULL_SHARING */
 
 #define RefNode_answer(X)    ((X)->ans_node)
 #define RefNode_next(X)      ((X)->next)
-#define RefNode_previous(X)  ((X)->previous)
-
+#define RefNode_child(X)     ((X)->child)
+#define RefNode_previous(X)  ((X)->child) /* for batched this is the previous */
 
 
 /***********************************************************************
@@ -637,8 +638,6 @@ typedef struct subgoal_frame_hash_buckets {
 
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
 
-
-#ifdef USE_PAGES_MALLOC
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
 #define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
 union trie_hash_buckets {
@@ -646,15 +645,6 @@ union trie_hash_buckets {
   void *hash_buckets[BASE_HASH_BUCKETS_2 + 1];
 };
 #endif
-#endif /* USE_PAGES_MALLOC */
-
-
-#ifdef THREADS_FULL_SHARING_FTNA_3
-
-
-
-
-#endif /* THREADS_FULL_SHARING_FTNA_3 */
 
 
 

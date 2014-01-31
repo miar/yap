@@ -732,11 +732,11 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         TrNode_next(NODE) = NEXT;                               \
         GtNode_init_lock_field(NODE)
 
-#define new_answer_ref_node(NODE, ANSWER, NEXT, PREVIOUS)  \
-        ALLOC_ANSWER_REF_NODE(NODE);			   \
-        RefNode_answer(NODE) = ANSWER;	                   \
-        RefNode_next(NODE) = NEXT;                         \
-        RefNode_previous(NODE) = PREVIOUS
+#define new_answer_ref_node(NODE, ANSWER, NEXT, CHILD)             \
+        ALLOC_ANSWER_REF_NODE(NODE);			           \
+        RefNode_answer(NODE) = ANSWER;	                           \
+        RefNode_next(NODE) = NEXT;                                 \
+        RefNode_child(NODE) = CHILD /* or previous (batched mode) */
 
 #define new_subgoal_trie_hash(HASH, NUM_NODES, TAB_ENT)         \
         ALLOC_SUBGOAL_TRIE_HASH(HASH);                          \
