@@ -228,6 +228,16 @@
         }
 
 
+#ifdef THREADS_FULL_SHARING_FTNA_3
+#define FTNA_3_load_answer(ANSWER, SUBS_PTR)		\
+  /* Deref ANSWER */					\
+  ans_node_ptr leaf_node = TrNode_entry(ANSWER);	\
+  load_answer(leaf_node, subs_ptr)
+#else
+#define FTNA_3_load_answer(ANSWER, SUBS_PTR)		\
+  load_answer(ANSWER, SUBS_PTR)
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+
 #ifdef THREADS_CONSUMER_SHARING
 #define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
         { CELL *subs_ptr;                                                      \
@@ -248,7 +258,7 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-          load_answer(ANSWER, subs_ptr);                                       \
+          FTNA_3_load_answer(ANSWER, subs_ptr);                                \
           /* procceed */                                                       \
           YENV = ENV;                                                          \
           GONext();                                                            \
@@ -274,7 +284,7 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-          load_answer(ANSWER, subs_ptr);                                       \
+          FTNA_3_load_answer(ANSWER, subs_ptr);                                \
           /* procceed */                                                       \
           YENV = ENV;                                                          \
           GONext();                                                            \
@@ -1543,7 +1553,11 @@
   answer_resolution:
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
+#ifdef THREADS_FULL_SHARING_FTNA_3
+    ans_ref_ptr ans_node;
+#else
     ans_node_ptr ans_node;
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
 
     OPTYAP_ERROR_CHECKING(answer_resolution, SCH_top_shared_cp(B) && B->cp_or_fr->alternative != ANSWER_RESOLUTION);
     OPTYAP_ERROR_CHECKING(answer_resolution, !SCH_top_shared_cp(B) && B->cp_ap != ANSWER_RESOLUTION);
@@ -1902,7 +1916,12 @@
 #endif /* THREADS_CONSUMER_SHARING */
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
+#ifdef THREADS_FULL_SHARING_FTNA_3
+    ans_ref_ptr ans_node;
+#else
     ans_node_ptr ans_node;
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+
 #ifdef YAPOR
 #ifdef TIMESTAMP_CHECK
     long timestamp = 0;
@@ -2187,7 +2206,7 @@ complete_all:
 
 	ans_node = SgFr_first_answer(sg_fr);
 
-	/////////////////////////////
+
         if (ans_node == NULL) {
           /* no answers --> fail */
           B = B->cp_b;

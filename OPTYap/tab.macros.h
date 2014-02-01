@@ -571,6 +571,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #ifdef THREADS_FULL_SHARING_FTNA_3
 #define  SgFr_init_fs_ftna_3_fields(SG_FR)   \
   SgFr_cons_ref_ans(SG_FR) = NULL;	     \
+  SgFr_cons_ref_first_ans(SG_FR) = NULL;     \
   SgFr_cons_ref_last_ans(SG_FR) = NULL
 #else
 #define  SgFr_init_fs_ftna_3_fields(SG_FR)
@@ -1634,6 +1635,24 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 
   LOCK_SG_FR(sg_fr);
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+
+#ifdef THREADS_FULL_SHARING_FTNA_3
+  ans_ref_ptr ref_answer = SgFr_cons_ref_first_ans(sg_fr);
+  if (ref_answer != NULL) {
+    ans_node_ptr last_answer;
+    SgFr_first_answer(sg_fr) = last_answer = TrNode_entry(ref_answer);
+    ref_answer = TrNode_child(ref_answer);
+    while(ref_answer) {
+      TrNode_child(last_answer) = TrNode_entry(ref_answer);
+      last_answer = TrNode_child(last_answer);
+      ref_answer = TrNode_child(ref_answer);
+    }
+    SgFr_last_answer(sg_fr) = last_answer;
+  }
+
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+
+
   
   SgFr_active_workers(sg_fr)--;
 #ifdef MODE_DIRECTED_TABLING
@@ -2629,7 +2648,7 @@ static inline void consumer_trie_check_insert_node(sg_fr_ptr sg_fr, ans_node_ptr
   if (ref_node == NULL) {
     new_answer_ref_node(ref_node, ans_leaf_node, NULL, NULL);
     //    printf("2 - new_node = %p \n", ref_node);
-    SgFr_cons_ref_ans(sg_fr) = SgFr_cons_ref_last_ans(sg_fr) = ref_node;
+    SgFr_cons_ref_ans(sg_fr) = SgFr_cons_ref_first_ans(sg_fr) = SgFr_cons_ref_last_ans(sg_fr) = ref_node;
     return;
   }
   if (!V04_IS_HASH(ref_node))

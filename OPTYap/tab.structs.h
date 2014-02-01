@@ -395,6 +395,7 @@ typedef struct subgoal_frame {
   struct answer_trie_node *batched_last_answer;
 #ifdef THREADS_FULL_SHARING_FTNA_3
   struct answer_ref_node *consumer_ref_answer;
+  struct answer_ref_node *consumer_ref_first_answer;
   struct answer_ref_node *consumer_ref_last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
   struct answer_ref_node *batched_cached_answers;
@@ -471,7 +472,8 @@ typedef struct subgoal_frame {
 #define SgFr_wid(X)                     ((X)->wid)
 #define SgFr_next_wid(X)                ((X)->next_wid)
 
-#define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer) 
+#define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer)
+#define SgFr_cons_ref_first_ans(X)      ((X)->consumer_ref_first_answer) 
 #define SgFr_cons_ref_last_ans(X)       ((X)->consumer_ref_last_answer) 
 
 
@@ -530,7 +532,11 @@ typedef struct dependency_frame {
   choiceptr backchain_choice_point;
   choiceptr leader_choice_point;
   choiceptr consumer_choice_point;
+#ifdef THREADS_FULL_SHARING_FTNA_3
+  struct answer_ref_node *last_consumed_answer;
+#else
   struct answer_trie_node *last_consumed_answer;
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
