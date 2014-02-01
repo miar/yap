@@ -534,7 +534,7 @@ extern int Yap_page_size;
 
 
 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
+///////////////#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
 
 #define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)
 #define FREE_TRIE_HASH_BUCKETS(PTR)                   FREE_BLOCK(PTR)
@@ -578,7 +578,7 @@ extern int Yap_page_size;
 #define OPEN_SG_HASH_V03(HASH)                   (SgHash_hash_bkts(HASH) = (sg_hash_bkts_ptr)((CELL) SgHash_hash_bkts(HASH) & ~(CELL)0x1))
 #endif 
 
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) ||  defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) 
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) ||  defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
 
 #define V04_INIT_BUCKETS(BUCKET_PTR, PREV_HASH)                       \
   { int i; void **init_bucket_ptr;                                    \
@@ -624,7 +624,7 @@ extern int Yap_page_size;
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
-#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+//////////////////#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
 
 /************************************************************************
 **                         Bitmap manipulation                         **

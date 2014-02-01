@@ -205,7 +205,7 @@ struct global_pages {
   struct global_page_entry answer_trie_node_pages;
   struct global_page_entry answer_trie_hash_pages;
 #if defined (THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
   struct global_page_entry trie_hash_buckets_pages;
 #endif
   struct global_page_entry answer_ref_node_pages;
@@ -256,7 +256,7 @@ struct local_pages {
   struct local_page_entry answer_trie_node_pages;
   struct local_page_entry answer_trie_hash_pages;
 #if defined (THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) 
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
   struct local_page_entry trie_hash_buckets_pages;
 #endif
   struct local_page_entry answer_ref_node_pages;

@@ -1160,6 +1160,13 @@
     goto fail;   
 #endif /* THREADS_FULL_SHARING_FTNA_2_3 */
 
+#ifdef THREADS_FULL_SHARING_FTNA_3
+    consumer_trie_check_insert_node(sg_fr, ans_node PASS_REGS);
+    goto fail;
+
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+
+
     //goto fail; //--> to delete
     
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________

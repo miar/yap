@@ -116,13 +116,13 @@ typedef struct global_trie_node {
 #ifdef THREADS_FULL_SHARING
 /* used in FTNA_3 and in Batched Mode */
 typedef struct answer_ref_node {
-  struct answer_trie_node *ans_node;
-  struct answer_ref_node *next;
+  struct answer_trie_node *entry;  /* for batched mode this is the ans_node */
   struct answer_ref_node *child; /* for batched mode this is the previous */
+  struct answer_ref_node *next;
 } *ans_ref_ptr;
 #endif /* THREADS_FULL_SHARING */
 
-#define RefNode_answer(X)    ((X)->ans_node)
+#define RefNode_answer(X)    ((X)->entry)  /* for batched mode this is the ans_node */
 #define RefNode_next(X)      ((X)->next)
 #define RefNode_child(X)     ((X)->child)
 #define RefNode_previous(X)  ((X)->child) /* for batched this is the previous */
@@ -472,7 +472,8 @@ typedef struct subgoal_frame {
 #define SgFr_next_wid(X)                ((X)->next_wid)
 
 #define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer) 
-#define SgFr_cons_ref_last_ans(X)       ((X)->consumer_ref_answer) 
+#define SgFr_cons_ref_last_ans(X)       ((X)->consumer_ref_last_answer) 
+
 
 /**********************************************************************************************************
 

@@ -838,6 +838,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 #ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
 
+
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   Term t = TrNode_entry(adjust_node);
   int cn = count_nodes + 1;
@@ -882,6 +883,8 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
   }
   return subgoal_trie_insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) PASS_REGS);
 } 
+
+
 
 static inline void subgoal_trie_insert_bucket_array(sg_node_ptr *curr_hash, sg_node_ptr chain_node, long n_shifts USES_REGS) {
   sg_node_ptr *bucket; 
@@ -952,6 +955,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *cu
   return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
 }
 
+
 static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *curr_hash, sg_node_ptr parent_node, Term t, long n_shifts USES_REGS) {
   sg_node_ptr *bucket; 
   V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
@@ -968,6 +972,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *cu
   else 
     return subgoal_trie_check_insert_bucket_chain(curr_hash, bucket_next, parent_node, t, n_shifts, 0 PASS_REGS);
 }
+
+
+
 
 static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, int count_nodes USES_REGS) {
   if (V04_IS_EQUAL_ENTRY(chain_node, t))
