@@ -573,9 +573,20 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
   SgFr_cons_ref_ans(SG_FR) = NULL;	     \
   SgFr_cons_ref_first_ans(SG_FR) = NULL;     \
   SgFr_cons_ref_last_ans(SG_FR) = NULL
+
+#define DepFr_init_last_answer_field(DEP_FR, SG_FR)                                               \
+        /* start with TrNode_child(DepFr_last_answer(DEP_FR)) ... */                              \
+        /* ... pointing to SgEnt_first_answer(SgFr_sg_ent(SG_FR)) */	                          \
+        if (SG_FR)                                                                                \
+          DepFr_last_answer(DEP_FR) = (ans_ref_ptr) (                                             \
+                                 (CELL) (SG_FR) +                                                 \
+ 	                         (CELL) (&SgFr_cons_ref_first_ans((sg_fr_ptr)DEP_FR)) -           \
+				 (CELL) (&TrNode_child((ans_ref_ptr)DEP_FR)));                    \
+        else                                                                                      \
+          DepFr_last_answer(DEP_FR) = NULL
+
 #else
 #define  SgFr_init_fs_ftna_3_fields(SG_FR)
-#endif /* THREADS_FULL_SHARING_FTNA_3 */
 
 #define DepFr_init_last_answer_field(DEP_FR, SG_FR)                                               \
         /* start with TrNode_child(DepFr_last_answer(DEP_FR)) ... */                              \
@@ -587,6 +598,9 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 				 (CELL) (&TrNode_child((ans_node_ptr)DEP_FR)));      \
         else                                                                                      \
           DepFr_last_answer(DEP_FR) = NULL
+
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+
 #else
 #define DepFr_init_last_answer_field(DEP_FR, SG_FR)                                               \
         /* start with TrNode_child(DepFr_last_answer(DEP_FR)) ... */                              \
@@ -1637,22 +1651,21 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
-  ans_ref_ptr ref_answer = SgFr_cons_ref_first_ans(sg_fr);
-  if (ref_answer != NULL) {
-    ans_node_ptr last_answer;
-    SgFr_first_answer(sg_fr) = last_answer = TrNode_entry(ref_answer);
-    ref_answer = TrNode_child(ref_answer);
-    while(ref_answer) {
-      TrNode_child(last_answer) = TrNode_entry(ref_answer);
-      last_answer = TrNode_child(last_answer);
+  if (SgFr_sg_ent_state(sg_fr) < complete) {
+    ans_ref_ptr ref_answer = SgFr_cons_ref_first_ans(sg_fr);
+    if (ref_answer != NULL) {
+      ans_node_ptr last_answer;
+      SgFr_first_answer(sg_fr) = last_answer = TrNode_entry(ref_answer);
       ref_answer = TrNode_child(ref_answer);
+      while(ref_answer) {
+	TrNode_child(last_answer) = TrNode_entry(ref_answer);
+	last_answer = TrNode_child(last_answer);
+	ref_answer = TrNode_child(ref_answer);
+      }
+      SgFr_last_answer(sg_fr) = last_answer;
     }
-    SgFr_last_answer(sg_fr) = last_answer;
   }
-
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-
-
   
   SgFr_active_workers(sg_fr)--;
 #ifdef MODE_DIRECTED_TABLING

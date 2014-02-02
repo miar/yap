@@ -1623,6 +1623,11 @@ void load_answer(ans_node_ptr current_ans_node, CELL *subs_ptr) {
 }
 
 
+
+
+
+
+
 CELL *exec_substitution(gt_node_ptr current_node, CELL *aux_stack) {
   CACHE_REGS
 #define subs_arity *subs_ptr
