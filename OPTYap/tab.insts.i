@@ -2204,10 +2204,10 @@ complete_all:
       } else {
         /* subgoal completed */
 
-	ans_node = SgFr_first_answer(sg_fr);
+	ans_node_ptr first_node;
+	first_node = SgFr_first_answer(sg_fr);
 
-
-        if (ans_node == NULL) {
+        if (first_node == NULL) {
           /* no answers --> fail */
           B = B->cp_b;
           SET_BB(PROTECT_FROZEN_B(B));
@@ -2216,7 +2216,7 @@ complete_all:
 	TABLING_ERROR_CHECKING(completion, TR != B->cp_tr && !IsPairTerm((CELL)TrailTerm(TR - 1)));
 	TABLING_ERROR_CHECKING(completion, TR != B->cp_tr && (tr_fr_ptr) RepPair((CELL)TrailTerm(TR - 1)) != B->cp_tr);
         pop_generator_node(SgFr_arity(sg_fr));
-        if (ans_node == SgFr_answer_trie(sg_fr)) {
+        if (first_node == SgFr_answer_trie(sg_fr)) {
           /* yes answer --> procceed */
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);
@@ -2232,12 +2232,12 @@ complete_all:
 #endif /* LIMIT_TABLING */
 	  if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
             /* load answers from the trie */
-	    if(TrNode_child(ans_node) != NULL) {
-	      store_loader_node(tab_ent, ans_node);
+	    if(TrNode_child(first_node) != NULL) {
+	      store_loader_node(tab_ent, first_node);
 	    }
             PREG = (yamop *) CPREG;
             PREFETCH_OP(PREG);
-            load_answer(ans_node, YENV);
+            load_answer(first_node, YENV);
 	    YENV = ENV;
             GONext();
 	  } else {
@@ -2246,12 +2246,12 @@ complete_all:
 	    if (SgFr_active_workers(sg_fr) > 0) {
 	      /* load answers from the trie */
 	      UNLOCK_SG_FR(sg_fr);
-	      if(TrNode_child(ans_node) != NULL) {
-		store_loader_node(tab_ent, ans_node);
+	      if(TrNode_child(first_node) != NULL) {
+		store_loader_node(tab_ent, first_node);
 	      }
 	      PREG = (yamop *) CPREG;
 	      PREFETCH_OP(PREG);
-	      load_answer(ans_node, YENV);
+	      load_answer(first_node, YENV);
 	      YENV = ENV;
 	      GONext();
 	    }
