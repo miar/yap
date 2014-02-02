@@ -2508,8 +2508,7 @@ static inline tg_sol_fr_ptr CUT_prune_tg_solution_frames(tg_sol_fr_ptr solutions
 
 
 
-#ifdef THREADS_FULL_SHARING_FTNA_3
-
+#ifdef THREADS_FULL_SHARING_FTNA_3_ORIGINAL_OK
 
 static inline void consumer_trie_insert_bucket_chain(ans_ref_ptr *curr_hash, ans_ref_ptr chain_node, ans_ref_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   ans_node_ptr t = TrNode_entry(adjust_node);
@@ -2669,7 +2668,178 @@ static inline void consumer_trie_check_insert_node(sg_fr_ptr sg_fr, ans_node_ptr
   return consumer_trie_check_insert_bucket_array((ans_ref_ptr *) ref_node, sg_fr, ans_leaf_node, NumberOfLowTagBits PASS_REGS);
 }
 
+#endif /* THREADS_FULL_SHARING_FTNA_3_ORIGINAL_OK */
+
+
+
+
+
+
+
+#ifdef THREADS_FULL_SHARING_FTNA_3
+
+static inline void consumer_trie_insert_bucket_chain(ans_ref_ptr *curr_hash, ans_ref_ptr chain_node, ans_ref_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
+  ans_node_ptr t = TrNode_entry(adjust_node);
+  int cn = count_nodes + 1;
+  ans_ref_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (!V04_IS_HASH(chain_next))
+    return consumer_trie_insert_bucket_chain(curr_hash, chain_next, adjust_node, n_shifts, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer
+  if ((ans_ref_ptr *)chain_next == curr_hash) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_ref_ptr *new_hash;
+      ans_ref_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_ref_node);
+      new_hash = (ans_ref_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_ref_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_ref_node);
+      TrNode_next(chain_node) = (ans_ref_ptr) new_hash;
+      V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_ref_node);
+      consumer_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
+      V04_SET_HASH_BUCKET(bucket, new_hash, struct answer_ref_node);
+      return consumer_trie_insert_bucket_array(new_hash, adjust_node, (n_shifts + 1) PASS_REGS);
+    } else {
+      TrNode_next(adjust_node) = (ans_ref_ptr) curr_hash;
+      TrNode_next(chain_node) = adjust_node;
+    }
+  }
+  return;
+} 
+
+static inline void consumer_trie_insert_bucket_array(ans_ref_ptr *curr_hash, ans_ref_ptr chain_node, long n_shifts USES_REGS) {
+  ans_ref_ptr *bucket; 
+  TrNode_next(chain_node) = (ans_ref_ptr) curr_hash;
+  V04_GET_HASH_BUCKET(bucket, curr_hash, TrNode_entry(chain_node), n_shifts, struct answer_ref_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct answer_ref_node)) {
+    V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_ref_node);
+    return;  
+  }
+  ans_ref_ptr bucket_next = *bucket;
+  if (V04_IS_HASH(bucket_next))
+    return consumer_trie_insert_bucket_array((ans_ref_ptr *)bucket_next, chain_node, (n_shifts + 1) PASS_REGS);
+  else 
+    return consumer_trie_insert_bucket_chain(curr_hash, bucket_next, chain_node, n_shifts, 0 PASS_REGS);
+}
+
+
+static inline void consumer_trie_adjust_chain_nodes(ans_ref_ptr *new_hash, ans_ref_ptr chain_node, ans_ref_ptr last_node, long n_shifts USES_REGS) {
+  if (chain_node == last_node)
+    return;
+  consumer_trie_adjust_chain_nodes(new_hash, TrNode_next(chain_node), last_node, n_shifts PASS_REGS);
+  return consumer_trie_insert_bucket_array(new_hash, chain_node, (n_shifts + 1) PASS_REGS);
+}
+
+static inline void consumer_trie_check_insert_bucket_chain(ans_ref_ptr *curr_hash, ans_ref_ptr chain_node, sg_fr_ptr sg_fr, ans_node_ptr t, long n_shifts, int count_nodes USES_REGS) {
+  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+    return;  
+  int cn = count_nodes + 1;
+  ans_ref_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (!V04_IS_HASH(chain_next))
+    return consumer_trie_check_insert_bucket_chain(curr_hash, chain_next, sg_fr, t, n_shifts, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer
+  if ((ans_ref_ptr *)chain_next == curr_hash) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_ref_ptr *new_hash;
+      ans_ref_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_ref_node);
+      new_hash = (ans_ref_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_ref_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_ref_node);
+      TrNode_next(chain_node) = (ans_ref_ptr) new_hash;
+      V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_ref_node);
+      consumer_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
+      V04_SET_HASH_BUCKET(bucket, new_hash, struct answer_ref_node);
+      return consumer_trie_check_insert_bucket_array(new_hash, sg_fr, t, (n_shifts + 1) PASS_REGS);
+    } else {
+      ans_ref_ptr new_node; 
+      new_answer_ref_node(new_node, t, (ans_ref_ptr) curr_hash, NULL);
+      TrNode_next(chain_node) = new_node;
+      TrNode_child(SgFr_cons_ref_last_ans(sg_fr)) = new_node;
+      SgFr_cons_ref_last_ans(sg_fr) = new_node;
+      return;
+    }
+  }
+}
+
+static inline void consumer_trie_check_insert_bucket_array(ans_ref_ptr *curr_hash, sg_fr_ptr sg_fr, ans_node_ptr t, long n_shifts USES_REGS) {
+  ans_ref_ptr *bucket; 
+  V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_ref_node);
+  if (V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct answer_ref_node)) {
+    ans_ref_ptr new_node; 
+    new_answer_ref_node(new_node, t, (ans_ref_ptr) curr_hash, NULL);
+    V04_SET_HASH_BUCKET(bucket, new_node, struct answer_ref_node);
+    TrNode_child(SgFr_cons_ref_last_ans(sg_fr)) = new_node;
+    SgFr_cons_ref_last_ans(sg_fr) = new_node;
+    return;
+  }
+  ans_ref_ptr bucket_next = *bucket;
+  if (V04_IS_HASH(bucket_next))
+    return consumer_trie_check_insert_bucket_array((ans_ref_ptr *)bucket_next, sg_fr, t, (n_shifts + 1) PASS_REGS);
+  else 
+    return consumer_trie_check_insert_bucket_chain(curr_hash, bucket_next, sg_fr, t, n_shifts, 0 PASS_REGS);
+}
+
+
+static inline void consumer_trie_check_insert_first_chain(ans_ref_ptr chain_node, sg_fr_ptr sg_fr, ans_node_ptr t, int count_nodes USES_REGS) {
+  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+    return;
+  int cn = count_nodes + 1;
+  ans_ref_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (chain_next && !V04_IS_HASH(chain_next))
+    return consumer_trie_check_insert_first_chain(chain_next, sg_fr, t, cn PASS_REGS); 
+  
+  // chain_next is a hash pointer or the end of the chain
+  if (chain_next == NULL) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      ans_ref_ptr *new_hash;
+      ans_ref_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, NULL, struct answer_ref_node);
+      new_hash = (ans_ref_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0, struct answer_ref_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_ref_node);
+      TrNode_next(chain_node) = (ans_ref_ptr) new_hash;
+      consumer_trie_adjust_chain_nodes(new_hash, SgFr_cons_ref_ans(sg_fr), chain_node, (-1) PASS_REGS);
+      SgFr_cons_ref_ans(sg_fr) = (ans_ref_ptr) new_hash;
+      return consumer_trie_check_insert_bucket_array(new_hash, sg_fr, t, 0 PASS_REGS);
+    } else {
+      ans_ref_ptr new_node; 
+      new_answer_ref_node(new_node, t, NULL, NULL);
+      TrNode_next(chain_node) = new_node;
+      TrNode_child(SgFr_cons_ref_last_ans(sg_fr)) = new_node;
+      SgFr_cons_ref_last_ans(sg_fr) = new_node;
+      return;
+    }
+  }
+}
+
+////////////////////////////////////////////////////// HERE
+
+static inline void consumer_trie_check_insert_node(sg_fr_ptr sg_fr, ans_node_ptr ans_leaf_node USES_REGS) {
+  ans_ref_ptr  ref_node;
+  ref_node = SgFr_cons_ref_ans(sg_fr);
+  if (ref_node == NULL) {
+    new_answer_ref_node(ref_node, ans_leaf_node, NULL, NULL);
+    SgFr_cons_ref_ans(sg_fr) = SgFr_cons_ref_first_ans(sg_fr) = SgFr_cons_ref_last_ans(sg_fr) = ref_node;
+    return;
+  }
+
+  if (!V04_IS_HASH(ref_node))
+    return consumer_trie_check_insert_first_chain(ref_node, sg_fr, ans_leaf_node, 0 PASS_REGS);
+  return consumer_trie_check_insert_bucket_array((ans_ref_ptr *) ref_node, sg_fr, ans_leaf_node, 0 PASS_REGS);
+}
+
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
+
+
+
+
+
+
 
 
 

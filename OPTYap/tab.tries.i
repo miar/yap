@@ -973,9 +973,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *cu
     return subgoal_trie_check_insert_bucket_chain(curr_hash, bucket_next, parent_node, t, n_shifts, 0 PASS_REGS);
 }
 
-
-
-
 static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, int count_nodes USES_REGS) {
   if (V04_IS_EQUAL_ENTRY(chain_node, t))
     return chain_node;  
@@ -992,12 +989,12 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
       sg_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, NULL, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits, struct subgoal_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0, struct subgoal_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
-	subgoal_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (NumberOfLowTagBits - 1) PASS_REGS);
+	subgoal_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (- 1) PASS_REGS);
 	TrNode_child(parent_node) = (sg_node_ptr) new_hash;
-	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, NumberOfLowTagBits PASS_REGS);
+	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, 0 PASS_REGS);
       } else 
 	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node); 
     } else {
@@ -1019,7 +1016,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
     jump_hash = prev_hash;
     V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
   }
-  return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, NumberOfLowTagBits PASS_REGS);  
+  return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, 0 PASS_REGS);  
 } 
 
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
@@ -1043,7 +1040,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
   
   if (!V04_IS_HASH(child_node))
     return subgoal_trie_check_insert_first_chain(child_node, parent_node, t, 0 PASS_REGS);
-  return subgoal_trie_check_insert_bucket_array((sg_node_ptr *) child_node, parent_node, t, NumberOfLowTagBits  PASS_REGS);
+  return subgoal_trie_check_insert_bucket_array((sg_node_ptr *) child_node, parent_node, t, 0  PASS_REGS);
 }
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_SUBGOAL_TRIE_CHECK_INSERT */
@@ -2273,12 +2270,12 @@ static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr cha
       ans_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, NULL, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), NumberOfLowTagBits, struct answer_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0, struct answer_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
-	answer_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (NumberOfLowTagBits - 1) PASS_REGS);
+	answer_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (- 1) PASS_REGS);
 	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
-	return answer_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);
+	return answer_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
       } else 
 	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct answer_trie_node);  
     } else {
@@ -2300,7 +2297,7 @@ static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr cha
     jump_hash = prev_hash;
     V04_GET_PREV_HASH(prev_hash, jump_hash, struct answer_trie_node);
   }
-  return answer_trie_check_insert_bucket_array(jump_hash, parent_node, t, instr, NumberOfLowTagBits PASS_REGS);  
+  return answer_trie_check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
 } 
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
@@ -2324,7 +2321,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   
   if (!V04_IS_HASH(child_node))
     return answer_trie_check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
-  return answer_trie_check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, NumberOfLowTagBits  PASS_REGS);
+  return answer_trie_check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0  PASS_REGS);
 }
 
 #endif /* ANSWER_TRIE_LOCK_LEVEL */
