@@ -533,9 +533,6 @@ extern int Yap_page_size;
 //#define BOOL_CAS(PTR, OLD, NEW)                (*(PTR) == (OLD) ? __sync_bool_compare_and_swap((PTR), (OLD), (NEW)) : 0)
 
 
-
-///////////////#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL)
-
 #define ALLOC_TRIE_HASH_BUCKETS(PTR, STR_HASH_BKTS)   ALLOC_BLOCK(PTR, sizeof(STR_HASH_BKTS), STR_HASH_BKTS)
 #define FREE_TRIE_HASH_BUCKETS(PTR)                   FREE_BLOCK(PTR)
 
@@ -578,7 +575,7 @@ extern int Yap_page_size;
 #define OPEN_SG_HASH_V03(HASH)                   (SgHash_hash_bkts(HASH) = (sg_hash_bkts_ptr)((CELL) SgHash_hash_bkts(HASH) & ~(CELL)0x1))
 #endif 
 
-#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) ||  defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
+#if defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) ||  defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
 
 #define V04_INIT_BUCKETS(BUCKET_PTR, PREV_HASH)                       \
   { int i; void **init_bucket_ptr;                                    \
@@ -624,7 +621,37 @@ extern int Yap_page_size;
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
-//////////////////#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL || ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL */
+
+
+#if defined(THREADS_FULL_SHARING_FTNA_3) 
+
+#define FTNA_3_ALLOC_THB(STR)						               \
+  union consumer_trie_hash_buckets *aux;					       \
+  ALLOC_STRUCT(aux, union consumer_trie_hash_buckets, _pages_cons_trie_hash_buckets);  \
+  STR = aux->hash_buckets
+
+#define FTNA_3_INIT_BUCKETS(BUCKET_PTR)                               \
+  { int i; void **init_bucket_ptr;                                    \
+  init_bucket_ptr = (void **) BUCKET_PTR;                             \
+  for (i = BASE_HASH_BUCKETS; i != 0; i--)                            \
+    *init_bucket_ptr++ = (void *) NULL;                               \
+  }
+
+#define FTNA_3_ALLOC_BUCKETS(BUCKET_PTR, STR)	                                     \
+  { void **alloc_bucket_ptr;						             \
+    FTNA_3_ALLOC_THB(alloc_bucket_ptr);					             \
+    FTNA_3_INIT_BUCKETS(alloc_bucket_ptr);                                           \
+    BUCKET_PTR = (STR **) alloc_bucket_ptr;                                          \
+  }
+
+#define FTNA_3_FREE_TRIE_HASH_BUCKETS(PTR, BKT, STR)
+
+#endif
+
+
+
+
+
 
 /************************************************************************
 **                         Bitmap manipulation                         **

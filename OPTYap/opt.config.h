@@ -75,7 +75,7 @@
 
 //#define THREADS_FULL_SHARING_FTNA_2_3  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) - use only with local scheduling. check first for mode_direct_tabling */
 
-#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use only with local scheduling. do not use mode_direct_tabling */
+#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use only with local scheduling. do not use mode_direct_tabling.  tab.macros.h has two versions, one that uses the code ans the hashes of afs_v04 and the second with modified code ans smaller hashes */
 
 
 /*************************************************************************

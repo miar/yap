@@ -652,11 +652,18 @@ typedef struct subgoal_frame_hash_buckets {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
 
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3)
-#define BASE_HASH_BUCKETS_2               8   // SAME AS BASE_HASH_BUCKETS
+#define BASE_HASH_BUCKETS_2               8   // MUST BE THE SAME AS BASE_HASH_BUCKETS
+
 union trie_hash_buckets {
   void *next;
   void *hash_buckets[BASE_HASH_BUCKETS_2 + 1];
 };
+
+union consumer_trie_hash_buckets {
+  void *next;
+  void *hash_buckets[BASE_HASH_BUCKETS_2];
+};
+
 #endif
 
 
