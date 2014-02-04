@@ -1658,10 +1658,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     if (ref_answer != NULL) {
       ans_node_ptr last_answer;
       SgFr_first_answer(sg_fr) = last_answer = TrNode_entry(ref_answer);
+      TAG_AS_ANSWER_LEAF_NODE(last_answer);
       ref_answer = TrNode_child(ref_answer);
       while(ref_answer) {
 	TrNode_child(last_answer) = TrNode_entry(ref_answer);
 	last_answer = TrNode_child(last_answer);
+	TAG_AS_ANSWER_LEAF_NODE(last_answer);
 	ref_answer = TrNode_child(ref_answer);
       }
       SgFr_last_answer(sg_fr) = last_answer;
