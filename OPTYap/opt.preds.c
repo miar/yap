@@ -45,6 +45,9 @@ static Int p_abolish_all_tables( USES_REGS1 );
 static Int p_show_tabled_predicates( USES_REGS1 );
 static Int p_show_table( USES_REGS1 );
 static Int p_show_all_tables( USES_REGS1 );
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+static Int p_table_query_number( USES_REGS1 );
+#endif
 static Int p_show_cputime_by_thread( USES_REGS1 );
 static Int p_show_walltime_by_thread( USES_REGS1 );
 static Int p_show_global_trie( USES_REGS1 );
@@ -213,6 +216,9 @@ void Yap_init_optyap_preds(void) {
   Yap_InitCPred("show_tabled_predicates", 1, p_show_tabled_predicates, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("$c_show_table", 3, p_show_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("show_all_tables", 1, p_show_all_tables, SafePredFlag|SyncPredFlag);
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+  Yap_InitCPred("table_query_number", 1, p_table_query_number, SafePredFlag|SyncPredFlag);
+#endif
   Yap_InitCPred("show_cputime_by_thread", 1, p_show_cputime_by_thread, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("show_walltime_by_thread", 1, p_show_walltime_by_thread, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("show_global_trie", 1, p_show_global_trie, SafePredFlag|SyncPredFlag);
@@ -559,6 +565,36 @@ static Int p_show_all_tables( USES_REGS1 ) {
 
 
 
+
+static Int p_table_query_number( USES_REGS1 ) {
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+  /* IOSTREAM *out;
+    Term t = Deref(ARG1);
+  int t2 = IntOfTerm (Deref(ARG2));
+  if (IsVarTerm(t) || !IsAtomTerm(t))
+    return FALSE;
+  if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))
+    return FALSE;
+
+  Stats_query_number = t2;
+
+  PL_release_stream(out);*/
+
+  Stats_query_number = IntOfTerm (Deref(ARG1));
+  //  printf("Stats_query_number %d \n", Stats_query_number);
+
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS*/
+return (TRUE);
+}
+
+
+
+
+
+
+
+
+
 static Int p_show_cputime_by_thread( USES_REGS1 ) {
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   IOSTREAM *out;
@@ -748,6 +784,16 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
 #else 
   Sfprintf(out, "Total memory in use (I+II+III):    %10ld bytes\n", total_bytes);
 #endif /* USE_PAGES_MALLOC */
+
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+  Sfprintf(out,"-------------------------------------\n");
+  Sfprintf(out,"Stats_choice_points:  %ld \n", Stats_choice_points);
+  Sfprintf(out,"Stats_generator_cp:   %ld \n", Stats_generator_cp);
+  Sfprintf(out,"Stats_consumer_cp:    %ld \n", Stats_consumer_cp);
+  Sfprintf(out,"Stats_completed_cp:   %ld \n", Stats_completed_cp);
+  Sfprintf(out,"Stats_query_number:   %ld \n", Stats_query_number);
+  Sfprintf(out,"Stats_query_reused_tables:  %ld \n", Stats_query_reused_tables);
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
   PL_release_stream(out);
   return (TRUE);
 }

@@ -188,6 +188,16 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
   Stats_answer_trie_nr_paths = 0;
   Stats_answer_trie_depth_all = 0;
 #endif /* EXTRA_STATISTICS */
+
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+  Stats_choice_points = 0;
+  Stats_generator_cp = 0;
+  Stats_consumer_cp = 0;
+  Stats_completed_cp = 0;
+  Stats_query_number = 0;
+  Stats_query_reused_tables = 0;
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   int j;
   for (i = 0; i < CPUTIME_BY_THREAD_NR_RUNS; i++)

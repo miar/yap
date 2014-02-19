@@ -366,3 +366,6 @@ table_statistics(Stream,Pred) :-
    '$do_error'(type_error(callable,Mod:Pred),table_statistics(Mod:Pred)).
 %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

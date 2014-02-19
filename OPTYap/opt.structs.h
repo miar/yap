@@ -25,6 +25,15 @@ long Stats_answer_trie_nr_paths;
 long Stats_answer_trie_depth_all;
 #endif /* EXTRA_STATISTICS */
 
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+long Stats_choice_points;
+long Stats_generator_cp;
+long Stats_consumer_cp;
+long Stats_completed_cp;
+int Stats_query_number;
+int Stats_query_reused_tables;
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+
 
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
 #define CPUTIME_BY_THREAD_MAX_THREADS  66

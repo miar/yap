@@ -206,7 +206,7 @@ Yap_FreeCodeSpace(char *p)
   tmalloc -= *(CELL*)p;
   frees++;
 #endif
-  my_free (p);
+  //  my_free (p);                   // HERE  MIGS
   LOCAL_PrologMode &= ~MallocMode;
 #if USE_DL_MALLOC
   UNLOCK(DLMallocLock);

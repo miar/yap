@@ -486,6 +486,19 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+    Stats_choice_points++;
+    if (SgFr_state(sg_fr) == ready) {
+      Stats_generator_cp++;
+      SgFr_query_number(sg_fr) = Stats_query_number;
+    } else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp++;
+    else if (SgFr_state(sg_fr) == complete) {
+      Stats_completed_cp++;
+      if (SgFr_query_number(sg_fr) != Stats_query_number)
+	Stats_query_reused_tables ++;
+    }
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -634,6 +647,20 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+    Stats_choice_points++;
+    if (SgFr_state(sg_fr) == ready) {
+      Stats_generator_cp++;
+      SgFr_query_number(sg_fr) = Stats_query_number;
+    } else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp++;
+    else if (SgFr_state(sg_fr) == complete) {
+      Stats_completed_cp++;
+      if (SgFr_query_number(sg_fr) != Stats_query_number)
+	Stats_query_reused_tables ++;
+    }
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -778,6 +805,21 @@
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+
+
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+    Stats_choice_points++;
+    if (SgFr_state(sg_fr) == ready) {
+      Stats_generator_cp++;
+      SgFr_query_number(sg_fr) = Stats_query_number;
+    } else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp++;
+     else if (SgFr_state(sg_fr) == complete) {
+      Stats_completed_cp++;
+      if (SgFr_query_number(sg_fr) != Stats_query_number)
+	Stats_query_reused_tables ++;
+    }
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
 
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
     gettimeofday(&tv2, NULL);
@@ -1171,9 +1213,52 @@
 #endif /* THREADS_FULL_SHARING_FTNA_2_3 */
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
-    consumer_trie_check_insert_node(sg_fr, ans_node PASS_REGS);
-    goto fail;
-
+    boolean ans_rep = consumer_trie_check_insert_node(sg_fr, ans_node PASS_REGS);
+    if (IS_BATCHED_GEN_CP(gcp)) {
+      if (ans_rep == true) {
+#ifdef TABLING_EARLY_COMPLETION
+	if (gcp == PROTECT_FROZEN_B(B) && (*subs_ptr == 0 || gcp->cp_ap == COMPLETION)) {
+	  /* if the current generator choice point is the topmost choice point and the current */
+	  /* call is deterministic (i.e., the number of substitution variables is zero or      */
+	  /* there are no more alternatives) then the current answer is deterministic and we   */
+	  /* can perform an early completion and remove the current generator choice point     */
+	  private_completion(sg_fr);
+	  B = B->cp_b;
+	  SET_BB(PROTECT_FROZEN_B(B));
+	} else if (*subs_ptr == 0) {
+	  /* if the number of substitution variables is zero, an answer is sufficient to perform */
+	  /* an early completion, but the current generator choice point cannot be removed       */
+	  mark_as_completed(sg_fr);
+	  if (gcp->cp_ap != NULL)
+	    gcp->cp_ap = COMPLETION;
+	}
+#endif /* TABLING_EARLY_COMPLETION */
+        /* deallocate and procceed */
+	PREG = (yamop *) YENV[E_CP];
+	PREFETCH_OP(PREG);
+	CPREG = PREG;
+	SREG = YENV;
+	ENV = YENV = (CELL *) YENV[E_E];
+#ifdef DEPTH_LIMIT
+	DEPTH = YENV[E_DEPTH];
+#endif /* DEPTH_LIMIT */
+	GONext();
+      } else 
+	goto fail;
+    } else {
+#ifdef TABLING_EARLY_COMPLETION
+      if (*subs_ptr == 0) {
+	/* if the number of substitution variables is zero, an answer is sufficient to perform */
+	/* an early completion, but the current generator choice point cannot be removed       */
+	if (SgFr_state(sg_fr) < complete)
+	  mark_as_completed(sg_fr);
+	if (gcp->cp_ap != ANSWER_RESOLUTION)
+	  gcp->cp_ap = COMPLETION;
+      }
+#endif /* TABLING_EARLY_COMPLETION */
+      goto fail;
+    }
+      
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 
 

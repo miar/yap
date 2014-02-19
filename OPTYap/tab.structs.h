@@ -11,7 +11,7 @@
 **                                                                     **
 ************************************************************************/
 
-
+typedef enum {false,true} boolean;
 
 /************************************************************************
 **                     Table Space Data Structures                     **
@@ -307,6 +307,11 @@ typedef enum {          /* do not change order !!! */
 ****************************/
 
 typedef struct subgoal_entry {
+
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+  int query_number;
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+
 #if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
   lockvar lock;
 #endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
@@ -436,6 +441,9 @@ typedef struct subgoal_frame {
 #else
 #define SUBGOAL_ENTRY(X)                (X)->subgoal_entry.
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+
+#define SgFr_query_number(X)            (SUBGOAL_ENTRY(X) query_number)
+
 #define SgFr_lock(X)                    (SUBGOAL_ENTRY(X) lock)
 #define SgFr_code(X)                    (SUBGOAL_ENTRY(X) code_of_subgoal)
 #define SgFr_tab_ent(X)                 ((SUBGOAL_ENTRY(X) code_of_subgoal)->u.Otapl.te)

@@ -529,7 +529,7 @@ cleanup_sw_on_clauses(CELL larg, UInt sz, OPCODE ecls)
 	if (xp->u.sssllp.snext) {
 	  xp->u.sssllp.snext->u.sssllp.sprev = xp->u.sssllp.sprev;
 	}
-	UNLOCK(ExpandClausesListLock);
+
 #if DEBUG
 	Yap_ExpandClauses--;
 	Yap_expand_clauses_sz -= (UInt)(NEXTOP((yamop *)NULL,sssllp))+xp->u.sssllp.s1*sizeof(yamop *);
@@ -539,6 +539,7 @@ cleanup_sw_on_clauses(CELL larg, UInt sz, OPCODE ecls)
 	} else
 	  Yap_IndexSpace_EXT -= (UInt)(NEXTOP((yamop *)NULL,sssllp))+xp->u.sssllp.s1*sizeof(yamop *);
 	Yap_FreeCodeSpace((char *)xp);
+	UNLOCK(ExpandClausesListLock);
 	return nsz;
       } else {
 	xp->u.sssllp.s3--;
@@ -1971,7 +1972,6 @@ recover_ecls_block(yamop *ipc)
     if (ipc->u.sssllp.snext) {
       ipc->u.sssllp.snext->u.sssllp.sprev = ipc->u.sssllp.sprev;
     }
-    UNLOCK(ExpandClausesListLock);
 #if DEBUG
     Yap_ExpandClauses--;
     Yap_expand_clauses_sz -= (UInt)(NEXTOP((yamop *)NULL,sssllp))+ipc->u.sssllp.s1*sizeof(yamop *);
@@ -1983,6 +1983,7 @@ recover_ecls_block(yamop *ipc)
     } else
       Yap_IndexSpace_EXT -= (UInt)NEXTOP((yamop *)NULL,sssllp)+ipc->u.sssllp.s1*sizeof(yamop *);
     Yap_FreeCodeSpace((char *)ipc);
+    UNLOCK(ExpandClausesListLock);
   }
 }
 
