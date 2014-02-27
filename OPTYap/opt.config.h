@@ -103,7 +103,7 @@
 
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
+///////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
@@ -116,7 +116,7 @@
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+/////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
@@ -157,7 +157,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-/* #define INCOMPLETE_TABLING 1 */
+#define INCOMPLETE_TABLING 1
 
 /******************************************************
 **      limit the table space size ? (optional)      **
@@ -410,7 +410,7 @@
 
 
 #if defined(YAPOR) || defined(THREADS)
-#undef INCOMPLETE_TABLING
+//#undef INCOMPLETE_TABLING
 #undef LIMIT_TABLING
 #undef DETERMINISTIC_TABLING
 #endif

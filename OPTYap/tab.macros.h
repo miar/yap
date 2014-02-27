@@ -22,6 +22,15 @@
 #endif /* HAVE_STRING_H */
 #include "opt.mavar.h"
 
+#ifdef EXTRA_STATISTICS_CHOICE_POINTS
+#define  SgEnt_init_extra_statistics_choice_points(SG_ENT)	\
+  SgEnt_query_number(SG_ENT)= -1;
+
+#else
+#define  SgEnt_init_extra_statistics_choice_points(SG_ENT)
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+
+
 #ifdef EXTRA_STATISTICS
 #define Extra_stats_ans_trie(NEW_DEPTH)			                \
   Stats_answer_trie_nr_paths++;						\
@@ -652,6 +661,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgEnt_answer_trie(SG_ENT) = ans_node;                     \
           SgEnt_first_answer(SG_ENT) = NULL;                        \
           SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
+	  SgEnt_init_extra_statistics_choice_points(SG_ENT);        \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
         }
@@ -667,6 +677,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgEnt_answer_trie(SG_ENT) = ans_node;                     \
           SgEnt_first_answer(SG_ENT) = NULL;                        \
           SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
+	  SgEnt_init_extra_statistics_choice_points(SG_ENT);        \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
           INIT_BUCKETS(&SgEnt_sg_fr(SG_ENT), THREADS_NUM_BUCKETS);  \
@@ -2014,6 +2025,7 @@ static inline CELL *expand_auxiliary_stack(CELL *stack) {
 
 static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
   CACHE_REGS
+
 #ifdef YAPOR
   if (EQUAL_OR_YOUNGER_CP(GetOrFr_node(LOCAL_top_susp_or_fr), prune_cp))
     pruning_over_tabling_data_structures();
@@ -2040,21 +2052,31 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* YAPOR */
     sg_fr = LOCAL_top_sg_fr;
     LOCAL_top_sg_fr = SgFr_next(sg_fr);
+#ifdef THREADS_FULL_SHARING_FTNA_3
+    if (SgFr_cons_ref_first_ans(sg_fr) == NULL) {      
+#else
     LOCK_SG_FR(sg_fr);
     if (SgFr_first_answer(sg_fr) == NULL) {
-      /* no answers --> ready */
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
+    /* no answers --> ready */
+      //      printf("SgFr_first_answer(sg_fr) == NULL\n");      
       SgFr_state(sg_fr) = ready;
+#ifndef THREADS_FULL_SHARING_FTNA_3
       UNLOCK_SG_FR(sg_fr);
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
     } else if (SgFr_first_answer(sg_fr) == SgFr_answer_trie(sg_fr)) {
       /* yes answer --> complete */
 #ifndef TABLING_EARLY_COMPLETION
       /* with early completion, at this point the subgoal should be already completed */
       SgFr_state(sg_fr) = complete;
 #endif /* TABLING_EARLY_COMPLETION */
+#ifndef THREADS_FULL_SHARING_FTNA_3
       UNLOCK_SG_FR(sg_fr);
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
     } else {
       /* answers --> incomplete/ready */
 #ifdef INCOMPLETE_TABLING
+      //printf("SgFr_state(sg_fr) = incomplete\n");
       SgFr_state(sg_fr) = incomplete;
 #ifdef MODE_DIRECTED_TABLING
       if (SgFr_invalid_chain(sg_fr)) {
@@ -2087,7 +2109,9 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* THREADS_FULL_SHARING */
       }
 #endif /* MODE_DIRECTED_TABLING */
+#ifndef THREADS_FULL_SHARING_FTNA_3
       UNLOCK_SG_FR(sg_fr);
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
 #else /* !INCOMPLETE_TABLING */
       ans_node_ptr node;
 #ifdef MODE_DIRECTED_TABLING

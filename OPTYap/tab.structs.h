@@ -307,14 +307,13 @@ typedef enum {          /* do not change order !!! */
 ****************************/
 
 typedef struct subgoal_entry {
-
+#if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+  lockvar lock;
+#endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
   int query_number;
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
 
-#if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-  lockvar lock;
-#endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   yamop *code_of_subgoal;
   struct answer_trie_hash *hash_chain;
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
@@ -333,9 +332,6 @@ typedef struct subgoal_entry {
   struct answer_trie_node *intra_invalid_chain;  
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 #endif /* MODE_DIRECTED_TABLING */
-#ifdef INCOMPLETE_TABLING
-  struct answer_trie_node *try_answer;
-#endif /* INCOMPLETE_TABLING */
 #ifdef LIMIT_TABLING
   struct subgoal_frame *previous;
 #endif /* LIMIT_TABLING */
@@ -360,6 +356,7 @@ typedef struct subgoal_entry {
 }* sg_ent_ptr;
 
 #define SgEnt_lock(X)                    ((X)->lock)
+#define SgEnt_query_number(X)            ((X)->query_number)
 #define SgEnt_code(X)                    ((X)->code_of_subgoal)
 #define SgEnt_tab_ent(X)                 (((X)->code_of_subgoal)->u.Otapl.te)
 #define SgEnt_arity(X)                   (((X)->code_of_subgoal)->u.Otapl.s)
@@ -373,7 +370,6 @@ typedef struct subgoal_entry {
 #define SgEnt_mode_directed(X)           ((X)->mode_directed_array)
 #define SgEnt_invalid_chain(X)           ((X)->invalid_chain)
 #define SgEnt_intra_invalid_chain(X)     ((X)->intra_invalid_chain)
-#define SgEnt_try_answer(X)              ((X)->try_answer)
 #define SgEnt_previous(X)                ((X)->previous)
 #define SgEnt_gen_top_or_fr(X)           ((X)->top_or_frame_on_generator_branch)
 #define SgEnt_gen_worker(X)              ((X)->generator_worker)
@@ -410,8 +406,14 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
+#ifdef INCOMPLETE_TABLING
+#ifdef THREADS_FULL_SHARING_FTNA_3
+  struct answer_ref_node  *try_answer;
+#else
+  struct answer_trie_node *try_answer;
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+#endif /* INCOMPLETE_TABLING */  
   struct subgoal_frame *next;
-
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   struct subgoal_frame *next_complete;
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
@@ -460,7 +462,6 @@ typedef struct subgoal_frame {
 #define SgFr_mode_directed(X)           (SUBGOAL_ENTRY(X) mode_directed_array)
 #define SgFr_invalid_chain(X)           (SUBGOAL_ENTRY(X) invalid_chain) 
 #define SgFr_intra_invalid_chain(X)     (SUBGOAL_ENTRY(X) intra_invalid_chain)
-#define SgFr_try_answer(X)              (SUBGOAL_ENTRY(X) try_answer)
 #define SgFr_previous(X)                (SUBGOAL_ENTRY(X) previous)
 #define SgFr_gen_top_or_fr(X)           (SUBGOAL_ENTRY(X) top_or_frame_on_generator_branch)
 #define SgFr_gen_worker(X)              (SUBGOAL_ENTRY(X) generator_worker)
@@ -472,6 +473,7 @@ typedef struct subgoal_frame {
 #define SgFr_batched_last_answer(X)     ((X)->batched_last_answer)
 #define SgFr_batched_cached_answers(X)  ((X)->batched_cached_answers)
 #define SgFr_state(X)                   ((X)->state_flag)
+#define SgFr_try_answer(X)              ((X)->try_answer)
 #define SgFr_gen_cp(X)                  ((X)->generator_choice_point)
 #define SgFr_next(X)                    ((X)->next)
 #define SgFr_next_complete(X)           ((X)->next_complete)

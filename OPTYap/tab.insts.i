@@ -421,7 +421,7 @@
     ans_node_ptr ans_node;
 
     sg_fr = GEN_CP(B)->cp_sg_fr;
-    ans_node = TrNode_child(SgFr_try_answer(sg_fr));
+    ans_node = (ans_node_ptr) TrNode_child(SgFr_try_answer(sg_fr));
     if(ans_node) {
       CELL *subs_ptr = (CELL *) (GEN_CP(B) + 1) + SgFr_arity(sg_fr);
 
@@ -429,7 +429,6 @@
       restore_yaam_reg_cpdepth(B);
       CPREG = B->cp_cp;
       ENV = B->cp_env;
-      SgFr_try_answer(sg_fr) = ans_node;
 #ifdef YAPOR
       if (SCH_top_shared_cp(B))
 	UNLOCK_OR_FRAME(LOCAL_top_or_fr);
@@ -438,7 +437,13 @@
 
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
+#ifdef THREADS_FULL_SHARING_FTNA_3      
+      SgFr_try_answer(sg_fr) = (ans_ref_ptr) ans_node;
+      FTNA_3_load_answer((ans_ref_ptr)ans_node, subs_ptr);
+#else
+      SgFr_try_answer(sg_fr) = ans_node;
       load_answer(ans_node, subs_ptr);
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
       YENV = ENV;
       GONext();
     } else {
@@ -486,17 +491,21 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
-    Stats_choice_points++;
+    atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
-      Stats_generator_cp++;
-      SgFr_query_number(sg_fr) = Stats_query_number;
+      atomic_inc(&Stats_generator_cp);
+      LOCK_SG_FR(sg_fr);
+      if (SgFr_query_number(sg_fr) == -1)
+	SgFr_query_number(sg_fr) = Stats_query_number;
+      UNLOCK_SG_FR(sg_fr);
     } else if (SgFr_state(sg_fr) == evaluating)
-      Stats_consumer_cp++;
+      atomic_inc(&Stats_consumer_cp);
     else if (SgFr_state(sg_fr) == complete) {
-      Stats_completed_cp++;
+      atomic_inc(&Stats_completed_cp);
       if (SgFr_query_number(sg_fr) != Stats_query_number)
-	Stats_query_reused_tables ++;
+	atomic_inc(&Stats_query_reused_tables);
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
     MEM2YENV;
@@ -525,6 +534,7 @@
       goto answer_resolution_completion;
     } else
 #endif /* THREADS_CONSUMER_SHARING */
+
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */      
        init_subgoal_frame(sg_fr);
@@ -544,10 +554,16 @@
 #ifdef INCOMPLETE_TABLING
     } else if (SgFr_state(sg_fr) == incomplete) {
       /* subgoal incomplete --> start by loading the answers already found */
+#ifdef THREADS_FULL_SHARING_FTNA_3 
+      ans_ref_ptr ans_ref_node = SgFr_cons_ref_first_ans(sg_fr);
+      ans_node_ptr ans_node = TrNode_entry(ans_ref_node);
+      SgFr_try_answer(sg_fr) = ans_ref_node;
+#else
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+      SgFr_try_answer(sg_fr) = ans_node;
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
@@ -648,19 +664,21 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
-    Stats_choice_points++;
+    atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
-      Stats_generator_cp++;
-      SgFr_query_number(sg_fr) = Stats_query_number;
+      atomic_inc(&Stats_generator_cp);
+      LOCK_SG_FR(sg_fr);
+      if (SgFr_query_number(sg_fr) == -1)
+	SgFr_query_number(sg_fr) = Stats_query_number;
+      UNLOCK_SG_FR(sg_fr);
     } else if (SgFr_state(sg_fr) == evaluating)
-      Stats_consumer_cp++;
+      atomic_inc(&Stats_consumer_cp);
     else if (SgFr_state(sg_fr) == complete) {
-      Stats_completed_cp++;
+      atomic_inc(&Stats_completed_cp);
       if (SgFr_query_number(sg_fr) != Stats_query_number)
-	Stats_query_reused_tables ++;
+	atomic_inc(&Stats_query_reused_tables);
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
-
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
@@ -697,10 +715,16 @@
 #ifdef INCOMPLETE_TABLING
     } else if (SgFr_state(sg_fr) == incomplete) {
       /* subgoal incomplete --> start by loading the answers already found */
+#ifdef THREADS_FULL_SHARING_FTNA_3 
+      ans_ref_ptr ans_ref_node = SgFr_cons_ref_first_ans(sg_fr);
+      ans_node_ptr ans_node = TrNode_entry(ans_ref_node);
+      SgFr_try_answer(sg_fr) = ans_ref_node;
+#else
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+      SgFr_try_answer(sg_fr) = ans_node;
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
@@ -806,18 +830,20 @@
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
     sg_fr = subgoal_search(PREG, YENV_ADDRESS);
 
-
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
-    Stats_choice_points++;
+    atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
-      Stats_generator_cp++;
-      SgFr_query_number(sg_fr) = Stats_query_number;
+      atomic_inc(&Stats_generator_cp);
+      LOCK_SG_FR(sg_fr);
+      if (SgFr_query_number(sg_fr) == -1)
+	SgFr_query_number(sg_fr) = Stats_query_number;
+      UNLOCK_SG_FR(sg_fr);
     } else if (SgFr_state(sg_fr) == evaluating)
-      Stats_consumer_cp++;
-     else if (SgFr_state(sg_fr) == complete) {
-      Stats_completed_cp++;
+      atomic_inc(&Stats_consumer_cp);
+    else if (SgFr_state(sg_fr) == complete) {
+      atomic_inc(&Stats_completed_cp);
       if (SgFr_query_number(sg_fr) != Stats_query_number)
-	Stats_query_reused_tables ++;
+	atomic_inc(&Stats_query_reused_tables);
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
 
@@ -862,10 +888,16 @@
 #ifdef INCOMPLETE_TABLING
     } else if (SgFr_state(sg_fr) == incomplete) {
       /* subgoal incomplete --> start by loading the answers already found */
+#ifdef THREADS_FULL_SHARING_FTNA_3 
+      ans_ref_ptr ans_ref_node = SgFr_cons_ref_first_ans(sg_fr);
+      ans_node_ptr ans_node = TrNode_entry(ans_ref_node);
+      SgFr_try_answer(sg_fr) = ans_ref_node;
+#else
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+      SgFr_try_answer(sg_fr) = ans_node;
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
       init_subgoal_frame(sg_fr);
-      SgFr_try_answer(sg_fr) = ans_node;
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
@@ -1260,9 +1292,6 @@
     }
       
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-
-
-    //goto fail; //--> to delete
     
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________
     gettimeofday(&tv2, NULL);
