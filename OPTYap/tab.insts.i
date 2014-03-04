@@ -1246,6 +1246,9 @@
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
     boolean ans_rep = consumer_trie_check_insert_node(sg_fr, ans_node PASS_REGS);
+    if (!IS_ANSWER_LEAF_NODE(ans_node))
+      TAG_AS_ANSWER_LEAF_NODE(ans_node);  /* added this -> might cause overhead */
+
     if (IS_BATCHED_GEN_CP(gcp)) {
       if (ans_rep == true) {
 #ifdef TABLING_EARLY_COMPLETION
@@ -2303,7 +2306,6 @@ complete_all:
 	gettimeofday(&tv2, NULL);
 	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
 
 
 #ifdef THREADS_CONSUMER_SHARING

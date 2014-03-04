@@ -481,7 +481,7 @@ extern int Yap_page_size;
 #define V04_FREE_THB(STR)               //FREE_STRUCT((union trie_hash_buckets*)STR, union trie_hash_buckets, _pages_trie_hash_buckets)
 
 #define ALLOC_ANSWER_REF_NODE(STR)     ALLOC_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
-#define FREE_ANSWER_REF_NODE(STR)       FREE_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
+#define FREE_ANSWER_REF_NODE(STR)      FREE_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
 
 #define ALLOC_GLOBAL_TRIE_NODE(STR)    ALLOC_STRUCT(STR, struct global_trie_node, _pages_gt_node)
 #define FREE_GLOBAL_TRIE_NODE(STR)      FREE_STRUCT(STR, struct global_trie_node, _pages_gt_node)
@@ -644,14 +644,9 @@ extern int Yap_page_size;
     BUCKET_PTR = (STR **) alloc_bucket_ptr;                                          \
   }
 
-#define FTNA_3_FREE_TRIE_HASH_BUCKETS(PTR, BKT, STR)
+#define FTNA_3_FREE_TRIE_HASH_BUCKETS(STR)  FREE_STRUCT(((union consumer_trie_hash_buckets *) STR), union consumer_trie_hash_buckets, _pages_cons_trie_hash_buckets)
 
 #endif
-
-
-
-
-
 
 /************************************************************************
 **                         Bitmap manipulation                         **

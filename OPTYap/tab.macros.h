@@ -23,7 +23,7 @@
 #include "opt.mavar.h"
 
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
-#define  SgEnt_init_extra_statistics_choice_points(SG_ENT)	\
+#define  SgEnt_init_extra_statistics_choice_points(SG_ENT)	       \
   SgEnt_query_number(SG_ENT)= -1;
 
 #else
@@ -88,6 +88,9 @@ static inline boolean consumer_trie_check_insert_bucket_chain(ans_ref_ptr *, ans
 static inline boolean consumer_trie_check_insert_bucket_array(ans_ref_ptr *, sg_fr_ptr, ans_node_ptr, long USES_REGS);
 static inline boolean consumer_trie_check_insert_first_chain(ans_ref_ptr, sg_fr_ptr, ans_node_ptr, int USES_REGS);
 static inline boolean consumer_trie_check_insert_node(sg_fr_ptr, ans_node_ptr USES_REGS);
+static inline void consumer_trie_free_structs(sg_fr_ptr USES_REGS);
+static inline void consumer_trie_free_bucket_array(ans_ref_ptr * USES_REGS);
+
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #endif /* THREADS_FULL_SHARING */
 #ifdef THREADS_CONSUMER_SHARING
@@ -252,7 +255,10 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define TAG_AS_SUBGOAL_LEAF_NODE(NODE)       TrNode_child(NODE) = (sg_node_ptr)((CELL) TrNode_child(NODE) | 0x1)
 #define IS_SUBGOAL_LEAF_NODE(NODE)           ((CELL) TrNode_child(NODE) & 0x1)
 #define TAG_AS_ANSWER_LEAF_NODE(NODE)        TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x1)
+
 #define IS_ANSWER_LEAF_NODE(NODE)            ((CELL) TrNode_parent(NODE) & 0x1)
+
+
 #define TAG_AS_ANSWER_INVALID_NODE(NODE)     TrNode_parent(NODE) = (ans_node_ptr)((CELL) TrNode_parent(NODE) | 0x2)
 #define IS_ANSWER_INVALID_NODE(NODE)         ((CELL) TrNode_parent(NODE) & 0x2)
 #define UNTAG_SUBGOAL_NODE(NODE)             ((CELL) (NODE) & ~(0x1))
@@ -2059,7 +2065,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     if (SgFr_first_answer(sg_fr) == NULL) {
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
     /* no answers --> ready */
-      //      printf("SgFr_first_answer(sg_fr) == NULL\n");      
       SgFr_state(sg_fr) = ready;
 #ifndef THREADS_FULL_SHARING_FTNA_3
       UNLOCK_SG_FR(sg_fr);
@@ -2111,8 +2116,8 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* MODE_DIRECTED_TABLING */
 #ifndef THREADS_FULL_SHARING_FTNA_3
       UNLOCK_SG_FR(sg_fr);
-#endif  /* THREADS_FULL_SHARING_FTNA_3 */
-#else /* !INCOMPLETE_TABLING */
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+#else  /* !INCOMPLETE_TABLING */
       ans_node_ptr node;
 #ifdef MODE_DIRECTED_TABLING
 #ifndef THREADS_FULL_SHARING
@@ -2121,8 +2126,12 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       SgFr_invalid_chain(sg_fr) = NULL;
 #endif /* THREADS_FULL_SHARING */
 #endif /* MODE_DIRECTED_TABLING */
+#ifdef THREADS_FULL_SHARING_FTNA_3
+      consumer_trie_free_structs(sg_fr PASS_REGS);
+#endif
       SgFr_state(sg_fr) = ready;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+      SgFr_active_workers(sg_fr)--;
       if (SgFr_active_workers(sg_fr) == 0) {
 	SgFr_sg_ent_state(sg_fr) = ready;
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
@@ -2132,9 +2141,10 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	SgFr_last_answer(sg_fr) = NULL;
 	node = TrNode_child(SgFr_answer_trie(sg_fr));
 	TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
-	UNLOCK_SG_FR(sg_fr);
 	free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
-#ifdef THREADS_FULL_SHARING
+	UNLOCK_SG_FR(sg_fr);
+#ifdef THREADS_FULL_SHARING 
+#ifndef THREADS_FULL_SHARING_FTNA_3
         if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {
 	  SgFr_batched_last_answer(sg_fr) = NULL;
 	  struct answer_ref_node *local_uncons_ans = SgFr_batched_cached_answers(sg_fr) ; 
@@ -2144,8 +2154,11 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	    local_uncons_ans = SgFr_batched_cached_answers(sg_fr);
 	  }
 	}
-      } else{ /* SgFr_active_workers(sg_fr) != 0 */
-	if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))){
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+      } 
+#ifndef THREADS_FULL_SHARING_FTNA_3
+      else { /* SgFr_active_workers(sg_fr) != 0 */
+        if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))){
 	  SgFr_batched_last_answer(sg_fr) = NULL;
 	  if ( worker_id >= ANSWER_LEAF_NODE_MAX_THREADS ) {
 	    struct answer_ref_node *local_uncons_ans = SgFr_batched_cached_answers(sg_fr) ; 
@@ -2162,13 +2175,12 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	    }
 	  }
 	}
-#endif /* THREADS_FULL_SHARING */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
       }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING_FTNA_3 */
+#endif /* THREADS_FULL_SHARING */
 #if defined(MODE_DIRECTED_TABLING)
 #ifndef THREADS_FULL_SHARING
-	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
+      /* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
       /* free invalid answer nodes */
       while (invalid_node) {
 	node = TrNode_next(invalid_node);	
@@ -2836,10 +2848,48 @@ static inline boolean consumer_trie_check_insert_node(sg_fr_ptr sg_fr, ans_node_
     SgFr_cons_ref_ans(sg_fr) = SgFr_cons_ref_first_ans(sg_fr) = SgFr_cons_ref_last_ans(sg_fr) = ref_node;
     return true;
   }
-
+  
   if (!V04_IS_HASH(ref_node))
     return consumer_trie_check_insert_first_chain(ref_node, sg_fr, ans_leaf_node, 0 PASS_REGS);
   return consumer_trie_check_insert_bucket_array((ans_ref_ptr *) ref_node, sg_fr, ans_leaf_node, 0 PASS_REGS);
+}
+
+
+static inline void consumer_trie_free_structs(sg_fr_ptr sg_fr USES_REGS) {
+  ans_ref_ptr ref_node;
+  ref_node = SgFr_cons_ref_first_ans(sg_fr);
+  if (ref_node) {
+    do {
+      ans_ref_ptr child = TrNode_child(ref_node);
+      FREE_ANSWER_REF_NODE(ref_node);
+      ref_node = child; 
+    } while(ref_node);
+
+    if (V04_IS_HASH(SgFr_cons_ref_ans(sg_fr))) {
+      /* has at least one trie hash bucket array */
+      consumer_trie_free_bucket_array((ans_ref_ptr *) SgFr_cons_ref_ans(sg_fr) PASS_REGS);
+    }
+    SgFr_cons_ref_ans(sg_fr) = NULL;
+    SgFr_cons_ref_first_ans(sg_fr) = NULL;
+    SgFr_cons_ref_last_ans(sg_fr) = NULL;    
+  }
+  return; 
+}
+
+static inline void consumer_trie_free_bucket_array(ans_ref_ptr *curr_hash USES_REGS) {
+
+  ans_ref_ptr *bucket;
+  ans_ref_ptr *untag_curr_hash;
+  untag_curr_hash = (ans_ref_ptr*) V04_UNTAG(curr_hash);
+  bucket = untag_curr_hash + BASE_HASH_BUCKETS;
+  do {
+    bucket--;
+    if (*bucket && V04_IS_HASH(*bucket))
+      consumer_trie_free_bucket_array((ans_ref_ptr*)*bucket PASS_REGS);
+  } while (bucket != untag_curr_hash);
+
+  FTNA_3_FREE_TRIE_HASH_BUCKETS(untag_curr_hash); 
+  return;
 }
 
 #endif /* THREADS_FULL_SHARING_FTNA_3 */

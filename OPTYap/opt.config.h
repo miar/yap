@@ -76,7 +76,7 @@
 
 //#define THREADS_FULL_SHARING_FTNA_2_3  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) - use only with local scheduling. check first for mode_direct_tabling */
 
-#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code ans smaller hashes */
+#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ /* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
 
 
 /*************************************************************************
@@ -116,8 +116,8 @@
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-/////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
+/////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 
@@ -157,7 +157,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1
+///#define INCOMPLETE_TABLING 1
 
 /******************************************************
 **      limit the table space size ? (optional)      **
