@@ -513,7 +513,7 @@
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
-      if (SgFr_sg_ent_state(sg_fr) >= complete){
+      if (SgFr_sg_ent_state(sg_fr) >= complete) {
 	SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
 	LOCAL_top_sg_fr_complete = sg_fr;
       	SgFr_state(sg_fr) = SgFr_sg_ent_state(sg_fr);
@@ -1247,7 +1247,7 @@
 #ifdef THREADS_FULL_SHARING_FTNA_3
     boolean ans_rep = consumer_trie_check_insert_node(sg_fr, ans_node PASS_REGS);
     if (!IS_ANSWER_LEAF_NODE(ans_node))
-      TAG_AS_ANSWER_LEAF_NODE(ans_node);  /* added this -> might cause overhead */
+      TAG_AS_ANSWER_LEAF_NODE(ans_node);  /* added this -> this might cause overhead */ 
 
     if (IS_BATCHED_GEN_CP(gcp)) {
       if (ans_rep == true) {

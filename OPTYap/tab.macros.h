@@ -2058,18 +2058,22 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* YAPOR */
     sg_fr = LOCAL_top_sg_fr;
     LOCAL_top_sg_fr = SgFr_next(sg_fr);
+    LOCK_SG_FR(sg_fr);
+    SgFr_active_workers(sg_fr)--;
 #ifdef THREADS_FULL_SHARING_FTNA_3
+    UNLOCK_SG_FR(sg_fr);
     if (SgFr_cons_ref_first_ans(sg_fr) == NULL) {      
 #else
-    LOCK_SG_FR(sg_fr);
     if (SgFr_first_answer(sg_fr) == NULL) {
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
     /* no answers --> ready */
       SgFr_state(sg_fr) = ready;
-#ifndef THREADS_FULL_SHARING_FTNA_3
+#ifdef THREADS_FULL_SHARING_FTNA_3
+    } else if (TrNode_entry(SgFr_cons_ref_first_ans(sg_fr)) == SgFr_answer_trie(sg_fr)) {
+#else /* !THREADS_FULL_SHARING_FTNA_3 */
       UNLOCK_SG_FR(sg_fr);
-#endif  /* THREADS_FULL_SHARING_FTNA_3 */
     } else if (SgFr_first_answer(sg_fr) == SgFr_answer_trie(sg_fr)) {
+#endif  /* THREADS_FULL_SHARING_FTNA_3 */
       /* yes answer --> complete */
 #ifndef TABLING_EARLY_COMPLETION
       /* with early completion, at this point the subgoal should be already completed */
@@ -2081,8 +2085,27 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     } else {
       /* answers --> incomplete/ready */
 #ifdef INCOMPLETE_TABLING
-      //printf("SgFr_state(sg_fr) = incomplete\n");
+
       SgFr_state(sg_fr) = incomplete;
+      /****************************** HERE   ****************/
+      //SgFr_state(sg_fr) = ready;
+      //consumer_trie_free_structs(sg_fr PASS_REGS);
+      
+      
+      //      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      //SgFr_hash_chain(sg_fr) = NULL;
+      //SgFr_first_answer(sg_fr) = NULL;
+      //SgFr_last_answer(sg_fr) = NULL;
+      //ans_node_ptr node = TrNode_child(SgFr_answer_trie(sg_fr));
+      //TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
+      //free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      
+
+
+
+
+
+
 #ifdef MODE_DIRECTED_TABLING
       if (SgFr_invalid_chain(sg_fr)) {
 	ans_node_ptr current_node, next_node;
@@ -2131,7 +2154,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif
       SgFr_state(sg_fr) = ready;
 #if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-      SgFr_active_workers(sg_fr)--;
       if (SgFr_active_workers(sg_fr) == 0) {
 	SgFr_sg_ent_state(sg_fr) = ready;
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
@@ -2869,9 +2891,7 @@ static inline void consumer_trie_free_structs(sg_fr_ptr sg_fr USES_REGS) {
       /* has at least one trie hash bucket array */
       consumer_trie_free_bucket_array((ans_ref_ptr *) SgFr_cons_ref_ans(sg_fr) PASS_REGS);
     }
-    SgFr_cons_ref_ans(sg_fr) = NULL;
-    SgFr_cons_ref_first_ans(sg_fr) = NULL;
-    SgFr_cons_ref_last_ans(sg_fr) = NULL;    
+    SgFr_cons_ref_ans(sg_fr) = SgFr_cons_ref_first_ans(sg_fr) = SgFr_cons_ref_last_ans(sg_fr) = NULL;    
   }
   return; 
 }
