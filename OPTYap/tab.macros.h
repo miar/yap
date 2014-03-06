@@ -2085,27 +2085,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     } else {
       /* answers --> incomplete/ready */
 #ifdef INCOMPLETE_TABLING
-
       SgFr_state(sg_fr) = incomplete;
-      /****************************** HERE   ****************/
-      //SgFr_state(sg_fr) = ready;
-      //consumer_trie_free_structs(sg_fr PASS_REGS);
-      
-      
-      //      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
-      //SgFr_hash_chain(sg_fr) = NULL;
-      //SgFr_first_answer(sg_fr) = NULL;
-      //SgFr_last_answer(sg_fr) = NULL;
-      //ans_node_ptr node = TrNode_child(SgFr_answer_trie(sg_fr));
-      //TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
-      //free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
-      
-
-
-
-
-
-
 #ifdef MODE_DIRECTED_TABLING
       if (SgFr_invalid_chain(sg_fr)) {
 	ans_node_ptr current_node, next_node;

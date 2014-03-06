@@ -595,8 +595,6 @@
     } else {
       /* subgoal completed */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
-
-
       if (ans_node == NULL) {
 	/* no answers --> fail */
 	goto fail;
