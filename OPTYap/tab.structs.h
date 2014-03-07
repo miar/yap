@@ -114,18 +114,18 @@ typedef struct global_trie_node {
 ******************************/
 
 #ifdef THREADS_FULL_SHARING
-/* used in FTNA_3 and in Batched Mode */
+/* used in FTNA_3 */
 typedef struct answer_ref_node {
-  struct answer_trie_node *entry;  /* for batched mode this is the ans_node */
-  struct answer_ref_node *child; /* for batched mode this is the previous */
+  struct answer_trie_node *entry;  
+  struct answer_ref_node *child; 
   struct answer_ref_node *next;
 } *ans_ref_ptr;
 #endif /* THREADS_FULL_SHARING */
 
-#define RefNode_answer(X)    ((X)->entry)  /* for batched mode this is the ans_node */
+#define RefNode_answer(X)    ((X)->entry)
 #define RefNode_next(X)      ((X)->next)
 #define RefNode_child(X)     ((X)->child)
-#define RefNode_previous(X)  ((X)->child) /* for batched this is the previous */
+
 
 
 /***********************************************************************
@@ -393,13 +393,11 @@ typedef struct subgoal_frame {
 #ifdef THREADS_FULL_SHARING_FTNA 
   struct answer_trie_node *last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA */
-  struct answer_trie_node *batched_last_answer;
 #ifdef THREADS_FULL_SHARING_FTNA_3
   struct answer_ref_node *consumer_ref_answer;
   struct answer_ref_node *consumer_ref_first_answer;
   struct answer_ref_node *consumer_ref_last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-  struct answer_ref_node *batched_cached_answers;
 #endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
@@ -470,8 +468,6 @@ typedef struct subgoal_frame {
 /* subgoal_frame fields */
 #define SgFr_sg_fr_array(X)             ((X)->subgoal_frame_array)
 #define SgFr_sg_ent(X)                  ((X)->subgoal_entry)
-#define SgFr_batched_last_answer(X)     ((X)->batched_last_answer)
-#define SgFr_batched_cached_answers(X)  ((X)->batched_cached_answers)
 #define SgFr_state(X)                   ((X)->state_flag)
 #define SgFr_try_answer(X)              ((X)->try_answer)
 #define SgFr_gen_cp(X)                  ((X)->generator_choice_point)
@@ -511,10 +507,6 @@ typedef struct subgoal_frame {
   SgFr_sg_ent_state:            a flag that indicates the subgoal entry state.
   SgFr_active_workers:          the number of workers evaluating the subgoal.
   SgFr_sg_ent:                  a pointer to the corresponding subgoal entry.
-  SgFr_batched_last_answer:     a pointer to the leaf answer trie node of the last checked answer 
-                                when using batched scheduling.
-  SgFr_batched_cached_answers:  a pointer to the chain of answers already inserted in the trie, but not 
-                                yet found when using batched scheduling.
   SgFr_state:                   a flag that indicates the subgoal frame state.
   SgFr_gen_cp:                  a pointer to the correspondent generator choice point.
   SgFr_next:                    a pointer to the next subgoal frame on the chain.

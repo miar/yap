@@ -538,7 +538,6 @@
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */      
        init_subgoal_frame(sg_fr);
-
 #ifdef DETERMINISTIC_TABLING
       if (IsMode_Batched(TabEnt_mode(tab_ent))) {
 	store_deterministic_generator_node(tab_ent, sg_fr);
@@ -1548,10 +1547,6 @@
 
 
       if (IS_BATCHED_GEN_CP(gcp)) {
-#ifdef THREADS_FULL_SHARING
-        if (worker_id >= ANSWER_LEAF_NODE_MAX_THREADS)
-          SgFr_batched_cached_answers_check_insert(sg_fr,ans_node); //add to buffer all answers except the ans_node
-#endif /* THREADS_FULL_SHARING */
 #ifdef TABLING_EARLY_COMPLETION
 	if (gcp == PROTECT_FROZEN_B(B) && (*subs_ptr == 0 || gcp->cp_ap == COMPLETION)) {
 	  /* if the current generator choice point is the topmost choice point and the current */
@@ -1597,48 +1592,6 @@
 #ifdef EXTRA_STATISTICS
       Stats_repeated_answers++;
 #endif
-
-#ifdef THREADS_FULL_SHARING
-      if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))){
-	if (worker_id >= ANSWER_LEAF_NODE_MAX_THREADS) {
-	  UNLOCK_ANSWER_NODE(ans_node);
-	  UNLOCK_ANSWER_TRIE(sg_fr);
-	  SgFr_batched_cached_answers_check_insert(sg_fr,NULL); 
-	  //	  INFO_THREADS("new      answer  (2)   sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
-	  if (SgFr_batched_cached_answers_check_remove(sg_fr , ans_node) == 1){
-	    //	    INFO_THREADS("ans_node=%p not found", ans_node);
-	    goto fail;
-	  }
-	  /* deallocate and procceed */
-	  PREG = (yamop *) YENV[E_CP];
-	  PREFETCH_OP(PREG);
-	  CPREG = PREG;
-	  SREG = YENV;
-	  ENV = YENV = (CELL *) YENV[E_E];
-#ifdef DEPTH_LIMIT
-	  DEPTH = YENV[E_DEPTH];
-#endif  /*DEPTH_LIMIT */
-	  GONext();
-	} else {
-	  if (!ANSWER_LEAF_NODE_CHECK_WID(ans_node,worker_id)){
-	    ANSWER_LEAF_NODE_SET_WID(ans_node,worker_id);
-	    UNLOCK_ANSWER_NODE(ans_node);
-	    UNLOCK_ANSWER_TRIE(sg_fr);
-	    /* deallocate and procceed */
-	    //	    INFO_THREADS("new      answer  (2)  sgfr=%p ans_node=%p",SgFr_sg_ent(sg_fr),ans_node);
-	    PREG = (yamop *) YENV[E_CP];
-	    PREFETCH_OP(PREG);
-	    CPREG = PREG;
-	    SREG = YENV;
-	    ENV = YENV = (CELL *) YENV[E_E];
-#ifdef DEPTH_LIMIT
-	    DEPTH = YENV[E_DEPTH];
-#endif  /*DEPTH_LIMIT */
-	    GONext();
-	  }
-	}
-      }
-#endif /* THREADS_FULL_SHARING */
       UNLOCK_ANSWER_TRIE(sg_fr);
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
       	if (worker_id == 1) {

@@ -77,9 +77,6 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr USES_REGS);
 static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr);
 static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr USES_REGS);
 #ifdef THREADS_FULL_SHARING
-static inline void SgFr_batched_cached_answers_check_insert(sg_fr_ptr, ans_node_ptr);
-static inline int SgFr_batched_cached_answers_check_remove(sg_fr_ptr, ans_node_ptr);
-
 #ifdef THREADS_FULL_SHARING_FTNA_3
 static inline void consumer_trie_insert_bucket_chain(ans_ref_ptr *, ans_ref_ptr, ans_ref_ptr, long, int USES_REGS);
 static inline void consumer_trie_insert_bucket_array(ans_ref_ptr *, ans_ref_ptr, long USES_REGS);
@@ -544,14 +541,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	}
 #endif /* THREADS_NO_SHARING */
 
-#if defined(THREADS_FULL_SHARING)
-#define SgFr_init_batched_fields(SG_FR)             \
-        SgFr_batched_last_answer(SG_FR) = NULL;     \
-        SgFr_batched_cached_answers(SG_FR) = NULL;
-#else
-#define SgFr_init_batched_fields(SG_FR)
-#endif /* THREADS_FULL_SHARING */
-
 #ifdef THREADS_CONSUMER_SHARING
 #define DepFr_init_external_field(DEP_FR, IS_EXTERNAL)          \
         DepFr_external(DEP_FR) = IS_EXTERNAL
@@ -697,7 +686,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
           SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
           SgFr_state(SG_FR) = ready;                               \
-          SgFr_init_batched_fields(SG_FR);		           \
 	  SgFr_init_fs_ftna_3_fields(SG_FR);                       \
 	  SgFr_init_fs_ftna_last_answer(SG_FR);                    \
         }
@@ -1355,65 +1343,6 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
 }
 
 
-#ifdef THREADS_FULL_SHARING
-static inline void SgFr_batched_cached_answers_check_insert(sg_fr_ptr sg_fr, ans_node_ptr ans_node) {
-  CACHE_REGS
-
-  if (SgFr_batched_last_answer(sg_fr) == NULL)
-    SgFr_batched_last_answer(sg_fr) = SgFr_first_answer(sg_fr);
-  else
-    SgFr_batched_last_answer(sg_fr) = TrNode_child(SgFr_batched_last_answer(sg_fr)) ;
-
-  while (SgFr_batched_last_answer(sg_fr) != ans_node) {
-    struct answer_ref_node *ref_node = NULL;
-    if (SgFr_batched_cached_answers(sg_fr) == NULL) {
-      new_answer_ref_node(ref_node, SgFr_batched_last_answer(sg_fr), NULL, NULL);
-    } else {
-      new_answer_ref_node(ref_node, SgFr_batched_last_answer(sg_fr), SgFr_batched_cached_answers(sg_fr), NULL);
-      RefNode_previous(SgFr_batched_cached_answers(sg_fr)) = ref_node;
-    }
-    SgFr_batched_cached_answers(sg_fr) = ref_node;
-    SgFr_batched_last_answer(sg_fr) = TrNode_child(SgFr_batched_last_answer(sg_fr)) ;			
-  }
-  if (ans_node != NULL)
-    /* new answer */
-    SgFr_batched_last_answer(sg_fr) = ans_node;
-  else
-    /* repeated answer */
-    SgFr_batched_last_answer(sg_fr) = SgFr_last_answer(sg_fr);
-
-  return;
-}
-
-static inline int SgFr_batched_cached_answers_check_remove(sg_fr_ptr sg_fr, ans_node_ptr ans_node) {
-  CACHE_REGS
-  struct answer_ref_node *local_uncons_ans;
-
-  local_uncons_ans = SgFr_batched_cached_answers(sg_fr) ; 
-  while ( local_uncons_ans != NULL ) {				 	                
-    if ( RefNode_answer(local_uncons_ans) == ans_node )			                
-      break;								                
-    local_uncons_ans = RefNode_next(local_uncons_ans) ;			                
-  }									                
-  if ( local_uncons_ans == NULL )                                                       
-    return 1; 
-
-  /*remove node from buffer */		
-  if (RefNode_previous(local_uncons_ans) == NULL)	{
-    SgFr_batched_cached_answers(sg_fr) = RefNode_next(local_uncons_ans) ; 
-    if (SgFr_batched_cached_answers(sg_fr) != NULL) 
-      RefNode_previous(SgFr_batched_cached_answers(sg_fr)) = NULL;
-  } else{
-    RefNode_next(RefNode_previous(local_uncons_ans)) = RefNode_next(local_uncons_ans);
-    if (RefNode_next(local_uncons_ans) != NULL) 
-      RefNode_previous(RefNode_next(local_uncons_ans)) = RefNode_previous(local_uncons_ans);
-  }
-  FREE_ANSWER_REF_NODE(local_uncons_ans);
-  return 0;
-}
-#endif /* THREADS_FULL_SHARING */
-
-
 #ifdef THREADS_CONSUMER_SHARING
 static inline void add_to_tdv(int wid, int wid_dep) {
 #ifdef OUTPUT_THREADS_TABLING
@@ -2050,7 +1979,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     adjust_freeze_registers();
   }
 
-  /******************************************** HERE ************************************/
   while (LOCAL_top_sg_fr && EQUAL_OR_YOUNGER_CP(SgFr_gen_cp(LOCAL_top_sg_fr), prune_cp)) {
     sg_fr_ptr sg_fr;
 #ifdef YAPOR
@@ -2081,7 +2009,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     } else if (SgFr_first_answer(sg_fr) == SgFr_answer_trie(sg_fr)) {
       /* yes answer --> complete */
 #ifdef THREADS_FULL_SHARING
-      SgFr_sg_ent_state(sg_fr) = /* assuming load_answers only*/
+      SgFr_sg_ent_state(sg_fr) = /* assuming load_answers only */
 #endif /* THREADS_FULL_SHARING */
       SgFr_state(sg_fr) = complete;
     }
