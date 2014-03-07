@@ -60,8 +60,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-//#define THREADS_SUBGOAL_SHARING 1
-#define THREADS_FULL_SHARING 1  
+#define THREADS_SUBGOAL_SHARING 1
+/////#define THREADS_FULL_SHARING 1  
 /* #define THREADS_CONSUMER_SHARING 1 */
 
 //#define EXTRA_STATISTICS   1
@@ -70,14 +70,8 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
-//#define THREADS_FULL_SHARING_FTNA_2_1  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) - use only with local scheduling. check first for mode_direct_tabling */
 
-//#define THREADS_FULL_SHARING_FTNA_2_2  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) - use only with local scheduling. check first for mode_direct_tabling. -> just for testing. not working for show_tables/abolish_tables */
-
-//#define THREADS_FULL_SHARING_FTNA_2_3  1  /*  fast table_new_answer 2 (SgFr_last_answer shared) - use only with local scheduling. check first for mode_direct_tabling */
-
-#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ /* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
-
+//#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ /* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
 
 /*************************************************************************
 **      tries locking scheme (mandatory, define one per trie type)      **
@@ -157,7 +151,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1
+//#define INCOMPLETE_TABLING 1
 
 /******************************************************
 **      limit the table space size ? (optional)      **
