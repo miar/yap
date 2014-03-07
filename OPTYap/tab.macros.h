@@ -2050,6 +2050,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
     adjust_freeze_registers();
   }
 
+  /******************************************** HERE ************************************/
   while (LOCAL_top_sg_fr && EQUAL_OR_YOUNGER_CP(SgFr_gen_cp(LOCAL_top_sg_fr), prune_cp)) {
     sg_fr_ptr sg_fr;
 #ifdef YAPOR
@@ -2058,35 +2059,38 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* YAPOR */
     sg_fr = LOCAL_top_sg_fr;
     LOCAL_top_sg_fr = SgFr_next(sg_fr);
+#ifdef THREADS_FULL_SHARING
     LOCK_SG_FR(sg_fr);
     SgFr_active_workers(sg_fr)--;
-#ifdef THREADS_FULL_SHARING_FTNA_3
     UNLOCK_SG_FR(sg_fr);
-    if (SgFr_cons_ref_first_ans(sg_fr) == NULL) {      
-#else
-    if (SgFr_first_answer(sg_fr) == NULL) {
-#endif  /* THREADS_FULL_SHARING_FTNA_3 */
-    /* no answers --> ready */
-      SgFr_state(sg_fr) = ready;
+#endif /* THREADS_FULL_SHARING */
 #ifdef THREADS_FULL_SHARING_FTNA_3
+    if (SgFr_cons_ref_first_ans(sg_fr) == NULL) {
+      /* no answers --> ready */
+      SgFr_state(sg_fr) = ready;
     } else if (TrNode_entry(SgFr_cons_ref_first_ans(sg_fr)) == SgFr_answer_trie(sg_fr)) {
-#else /* !THREADS_FULL_SHARING_FTNA_3 */
-      UNLOCK_SG_FR(sg_fr);
-    } else if (SgFr_first_answer(sg_fr) == SgFr_answer_trie(sg_fr)) {
-#endif  /* THREADS_FULL_SHARING_FTNA_3 */
       /* yes answer --> complete */
-#ifndef TABLING_EARLY_COMPLETION
-      /* with early completion, at this point the subgoal should be already completed */
+      SgFr_first_answer(sg_fr) = SgFr_last_answer(sg_fr) = SgFr_answer_trie(sg_fr);
+      consumer_trie_free_structs(sg_fr PASS_REGS);
+      SgFr_sg_ent_state(sg_fr) = SgFr_state(sg_fr) = complete;/* assuming load_answers only*/
+    }    
+#else  /* !THREADS_FULL_SHARING_FTNA_3 */
+    if (SgFr_first_answer(sg_fr) == NULL) {
+      /* no answers --> ready */
+      SgFr_state(sg_fr) = ready;
+    } else if (SgFr_first_answer(sg_fr) == SgFr_answer_trie(sg_fr)) {
+      /* yes answer --> complete */
+#ifdef THREADS_FULL_SHARING
+      SgFr_sg_ent_state(sg_fr) = /* assuming load_answers only*/
+#endif /* THREADS_FULL_SHARING */
       SgFr_state(sg_fr) = complete;
-#endif /* TABLING_EARLY_COMPLETION */
-#ifndef THREADS_FULL_SHARING_FTNA_3
-      UNLOCK_SG_FR(sg_fr);
+    }
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
-    } else {
+    else {
       /* answers --> incomplete/ready */
 #ifdef INCOMPLETE_TABLING
       SgFr_state(sg_fr) = incomplete;
-#ifdef MODE_DIRECTED_TABLING
+#if defined(MODE_DIRECTED_TABLING) && !defined(THREADS_FULL_SHARING)
       if (SgFr_invalid_chain(sg_fr)) {
 	ans_node_ptr current_node, next_node;
 	/* find first valid answer */
@@ -2104,8 +2108,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	  next_node = TrNode_child(next_node);
 	}
 	SgFr_last_answer(sg_fr) = current_node;
-#ifndef THREADS_FULL_SHARING
-	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
 	/* free invalid answer nodes */
 	current_node = SgFr_invalid_chain(sg_fr);
 	SgFr_invalid_chain(sg_fr) = NULL;
@@ -2114,90 +2116,38 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	  FREE_ANSWER_TRIE_NODE(current_node);
 	  current_node = node_node;
 	}
-#endif /* THREADS_FULL_SHARING */
       }
-#endif /* MODE_DIRECTED_TABLING */
-#ifndef THREADS_FULL_SHARING_FTNA_3
-      UNLOCK_SG_FR(sg_fr);
-#endif /* THREADS_FULL_SHARING_FTNA_3 */
+#endif /* MODE_DIRECTED_TABLING && !THREADS_FULL_SHARING */
 #else  /* !INCOMPLETE_TABLING */
-      ans_node_ptr node;
-#ifdef MODE_DIRECTED_TABLING
-#ifndef THREADS_FULL_SHARING
-	/* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
-      ans_node_ptr invalid_node = SgFr_invalid_chain(sg_fr);
-      SgFr_invalid_chain(sg_fr) = NULL;
-#endif /* THREADS_FULL_SHARING */
-#endif /* MODE_DIRECTED_TABLING */
+      SgFr_state(sg_fr) = ready;
 #ifdef THREADS_FULL_SHARING_FTNA_3
       consumer_trie_free_structs(sg_fr PASS_REGS);
 #endif
-      SgFr_state(sg_fr) = ready;
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
-      if (SgFr_active_workers(sg_fr) == 0) {
-	SgFr_sg_ent_state(sg_fr) = ready;
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
-	free_answer_hash_chain(SgFr_hash_chain(sg_fr));
-	SgFr_hash_chain(sg_fr) = NULL;
-	SgFr_first_answer(sg_fr) = NULL;
-	SgFr_last_answer(sg_fr) = NULL;
-	node = TrNode_child(SgFr_answer_trie(sg_fr));
-	TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
-	free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
-	UNLOCK_SG_FR(sg_fr);
-#ifdef THREADS_FULL_SHARING 
-#ifndef THREADS_FULL_SHARING_FTNA_3
-        if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {
-	  SgFr_batched_last_answer(sg_fr) = NULL;
-	  struct answer_ref_node *local_uncons_ans = SgFr_batched_cached_answers(sg_fr) ; 
-	  while ( local_uncons_ans ) {
-	    SgFr_batched_cached_answers(sg_fr) = RefNode_next(SgFr_batched_cached_answers(sg_fr));
-	    FREE_ANSWER_REF_NODE(local_uncons_ans);
-	    local_uncons_ans = SgFr_batched_cached_answers(sg_fr);
-	  }
-	}
-#endif /* THREADS_FULL_SHARING_FTNA_3 */
-      } 
-#ifndef THREADS_FULL_SHARING_FTNA_3
-      else { /* SgFr_active_workers(sg_fr) != 0 */
-        if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))){
-	  SgFr_batched_last_answer(sg_fr) = NULL;
-	  if ( worker_id >= ANSWER_LEAF_NODE_MAX_THREADS ) {
-	    struct answer_ref_node *local_uncons_ans = SgFr_batched_cached_answers(sg_fr) ; 
-	    while ( local_uncons_ans ) {
-	      SgFr_batched_cached_answers(sg_fr) = RefNode_next(SgFr_batched_cached_answers(sg_fr));
-	      FREE_ANSWER_REF_NODE(local_uncons_ans);
-	      local_uncons_ans = SgFr_batched_cached_answers(sg_fr);
-	    }	
-	  } else { /* worker_id < ANSWER_LEAF_NODE_MAX_THREADS */
-	    ans_node_ptr leaf_ans_trie_node = SgFr_first_answer(sg_fr);
-	    while( leaf_ans_trie_node ){
-	      ANSWER_LEAF_NODE_DEL_WID(leaf_ans_trie_node,worker_id);
-	      leaf_ans_trie_node = TrNode_child(leaf_ans_trie_node);
-	    }
-	  }
-	}
-      }
-#endif /* THREADS_FULL_SHARING_FTNA_3 */
-#endif /* THREADS_FULL_SHARING */
-#if defined(MODE_DIRECTED_TABLING)
 #ifndef THREADS_FULL_SHARING
-      /* *** THREADS_FULL_SHARING NOT DOING THIS FOR NOW  *** */
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      SgFr_hash_chain(sg_fr) = NULL;
+      SgFr_first_answer(sg_fr) = NULL;
+      SgFr_last_answer(sg_fr) = NULL;
+      node = TrNode_child(SgFr_answer_trie(sg_fr));
+      TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
+      free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);      
+#ifdef MODE_DIRECTED_TABLING
+      ans_node_ptr invalid_node = SgFr_invalid_chain(sg_fr);
+      SgFr_invalid_chain(sg_fr) = NULL;
       /* free invalid answer nodes */
       while (invalid_node) {
 	node = TrNode_next(invalid_node);	
 	FREE_ANSWER_TRIE_NODE(invalid_node);
 	invalid_node = node;
       }
-#endif /* THREADS_FULL_SHARING */
-#endif /* MODE_DIRECTED_TABLING  */
+#endif /* MODE_DIRECTED_TABLING */
+#endif /* !THREADS_FULL_SHARING */      
 #endif /* INCOMPLETE_TABLING */
     }
 #ifdef LIMIT_TABLING
     insert_into_global_sg_fr_list(sg_fr);
 #endif /* LIMIT_TABLING */
   }
-
   return;
 }
 

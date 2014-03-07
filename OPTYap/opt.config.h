@@ -157,7 +157,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1
+//#define INCOMPLETE_TABLING 1
 
 /******************************************************
 **      limit the table space size ? (optional)      **
