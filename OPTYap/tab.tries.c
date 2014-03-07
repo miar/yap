@@ -1955,7 +1955,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #if defined(THREADS_SUBGOAL_SHARING)
   else {
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
-    if (LOCAL_sg_fr_hash_buckets){
+    if (LOCAL_sg_fr_hash_buckets) {
       FREE_BLOCK(SgFrHashBkts_buckets(LOCAL_sg_fr_hash_buckets));
       FREE_BLOCK(LOCAL_sg_fr_hash_buckets);
       LOCAL_sg_fr_hash_buckets = NULL;
@@ -1966,14 +1966,16 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID    
     if (sg_fr == NULL)
       return;
-    
+
     sg_fr_ptr sg_fr_last = sg_fr;
     while(SgFr_next_complete(sg_fr_last))
       sg_fr_last = SgFr_next_complete(sg_fr_last);
-    
-    do 
-      SgFr_next_complete(sg_fr_last) = REMOTE_top_sg_fr_complete(0);           
-    while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), SgFr_next_complete(sg_fr_last), sg_fr));
+
+    sg_fr_ptr remote_sg_fr;
+    do {
+      remote_sg_fr = REMOTE_top_sg_fr_complete(0);
+      SgFr_next_complete(sg_fr_last) = remote_sg_fr;           
+    } while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), remote_sg_fr, sg_fr));
     LOCAL_top_sg_fr_complete = NULL;
     return;
   }
@@ -2012,10 +2014,13 @@ void abolish_table(tab_ent_ptr tab_ent) {
     sg_fr_ptr sg_fr_last = sg_fr;
     while(SgFr_next_complete(sg_fr_last))
       sg_fr_last = SgFr_next_complete(sg_fr_last);
-    
-    do 
-      SgFr_next_complete(sg_fr_last) = REMOTE_top_sg_fr_complete(0);           
-    while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), SgFr_next_complete(sg_fr_last), sg_fr));
+   
+    sg_fr_ptr remote_sg_fr;
+    do {
+      remote_sg_fr = REMOTE_top_sg_fr_complete(0);
+      SgFr_next_complete(sg_fr_last) = remote_sg_fr;           
+    } while(!BOOL_CAS(&(REMOTE_top_sg_fr_complete(0)), remote_sg_fr, sg_fr));
+ 
     LOCAL_top_sg_fr_complete = NULL;
     return;
   }

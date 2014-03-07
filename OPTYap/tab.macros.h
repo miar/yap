@@ -373,6 +373,16 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define DepFr_init_yapor_fields(DEP_FR, DEP_ON_STACK, TOP_OR_FR)
 #endif /* YAPOR */
 
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
+#define SgEnt_init_next_complete(SG_ENT)	\
+  SgEnt_next_complete(SG_ENT) = NULL
+#define SgFr_init_next_complete(SG_FR)		\
+  SgFr_next_complete(SG_FR) = NULL 
+#else
+#define SgEnt_init_next_complete(SG_ENT)
+#define SgFr_init_next_complete(SG_FR)
+#endif
+
 #ifdef MODE_DIRECTED_TABLING
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 #define Init_threads_full_sharing_mode_directed_v02(SG_ENT)   \
@@ -658,6 +668,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
 	  SgEnt_init_extra_statistics_choice_points(SG_ENT);        \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
+	  SgEnt_init_next_complete(SG_ENT);			    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
         }
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
@@ -708,6 +719,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgFr_last_answer(SG_FR) = NULL;                          \
 	  SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
           SgFr_state(SG_FR) = ready;                               \
+	  SgFr_init_next_complete(SG_FR);    		           \
 	}
 
 #define init_subgoal_frame(SG_FR)                                  \
@@ -1589,8 +1601,9 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   CACHE_REGS
 
-#ifdef TABLING_EARLY_COMPLETION_
+#ifdef TABLING_EARLY_COMPLETION
     /* as example the test_single02 passes here more than once with tabling_early_completion*/
+    /* with early completion a subgoal where the number of substitution variables is zero is completed earlier but it remains on the LOCAL_top_sg_fr, thus passes in the mark_as_complete more that one time */
   if (SgFr_state(sg_fr) >= complete)
     return;  
 #endif
@@ -1987,6 +2000,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #endif /* YAPOR */
     sg_fr = LOCAL_top_sg_fr;
     LOCAL_top_sg_fr = SgFr_next(sg_fr);
+    
 #ifdef THREADS_FULL_SHARING
     LOCK_SG_FR(sg_fr);
     SgFr_active_workers(sg_fr)--;
@@ -2011,7 +2025,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 #ifdef THREADS_FULL_SHARING
       SgFr_sg_ent_state(sg_fr) = /* assuming load_answers only */
 #endif /* THREADS_FULL_SHARING */
-      SgFr_state(sg_fr) = complete;
+	SgFr_state(sg_fr) = complete;
     }
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
     else {
@@ -2040,9 +2054,9 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
 	current_node = SgFr_invalid_chain(sg_fr);
 	SgFr_invalid_chain(sg_fr) = NULL;
 	while (current_node) {
-	  next_node = TrNode_next(invalid_node);	
+	  next_node = TrNode_next(current_node);	
 	  FREE_ANSWER_TRIE_NODE(current_node);
-	  current_node = node_node;
+	  current_node = next_node;
 	}
       }
 #endif /* MODE_DIRECTED_TABLING && !THREADS_FULL_SHARING */
@@ -2056,7 +2070,7 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       SgFr_hash_chain(sg_fr) = NULL;
       SgFr_first_answer(sg_fr) = NULL;
       SgFr_last_answer(sg_fr) = NULL;
-      node = TrNode_child(SgFr_answer_trie(sg_fr));
+      ans_node_ptr node = TrNode_child(SgFr_answer_trie(sg_fr));
       TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
       free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);      
 #ifdef MODE_DIRECTED_TABLING
