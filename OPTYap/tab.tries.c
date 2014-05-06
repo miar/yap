@@ -1186,22 +1186,60 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     RESET_VARIABLE(t);
   }
 
+#ifdef THREADS_SUBGOAL_COMPLETION_WAIT
+  sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node)); 
+  if (sg_fr == NULL) {
+    new_subgoal_frame(sg_fr, preg, NULL);
+    SgFr_wid(sg_fr) = worker_id;
+    SgFr_sg_leaf_node(sg_fr) = current_sg_node;
+    if(BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), NULL, ((CELL) sg_fr | 0x1))) {
+      /* no sg_fr complete for now */
+      if (subs_pos) {
+	ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+	memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+	SgFr_mode_directed(sg_fr) = mode_directed;
+      }
+      return sg_fr;
+    }
+    FREE_SUBGOAL_FRAME(sg_fr);
+    FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
+    pthread_cond_destroy(&(SgFr_comp_wait(sg_fr)));
+    pthread_mutex_destroy(&(SgFr_lock_comp_wait(sg_fr)));
+
+  }
+  if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
+    return sg_fr;
+
+  LOCK_SG_FR_COMP_WAIT(sg_fr); 
+  //  pthread_cond_wait(&(got_request), &(a_mutex));
+  pthread_cond_wait(&(SgFr_comp_wait(sg_fr)), &(SgFr_lock_comp_wait(sg_fr)));
+  UNLOCK_SG_FR_COMP_WAIT(sg_fr); 
+  return sg_fr;
+
+
+#endif /* THREADS_SUBGOAL_COMPLETION_WAIT */
+
+
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID 
 #ifdef THREADS_SUBGOAL_SHARING
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node));  
   
   if (sg_fr) {
-    if (SgFr_wid(sg_fr) == worker_id  
+    if (
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
-	|| SgFr_state(sg_fr) >= complete
-#endif  /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
-	)
-      return sg_fr;
-    mode_directed = SgFr_mode_directed(sg_fr);
+	SgFr_state(sg_fr) >= complete ||
+#endif  /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */		
+	SgFr_wid(sg_fr) == worker_id)
+       return sg_fr;
+	mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     while(sg_fr) {
-      if (SgFr_wid(sg_fr) == worker_id)
-	return sg_fr;
+      if (
+#ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
+	  SgFr_state(sg_fr) >= complete ||
+#endif  /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */	
+	  SgFr_wid(sg_fr) == worker_id)
+	  return sg_fr;
       sg_fr = SgFr_next_wid(sg_fr);
     }
   } else

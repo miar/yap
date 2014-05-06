@@ -3715,7 +3715,7 @@ expand_index(struct intermediates *cint) {
     clleft = count_clauses_left(last,ap);
   }
 
-  if (Yap_op_from_opcode((*labp)->opc) == _expand_clauses) {
+  if (labp && /* miguel changed -> v00_carcinogenesis_mt_new_02 labp == null (24 threads) */  Yap_op_from_opcode((*labp)->opc) == _expand_clauses) {
     /* ok, we know how many clauses */
     yamop *ipc = *labp;
     /* check all slots, not just the ones with values */

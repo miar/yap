@@ -11,8 +11,6 @@
 **                                                                     **
 ************************************************************************/
 
-
-
 /****************************************************************
 **                   Configuration Parameters                  **
 ****************************************************************/
@@ -23,7 +21,8 @@
 #define MAX_TABLE_VARS     1000
 #define TRIE_LOCK_BUCKETS  512
 /************************original - inicio ********************/
-//#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
+///#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
+
 #define THREADS_DIRECT_BUCKETS    65
 //%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
 #define THREADS_INDIRECT_BUCKETS   0
@@ -61,8 +60,8 @@
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
 #define THREADS_SUBGOAL_SHARING 1
-/////#define THREADS_FULL_SHARING 1  
-/* #define THREADS_CONSUMER_SHARING 1 */
+////////////#define THREADS_FULL_SHARING 1  
+/* #define THREADS_CONSUMER_SHARING 1  -- NOT WORKING*/
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
@@ -71,7 +70,9 @@
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
-//#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ /* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
+///#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. */
+ /* do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ 
+/* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
 
 /*************************************************************************
 **      tries locking scheme (mandatory, define one per trie type)      **
@@ -91,29 +92,28 @@
 *************************************************************************/
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-/////#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+///////#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1       /* the best */
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
+////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
-//#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1 
+//#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-////#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
+//////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      /* the best */
-/////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+///////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      
+//////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
-
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
@@ -151,7 +151,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1
+#define INCOMPLETE_TABLING 1   /*  REMOVE IF FULL_SHARING i'm using always this simply because it is better */
 
 /******************************************************
 **      limit the table space size ? (optional)      **
@@ -188,11 +188,12 @@
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
 #define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+                           
+#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
+/* -> missing to implement with THREADS_SUBGOAL_SHARING only*/
 
-#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
-/* -> missing to implement with THREADS_SUBGOAL_SHARING */
-
-
+#define THREADS_SUBGOAL_COMPLETION_WAIT  1
+                                                                                          
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
 #ifdef USE_PAGES_MALLOC
 #undef USE_PAGES_MALLOC
@@ -200,7 +201,7 @@
 //#define THREADS_FULL_SHARING_MODE_DIRECTED_V01  1  /* not ok */
 #define THREADS_FULL_SHARING_MODE_DIRECTED_V02  1
 #endif /* THREADS_FULL_SHARING && MODE_DIRECTED_TABLING */
-
+          
 
 /************************************************************************
 **                           Parameter Checks                          **
@@ -414,5 +415,8 @@
 #undef THREADS_FULL_SHARING_FTNA
 #endif /* THREADS_FULL_SHARING_FTNA */
 #endif /* THREADS_FULL_SHARING */
+          
 
 
+/****************************************** YAP ISSUES ***********************/
+/* CHECK miguel tag on C/index.c file */

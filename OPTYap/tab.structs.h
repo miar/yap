@@ -307,13 +307,19 @@ typedef enum {          /* do not change order !!! */
 ****************************/
 
 typedef struct subgoal_entry {
-#if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+
+#ifdef THREADS_SUBGOAL_COMPLETION_WAIT
+  lockvar lock_completion_wait;
+  pthread_cond_t completion_wait;
+#endif /* THREADS_SUBGOAL_COMPLETION_WAIT */
+
+#if defined(YAPOR) || defined(THREADS_FULL_SHARING) 
   lockvar lock;
-#endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* YAPOR || THREADS_FULL_SHARING */
+
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
   int query_number;
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
-
   yamop *code_of_subgoal;
   struct answer_trie_hash *hash_chain;
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
@@ -443,7 +449,6 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
 
 #define SgFr_query_number(X)            (SUBGOAL_ENTRY(X) query_number)
-
 #define SgFr_lock(X)                    (SUBGOAL_ENTRY(X) lock)
 #define SgFr_code(X)                    (SUBGOAL_ENTRY(X) code_of_subgoal)
 #define SgFr_tab_ent(X)                 ((SUBGOAL_ENTRY(X) code_of_subgoal)->u.Otapl.te)
@@ -465,6 +470,9 @@ typedef struct subgoal_frame {
 #define SgFr_gen_worker(X)              (SUBGOAL_ENTRY(X) generator_worker)
 #define SgFr_sg_ent_state(X)            (SUBGOAL_ENTRY(X) state_flag)
 #define SgFr_active_workers(X)          (SUBGOAL_ENTRY(X) active_workers)
+#define SgFr_lock_comp_wait(X)          (SUBGOAL_ENTRY(X) lock_completion_wait)
+#define SgFr_comp_wait(X)               (SUBGOAL_ENTRY(X) completion_wait)
+
 /* subgoal_frame fields */
 #define SgFr_sg_fr_array(X)             ((X)->subgoal_frame_array)
 #define SgFr_sg_ent(X)                  ((X)->subgoal_entry)

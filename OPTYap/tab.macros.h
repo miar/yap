@@ -412,7 +412,23 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define AnsHash_init_previous_field(HASH, SG_FR)
 #endif /* MODE_DIRECTED_TABLING */
 
-#if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+
+#ifdef THREADS_SUBGOAL_COMPLETION_WAIT
+#define INIT_LOCK_SG_FR_COMP_WAIT(SG_FR)		\
+  INIT_LOCK(SgFr_lock_comp_wait(SG_FR)) ;		\
+  pthread_cond_init(&(SgFr_comp_wait(SG_FR)), NULL);
+//  SgFr_comp_wait(SG_FR) = PTHREAD_COND_INITIALIZER;
+
+#define LOCK_SG_FR_COMP_WAIT(SG_FR)     LOCK(SgFr_lock_comp_wait(SG_FR))
+#define UNLOCK_SG_FR_COMP_WAIT(SG_FR)   UNLOCK(SgFr_lock_comp_wait(SG_FR))
+#else
+#define INIT_LOCK_SG_FR_COMP_WAIT(SG_FR)
+#define LOCK_SG_FR_COMP_WAIT(SG_FR)
+#define UNLOCK_SG_FR_COMP_WAIT(SG_FR)
+#endif
+
+
+#if defined(YAPOR) || defined(THREADS_FULL_SHARING)
 #define INIT_LOCK_SG_FR(SG_FR)  INIT_LOCK(SgFr_lock(SG_FR))
 #define LOCK_SG_FR(SG_FR)       LOCK(SgFr_lock(SG_FR))
 #define TRYLOCK_SG_FR(SG_FR)    TRY_LOCK(SgFr_lock(SG_FR))
@@ -668,7 +684,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgEnt_init_fs_ftna_last_answer(SG_ENT);                   \
 	  SgEnt_init_extra_statistics_choice_points(SG_ENT);        \
           SgEnt_sg_ent_state(SG_ENT) = ready;		 	    \
-	  SgEnt_init_next_complete(SG_ENT);			    \
           SgEnt_active_workers(SG_ENT) = 0;                         \
         }
 #else /* !THREADS_SUBGOAL_FRAME_BY_WID */
@@ -697,6 +712,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
           SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
           SgFr_state(SG_FR) = ready;                               \
+	  SgFr_init_next_complete(SG_FR);    		           \
 	  SgFr_init_fs_ftna_3_fields(SG_FR);                       \
 	  SgFr_init_fs_ftna_last_answer(SG_FR);                    \
         }
@@ -711,7 +727,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         { register ans_node_ptr ans_node;                          \
           new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL);  \
           ALLOC_SUBGOAL_FRAME(SG_FR);                              \
-          INIT_LOCK_SG_FR(SG_FR);                                  \
+	  INIT_LOCK_SG_FR(SG_FR);				   \
+	  INIT_LOCK_SG_FR_COMP_WAIT(SG_FR);			   \
           SgFr_code(SG_FR) = CODE;                                 \
           SgFr_hash_chain(SG_FR) = NULL;                           \
           SgFr_answer_trie(SG_FR) = ans_node;                      \
@@ -1812,6 +1829,15 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
+#ifdef THREADS_SUBGOAL_COMPLETION_WAIT
+  //  pthread_cond_broadcast(&(SgFr_comp_wait(sg_fr)));
+  //LOCK_SG_FR_COMP_WAIT(sg_fr); 
+  pthread_cond_broadcast(&(SgFr_comp_wait(sg_fr)));
+
+  //UNLOCK_SG_FR_COMP_WAIT(sg_fr); 
+  //  pthread_cond_signal(&(SgFr_comp_wait(sg_fr)));
+
+#endif /* THREADS_SUBGOAL_COMPLETION_WAIT */
   return;
 }
 
