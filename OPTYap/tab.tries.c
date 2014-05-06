@@ -1205,14 +1205,15 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
     pthread_cond_destroy(&(SgFr_comp_wait(sg_fr)));
     pthread_mutex_destroy(&(SgFr_lock_comp_wait(sg_fr)));
-
+    __sync_synchronize();
+    sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node)); 
   }
   if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
     return sg_fr;
 
   LOCK_SG_FR_COMP_WAIT(sg_fr); 
-  //  pthread_cond_wait(&(got_request), &(a_mutex));
-  pthread_cond_wait(&(SgFr_comp_wait(sg_fr)), &(SgFr_lock_comp_wait(sg_fr)));
+  if (SgFr_state(sg_fr) != complete)
+    pthread_cond_wait(&(SgFr_comp_wait(sg_fr)), &(SgFr_lock_comp_wait(sg_fr)));    
   UNLOCK_SG_FR_COMP_WAIT(sg_fr); 
   return sg_fr;
 
