@@ -39,6 +39,7 @@ p_random(void)
   a1 = t1;
   b1 = t2;
   c1 = t3;
+  printf("ooooooooooooooooo\n");
   return(YAP_Unify(YAP_ARG1, YAP_MkFloatTerm(fli-(int)(fli))));
 }
 

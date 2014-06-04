@@ -33,6 +33,11 @@
 #include "tab.macros.h"
 #endif /* TABLING */
 
+#ifdef THREADS_RANDOM_GENERATION 
+/* ramdon of host operating system */
+static Int p_random_hos( USES_REGS1 );
+#endif /* THREADS_RANDOM_GENERATION */
+
 #ifdef TABLING
 static Int p_freeze_choice_point( USES_REGS1 );
 static Int p_wake_choice_point( USES_REGS1 );
@@ -204,6 +209,9 @@ struct page_statistics {
 *******************************/
 
 void Yap_init_optyap_preds(void) {
+#ifdef THREADS_RANDOM_GENERATION 
+  Yap_InitCPred("random_hos", 3, p_random_hos, SafePredFlag|SyncPredFlag);
+#endif /* THREADS_RANDOM_GENERATION  */
 #ifdef TABLING
   Yap_InitCPred("freeze_choice_point", 1, p_freeze_choice_point, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("wake_choice_point", 1, p_wake_choice_point, SafePredFlag|SyncPredFlag);
@@ -249,7 +257,6 @@ void finish_yapor(void) {
   return;
 }
 #endif /* YAPOR */
-
 
 
 /***********************************
@@ -564,10 +571,8 @@ static Int p_show_all_tables( USES_REGS1 ) {
 }
 
 
-
-
-static Int p_table_query_number( USES_REGS1 ) {
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
+static Int p_table_query_number( USES_REGS1 ) {
   /* IOSTREAM *out;
     Term t = Deref(ARG1);
   int t2 = IntOfTerm (Deref(ARG2));
@@ -583,16 +588,10 @@ static Int p_table_query_number( USES_REGS1 ) {
   Stats_query_number = IntOfTerm (Deref(ARG1));
   //  printf("Stats_query_number %d \n", Stats_query_number);
 
-#endif /* EXTRA_STATISTICS_CHOICE_POINTS*/
-return (TRUE);
+  return (TRUE);
 }
 
-
-
-
-
-
-
+#endif /* EXTRA_STATISTICS_CHOICE_POINTS*/
 
 
 static Int p_show_cputime_by_thread( USES_REGS1 ) {
@@ -1300,3 +1299,27 @@ static inline struct page_statistics show_statistics_table_subgoal_answer_frames
 #endif /* TABLING_INNER_CUTS */
 #endif /* YAPOR && TABLING */
 #endif /* YAPOR || TABLING */
+
+
+#ifdef THREADS_RANDOM_GENERATION 
+/* random of host operating system */
+static Int p_random_hos( USES_REGS1 ) {
+  int l = IntOfTerm (Deref(ARG1));
+  int h = IntOfTerm (Deref(ARG2));
+  double x;
+  drand48_r(&LOCAL_random_buffer, &x);
+  //  printf("x: %f formula (float) : %f formula(int): %d \n", x, (x*(h-l) + l), (int) round(x*(h-l) + l));
+  //////////////// HERE
+  
+  //  printf(" %d -- %d \n", IntOfTerm (Deref(ARG1)), IntOfTerm (Deref(ARG2))) ;
+  return (TRUE);
+}
+
+#endif /* THREADS_RANDOM_GENERATION */
+
+
+#ifdef THREADS_RANDOM_GENERATION
+
+#endif /* THREADS_RANDOM_GENERATION */
+
+

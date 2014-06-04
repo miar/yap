@@ -278,8 +278,6 @@ abolish_table(Pred) :-
 '$do_abolish_table'(Mod,Pred) :-
    '$do_error'(type_error(callable,Mod:Pred),abolish_table(Mod:Pred)).
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             show_table/1                            %%
 %%                             show_table/2                            %%
@@ -367,5 +365,14 @@ table_statistics(Stream,Pred) :-
 %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% ramdon of host operating system 
+%% random_hos(L, U, R) :-
+%%     ( integer(L), integer(U) ->
+%%       U > L,
+%%       '$c_random_hos'(L, U, X)
+%%     ;
+%%       number(L), number(U),
+%%       U > L,
+%%       '$c_random_hos'(L, U, X)
+%%     ).
 

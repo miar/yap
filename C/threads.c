@@ -294,6 +294,11 @@ setup_engine(int myworker_id, int init_thread)
   strncat(filename, thread_name, 25);
   LOCAL_thread_output = fopen(filename, "w");
 #endif /* OUTPUT_THREADS_TABLING */
+#ifdef THREADS_RANDOM_GENERATION
+  srand48_r(myworker_id, &LOCAL_random_buffer);
+#endif /* THREADS_RANDOM_GENERATION */
+
+
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   cputime_by_thread_utime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_utime();
   cputime_by_thread_stime[cputime_by_thread_run][worker_id] = Yap_cputime_by_thread_stime();

@@ -46,6 +46,7 @@
 %   or to a random floating number in [L,U) otherwise.
 
 random(L, U, R) :-
+%        writeln(ola),
 	( integer(L), integer(U) ->
 	    U > L,
 	    random(X),

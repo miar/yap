@@ -11,6 +11,10 @@
 **                                                                     **
 ************************************************************************/
 
+#ifdef THREADS_RANDOM_GENERATION
+#include <stdlib.h>
+#endif
+
 #ifdef EXTRA_STATISTICS
 #include <limits.h>
 long Stats_new_answers;
@@ -534,7 +538,9 @@ struct local_optyap_data {
   FILE *thread_output;
 #endif /* OUTPUT_THREADS_TABLING */
 #endif /* TABLING */
-
+#ifdef THREADS_RANDOM_GENERATION
+  struct drand48_data rand_buffer;
+#endif /* THREADS_RANDOM_GENERATION */
 #if (defined(TABLING) || !defined(YAPOR_COW)) && defined(MULTI_ASSIGNMENT_VARIABLES)
   UInt ma_timestamp;
   ma_h_inner_struct *ma_h_top;
@@ -606,6 +612,7 @@ struct local_optyap_data {
 #endif /* YAPOR_THREADS */
 #define LOCAL_top_susp_or_fr               (LOCAL_optyap_data.top_or_frame_with_suspensions)
 #define LOCAL_thread_output                (LOCAL_optyap_data.thread_output)
+#define LOCAL_random_buffer                (LOCAL_optyap_data.rand_buffer)
 #define LOCAL_ma_timestamp                 (LOCAL_optyap_data.ma_timestamp)
 #define LOCAL_ma_h_top                     (LOCAL_optyap_data.ma_h_top)
 #define LOCAL_ma_hash_table                (LOCAL_optyap_data.ma_hash_table)
@@ -670,6 +677,7 @@ struct local_optyap_data {
 #endif /* YAPOR_THREADS */
 #define REMOTE_top_susp_or_fr(wid)               (REMOTE(wid)->optyap_data_.top_or_frame_with_suspensions)
 #define REMOTE_thread_output(wid)                (REMOTE(wid)->optyap_data_.thread_output)
+#define REMOTE_random_buffer(wid)                (REMOTE(wid)->optyap_data.rand_buffer)
 #define REMOTE_ma_timestamp(wid)                 (REMOTE(wid)->optyap_data_.ma_timestamp)
 #define REMOTE_ma_h_top(wid)                     (REMOTE(wid)->optyap_data_.ma_h_top)
 #define REMOTE_ma_hash_table(wid)                (REMOTE(wid)->optyap_data_.ma_hash_table)

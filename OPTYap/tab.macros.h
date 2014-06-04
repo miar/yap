@@ -1830,11 +1830,9 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
 #ifdef THREADS_SUBGOAL_COMPLETION_WAIT
-  //  pthread_cond_broadcast(&(SgFr_comp_wait(sg_fr)));
   LOCK_SG_FR_COMP_WAIT(sg_fr); 
   pthread_cond_broadcast(&(SgFr_comp_wait(sg_fr)));
   UNLOCK_SG_FR_COMP_WAIT(sg_fr); 
-
 #endif /* THREADS_SUBGOAL_COMPLETION_WAIT */
   return;
 }
