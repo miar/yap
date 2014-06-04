@@ -70,6 +70,14 @@
 void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop, int delay_load) {
   int i;
 
+#ifdef THREADS_RANDOM_GENERATION 
+  /* move this to a better place  */ 
+  /* initializing the seed for worker 0 */
+  CACHE_REGS
+  printf("worker_id = %d \n", worker_id);
+  srand48_r(0, &LOCAL_random_buffer);
+#endif /* THREADS_RANDOM_GENERATION */
+
   /* global data related to memory management */
 #ifdef USE_PAGES_MALLOC
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_alloc, void *);

@@ -1308,18 +1308,23 @@ static Int p_random_hos( USES_REGS1 ) {
   int h = IntOfTerm (Deref(ARG2));
   double x;
   drand48_r(&LOCAL_random_buffer, &x);
+  int r = (int) round(x*(h-l) + l);
   //  printf("x: %f formula (float) : %f formula(int): %d \n", x, (x*(h-l) + l), (int) round(x*(h-l) + l));
-  //////////////// HERE
+
+
+
   
+  return (YAP_Unify(YAP_ARG3,YAP_MkIntTerm(r)));
+
   //  printf(" %d -- %d \n", IntOfTerm (Deref(ARG1)), IntOfTerm (Deref(ARG2))) ;
-  return (TRUE);
+  //return (TRUE);
 }
 
 #endif /* THREADS_RANDOM_GENERATION */
 
 
-#ifdef THREADS_RANDOM_GENERATION
+//#ifdef THREADS_RANDOM_GENERATION
 
-#endif /* THREADS_RANDOM_GENERATION */
+//#endif /* THREADS_RANDOM_GENERATION */
 
 
