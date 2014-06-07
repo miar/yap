@@ -196,7 +196,9 @@
 
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 #define Init_timestamp_mode_directed_tabling(ccp)      \
-  CONS_CP(ccp)->entry = (Term) NULL;
+  CONS_CP(ccp)->entry = (Term) NULL
+  //  printf("consumer node = %p\n", ccp)
+  
 #else
 #define Init_timestamp_mode_directed_tabling(ccp)
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
@@ -882,7 +884,7 @@
     } else
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
-      printf("first call in C\n");
+      //      printf("first call in C\n");
       /* subgoal new */
       init_subgoal_frame(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
@@ -912,7 +914,7 @@
 #endif /* INCOMPLETE_TABLING */
     } else if (SgFr_state(sg_fr) == evaluating) {
       /* subgoal in evaluation */
-      printf("second call in C\n");
+      //      printf("second call in C\n");
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
@@ -1549,7 +1551,7 @@
     ans_node_ptr child_node = TrNode_child(ans_node);
     if (child_node && (CONS_CP(B)->entry != TrNode_entry(child_node))) {
       /* unconsumed answer */
-    printf("answer resolution child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
+      //    printf("answer resolution child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
 
       UNLOCK_DEP_FR(dep_fr);
       CONS_CP(B)->entry = TrNode_entry(child_node);
@@ -1600,7 +1602,7 @@
 	ans_node = TrNode_child(ans_node);
       DepFr_last_answer(dep_fr) = ans_node;
       UNLOCK_DEP_FR(dep_fr);
-      printf("ans_resolution consume_ans_node = %p\n", ans_node);
+      //      printf("ans_resolution consume_ans_node = %p\n", ans_node);
       consume_answer_and_procceed(dep_fr, ans_node);
     }
     UNLOCK_DEP_FR(dep_fr);
@@ -1615,6 +1617,7 @@
     }
 #endif /* YAPOR */
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+
     /* no unconsumed answers */
     if (DepFr_backchain_cp(dep_fr) == NULL) {
       /* normal backtrack */
@@ -1649,6 +1652,7 @@
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
 	  /* unconsumed answers */
+	  //	  printf("oooooooooooooooooooooooo1 \n");
 	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
 	  ans_node = child_node; 
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
@@ -1944,7 +1948,8 @@
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
-	  printf("child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
+	  /* dependency frame with unconsumed answers */
+	  //	  printf("completion consumer_node = %p child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", DepFr_cons_cp(dep_fr), child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr))->entry,(long)TrNode_entry(child_node));
 
 	  /* unconsumed answers */
 	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
@@ -2027,7 +2032,7 @@
         TR = TR_FZ;
         if (TR != B->cp_tr)
           TRAIL_LINK(B->cp_tr);
-	printf("completion consume_ans_node = %p\n", ans_node);
+	//	printf("completion consume_ans_node = %p\n", ans_node);
         consume_answer_and_procceed(dep_fr, ans_node);
       }
       UNLOCK_DEP_FR(dep_fr);
@@ -2036,8 +2041,6 @@
 #endif /* TIMESTAMP_CHECK */
       dep_fr = DepFr_next(dep_fr);
     }
-
-
 
     /* no dependency frames with unconsumed answers found */
 #ifdef YAPOR

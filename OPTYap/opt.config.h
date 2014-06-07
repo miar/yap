@@ -101,9 +101,9 @@
 
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
-//////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
-/////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
+/////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
@@ -196,7 +196,7 @@
 #define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
 /* -> missing to implement with THREADS_SUBGOAL_SHARING only*/
 
-/////#define THREADS_SUBGOAL_COMPLETION_WAIT  1 /* activate MODE_DIRECTED_TABLING AND SUBGOAL_SHARING. makes no sence to use this with FULL_SHARING */
+//#define THREADS_SUBGOAL_COMPLETION_WAIT  1 /* activate MODE_DIRECTED_TABLING AND SUBGOAL_SHARING. makes no sence to use this with FULL_SHARING */
                                                                                           
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
 #ifdef USE_PAGES_MALLOC
