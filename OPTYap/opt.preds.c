@@ -1320,8 +1320,4 @@ static Int p_random_hos( USES_REGS1 ) {
 #endif /* THREADS_RANDOM_GENERATION */
 
 
-//#ifdef THREADS_RANDOM_GENERATION
-
-//#endif /* THREADS_RANDOM_GENERATION */
-
 

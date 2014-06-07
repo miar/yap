@@ -1217,7 +1217,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   UNLOCK_SG_FR_COMP_WAIT(sg_fr); 
 
   return sg_fr;
-
 #endif /* THREADS_SUBGOAL_COMPLETION_WAIT */
 
 
@@ -1523,10 +1522,14 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 #endif /* THREADS_FULL_SHARING */
 	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
 	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
 	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
 	  if (invalid_ans_node == TrNode_child(parent_ans_node))  /* worse or equal answer */
 	    invalid_ans_node = NULL;
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 	} else if (mode == MODE_DIRECTED_FIRST) {
 	  current_ans_node = NULL;
 	} else {  /* mode == MODE_DIRECTED_LAST */

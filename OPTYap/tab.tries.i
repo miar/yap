@@ -838,7 +838,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 #ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
 
-
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   Term t = TrNode_entry(adjust_node);
   int cn = count_nodes + 1;
@@ -3290,7 +3289,11 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
     return child_node;
   /* better answer */
   if (IsAtomOrIntTerm(t)) {
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+    TrNode_entry(child_node) = t;
+#else
     ANSWER_SAFE_INSERT_ENTRY(current_node, t, _trie_retry_atom);
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
   } else if (IsApplTerm(t)) {
     Functor f = FunctorOfTerm(t);
     if (f == FunctorDouble) {

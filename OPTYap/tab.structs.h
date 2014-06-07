@@ -270,6 +270,9 @@ struct deterministic_generator_choicept {
 struct consumer_choicept {
   struct choicept cp;
   struct dependency_frame *cp_dep_fr;
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+  Term entry;
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 #ifdef LOW_LEVEL_TRACER
   struct pred_entry *cp_pred_entry;
 #endif /* LOW_LEVEL_TRACER */
