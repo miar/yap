@@ -786,6 +786,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #define new_answer_trie_node(NODE, INSTR, ENTRY, CHILD, PARENT, NEXT)  \
         ALLOC_ANSWER_TRIE_NODE(NODE);				       \
+	printf("new node = %p entry = %d \n", NODE, (int)ENTRY>>3);    \
         TrNode_instr(NODE) = INSTR;                                    \
         TrNode_entry(NODE) = ENTRY;                                    \
         TrNode_child(NODE) = CHILD;                                    \

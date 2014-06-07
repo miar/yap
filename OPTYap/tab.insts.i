@@ -1545,11 +1545,12 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
     LOCK_DEP_FR(dep_fr);
     ans_node = DepFr_last_answer(dep_fr);
-    printf("answer_resolution node=%p TrNode_child = %p \n", ans_node, TrNode_child(ans_node) );
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
     ans_node_ptr child_node = TrNode_child(ans_node);
     if (child_node && (CONS_CP(B)->entry != TrNode_entry(child_node))) {
       /* unconsumed answer */
+    printf("answer resolution child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
+
       UNLOCK_DEP_FR(dep_fr);
       CONS_CP(B)->entry = TrNode_entry(child_node);
       ans_node = child_node; 
@@ -1614,8 +1615,6 @@
     }
 #endif /* YAPOR */
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
-
-
     /* no unconsumed answers */
     if (DepFr_backchain_cp(dep_fr) == NULL) {
       /* normal backtrack */
@@ -1649,7 +1648,7 @@
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
-	  /* unconsumed answer */
+	  /* unconsumed answers */
 	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
 	  ans_node = child_node; 
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
@@ -1942,6 +1941,15 @@
     while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
       LOCK_DEP_FR(dep_fr);
       ans_node = DepFr_last_answer(dep_fr);
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+	ans_node_ptr child_node = TrNode_child(ans_node);
+	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
+	  printf("child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
+
+	  /* unconsumed answers */
+	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
+	  ans_node = child_node; 
+#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
       if (TrNode_child(ans_node)) {
         /* dependency frame with unconsumed answers */
 #ifdef MODE_DIRECTED_TABLING
@@ -1957,6 +1965,8 @@
 #endif /* MODE_DIRECTED_TABLING */
 	  ans_node = TrNode_child(ans_node);
         DepFr_last_answer(dep_fr) = ans_node;
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+
         if (B->cp_ap) {
 #ifdef YAPOR
           if (YOUNGER_CP(DepFr_backchain_cp(dep_fr), B))
@@ -2026,6 +2036,8 @@
 #endif /* TIMESTAMP_CHECK */
       dep_fr = DepFr_next(dep_fr);
     }
+
+
 
     /* no dependency frames with unconsumed answers found */
 #ifdef YAPOR
