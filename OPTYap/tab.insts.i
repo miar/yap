@@ -194,6 +194,12 @@
           SET_BB(PROTECT_FROZEN_B(B));          \
         }
 
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+#define Init_timestamp_mode_directed_tabling(ccp)      \
+  CONS_CP(ccp)->entry = (Term) NULL;
+#else
+#define Init_timestamp_mode_directed_tabling(ccp)
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 
 #define store_consumer_node(TAB_ENT, SG_FR, LEADER_CP, DEP_ON_STACK)             \
         { register choiceptr ccp;                                                \
@@ -219,6 +225,7 @@
           ccp->cp_env= ENV;                                                      \
           ccp->cp_cp = CPREG;                                                    \
           CONS_CP(ccp)->cp_dep_fr = LOCAL_top_dep_fr;                            \
+	  Init_timestamp_mode_directed_tabling(ccp);				 \
           store_low_level_trace_info(CONS_CP(ccp), TAB_ENT);                     \
           /* set_cut((CELL *)ccp, B); --> no effect */                           \
           B = ccp;                                                               \
@@ -875,6 +882,7 @@
     } else
 #endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
+      printf("first call in C\n");
       /* subgoal new */
       init_subgoal_frame(sg_fr);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
@@ -904,6 +912,7 @@
 #endif /* INCOMPLETE_TABLING */
     } else if (SgFr_state(sg_fr) == evaluating) {
       /* subgoal in evaluation */
+      printf("second call in C\n");
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
@@ -1522,7 +1531,6 @@
     }
 #endif /* YAPOR */
 
-
   answer_resolution:
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
@@ -1537,7 +1545,19 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
     LOCK_DEP_FR(dep_fr);
     ans_node = DepFr_last_answer(dep_fr);
-    if (TrNode_child(ans_node)) {
+    printf("answer_resolution node=%p TrNode_child = %p \n", ans_node, TrNode_child(ans_node) );
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+    ans_node_ptr child_node = TrNode_child(ans_node);
+    if (child_node && (CONS_CP(B)->entry != TrNode_entry(child_node))) {
+      /* unconsumed answer */
+      UNLOCK_DEP_FR(dep_fr);
+      CONS_CP(B)->entry = TrNode_entry(child_node);
+      ans_node = child_node; 
+      consume_answer_and_procceed(dep_fr, ans_node);
+    }
+    UNLOCK_DEP_FR(dep_fr);    
+#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
+    if (TrNode_child(ans_node)) {      
       /* unconsumed answers */
 #if defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
       ans_node_ptr curr_ans_node = TrNode_child(ans_node);
@@ -1579,6 +1599,7 @@
 	ans_node = TrNode_child(ans_node);
       DepFr_last_answer(dep_fr) = ans_node;
       UNLOCK_DEP_FR(dep_fr);
+      printf("ans_resolution consume_ans_node = %p\n", ans_node);
       consume_answer_and_procceed(dep_fr, ans_node);
     }
     UNLOCK_DEP_FR(dep_fr);
@@ -1592,6 +1613,8 @@
       goto completion;
     }
 #endif /* YAPOR */
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+
 
     /* no unconsumed answers */
     if (DepFr_backchain_cp(dep_fr) == NULL) {
@@ -1623,6 +1646,13 @@
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
         LOCK_DEP_FR(dep_fr);
         ans_node = DepFr_last_answer(dep_fr);
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+	ans_node_ptr child_node = TrNode_child(ans_node);
+	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
+	  /* unconsumed answer */
+	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
+	  ans_node = child_node; 
+#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
 	if (TrNode_child(ans_node)) {
           /* dependency frame with unconsumed answers */
 #if defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
@@ -1635,7 +1665,6 @@
 		                 && IS_INTRA_ANSWER_INVALID_NODE(curr_ans_node)
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 		   );
-
 	  if (IS_ANSWER_INVALID_NODE(ans_node) 
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02		   
 	      || IS_INTRA_ANSWER_INVALID_NODE(ans_node)
@@ -1666,9 +1695,9 @@
 #ifdef YAPOR
           if (YOUNGER_CP(DepFr_backchain_cp(dep_fr), top_chain_cp))
 #endif /* YAPOR */
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
             DepFr_backchain_cp(dep_fr) = top_chain_cp;
           UNLOCK_DEP_FR(dep_fr);
-
           chain_cp = DepFr_cons_cp(dep_fr);
 #ifdef YAPOR
           /* update shared nodes */
@@ -1746,7 +1775,6 @@
         UNLOCK_DEP_FR(dep_fr);
         dep_fr = DepFr_next(dep_fr);
       }
-
       /* no dependency frames with unconsumed answers found */
 #ifdef YAPOR
       /* update shared nodes */
@@ -1989,6 +2017,7 @@
         TR = TR_FZ;
         if (TR != B->cp_tr)
           TRAIL_LINK(B->cp_tr);
+	printf("completion consume_ans_node = %p\n", ans_node);
         consume_answer_and_procceed(dep_fr, ans_node);
       }
       UNLOCK_DEP_FR(dep_fr);
