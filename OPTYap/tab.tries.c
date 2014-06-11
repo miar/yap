@@ -1520,10 +1520,12 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node;
 #else
 	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  //	  printf("current_ans_node - 1 => ans_node = %p\n",current_ans_node);
 #endif /* THREADS_FULL_SHARING */
 	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+	  //	  printf("current_ans_node - 2 => ans_node = %p\n",current_ans_node);
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
 	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
 	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);

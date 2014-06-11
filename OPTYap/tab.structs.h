@@ -270,9 +270,6 @@ struct deterministic_generator_choicept {
 struct consumer_choicept {
   struct choicept cp;
   struct dependency_frame *cp_dep_fr;
-#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
-  Term entry;
-#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 #ifdef LOW_LEVEL_TRACER
   struct pred_entry *cp_pred_entry;
 #endif /* LOW_LEVEL_TRACER */
@@ -550,6 +547,9 @@ typedef struct dependency_frame {
 #else
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+  Term last_consumed_entry;
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
@@ -562,6 +562,7 @@ typedef struct dependency_frame {
 #define DepFr_leader_cp(X)               ((X)->leader_choice_point)
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
+#define DepFr_last_term(X)               ((X)->last_consumed_entry)
 #define DepFr_next(X)                    ((X)->next)
 
 /*********************************************************************************************************

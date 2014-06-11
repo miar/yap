@@ -194,14 +194,6 @@
           SET_BB(PROTECT_FROZEN_B(B));          \
         }
 
-#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
-#define Init_timestamp_mode_directed_tabling(ccp)      \
-  CONS_CP(ccp)->entry = (Term) NULL
-  //  printf("consumer node = %p\n", ccp)
-  
-#else
-#define Init_timestamp_mode_directed_tabling(ccp)
-#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 
 #define store_consumer_node(TAB_ENT, SG_FR, LEADER_CP, DEP_ON_STACK)             \
         { register choiceptr ccp;                                                \
@@ -227,7 +219,6 @@
           ccp->cp_env= ENV;                                                      \
           ccp->cp_cp = CPREG;                                                    \
           CONS_CP(ccp)->cp_dep_fr = LOCAL_top_dep_fr;                            \
-	  Init_timestamp_mode_directed_tabling(ccp);				 \
           store_low_level_trace_info(CONS_CP(ccp), TAB_ENT);                     \
           /* set_cut((CELL *)ccp, B); --> no effect */                           \
           B = ccp;                                                               \
@@ -1138,7 +1129,6 @@
     //  goto fail; //--> to delete
 
 #ifdef MODE_DIRECTED_TABLING
-
     if (SgFr_mode_directed(sg_fr)) {
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr);
   
@@ -1549,12 +1539,11 @@
     ans_node = DepFr_last_answer(dep_fr);
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
     ans_node_ptr child_node = TrNode_child(ans_node);
-    if (child_node && (CONS_CP(B)->entry != TrNode_entry(child_node))) {
+    if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
       /* unconsumed answer */
       //    printf("answer resolution child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr)),(long)TrNode_entry(child_node));
-
+      DepFr_last_term(dep_fr) = TrNode_entry(child_node);
       UNLOCK_DEP_FR(dep_fr);
-      CONS_CP(B)->entry = TrNode_entry(child_node);
       ans_node = child_node; 
       consume_answer_and_procceed(dep_fr, ans_node);
     }
@@ -1650,10 +1639,10 @@
         ans_node = DepFr_last_answer(dep_fr);
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
-	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
+	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
 	  /* unconsumed answers */
 	  //	  printf("oooooooooooooooooooooooo1 \n");
-	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
+	  DepFr_last_term(dep_fr) = TrNode_entry(child_node);
 	  ans_node = child_node; 
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
 	if (TrNode_child(ans_node)) {
@@ -1947,12 +1936,9 @@
       ans_node = DepFr_last_answer(dep_fr);
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
-	if (child_node && (CONS_CP(DepFr_cons_cp(dep_fr))->entry != TrNode_entry(child_node))) {
+	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
 	  /* dependency frame with unconsumed answers */
-	  //	  printf("completion consumer_node = %p child_node = %p CONS_CP(DepFr_cons_cp(dep_fr))->entry = %ld TrNode_entry(child_node) = %ld \n", DepFr_cons_cp(dep_fr), child_node,(long)CONS_CP(DepFr_cons_cp(dep_fr))->entry,(long)TrNode_entry(child_node));
-
-	  /* unconsumed answers */
-	  CONS_CP(DepFr_cons_cp(dep_fr))->entry = TrNode_entry(child_node);
+	  DepFr_last_term(dep_fr) = TrNode_entry(child_node);
 	  ans_node = child_node; 
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
       if (TrNode_child(ans_node)) {

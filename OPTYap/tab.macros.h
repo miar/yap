@@ -747,6 +747,15 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	}
 #endif /* THREADS_FULL_SHARING) || THREADS_CONSUMER_SHARING */
 
+
+
+#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+#define	DepFr_init_last_term_field(DEP_FR)         \
+       DepFr_last_term(DEP_FR) = (Term) NULL
+#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
+#define	DepFr_init_last_term_field(DEP_FR)
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+
 #define new_dependency_frame(DEP_FR, DEP_ON_STACK, TOP_OR_FR, LEADER_CP, CONS_CP, SG_FR, IS_EXTERNAL, NEXT)  \
         ALLOC_DEPENDENCY_FRAME(DEP_FR);                                                                      \
         DepFr_init_yapor_fields(DEP_FR, DEP_ON_STACK, TOP_OR_FR);                                            \
@@ -755,6 +764,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         DepFr_leader_cp(DEP_FR) = NORM_CP(LEADER_CP);                                                        \
         DepFr_cons_cp(DEP_FR) = NORM_CP(CONS_CP);                                                            \
         DepFr_init_last_answer_field(DEP_FR, SG_FR);                                                         \
+	DepFr_init_last_term_field(DEP_FR);				                                     \
         DepFr_next(DEP_FR) = NEXT
 
 #define new_suspension_frame(SUSP_FR, TOP_OR_FR_ON_STACK, TOP_DEP, TOP_SG,             \
@@ -1766,7 +1776,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     /* free invalid answer nodes */
     current_node = SgFr_invalid_chain(sg_fr);
     SgFr_invalid_chain(sg_fr) = NULL;
-    while (current_node) {
+
+    while (
+#ifdef STUDY_TIMESTAMP_MDT
+	   0 && /* don't remove invalid nodes */
+#endif /* STUDY_TIMESTAMP_MDT */	   
+	   current_node) {
       next_node = TrNode_next(current_node);	
       FREE_ANSWER_TRIE_NODE(current_node);
       current_node = next_node;

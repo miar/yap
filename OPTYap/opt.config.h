@@ -135,7 +135,10 @@
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
 #define MODE_DIRECTED_TABLING 1 
-#define TIMESTAMP_MODE_DIRECTED_TABLING 1 /* must be active THREADS_SUBGOAL_SHARING / MODE_DIRECTED_TABLING --- ATTENTION : ONLY FOR INTEGERS AND MIN/MAX OPERATORS */
+#define TIMESTAMP_MODE_DIRECTED_TABLING 1 /* must be active THREADS_SUBGOAL_SHARING + MODE_DIRECTED_TABLING --- ATTENTION : ONLY FOR INTEGERS AND MIN/MAX OPERATORS ON THE LAST ARGUMENT*/
+
+///#define STUDY_TIMESTAMP_MDT 1
+
 
 /****************************************************************
 **      support early completion for tabling ? (optional)      **
