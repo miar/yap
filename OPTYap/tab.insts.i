@@ -1537,6 +1537,13 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
     LOCK_DEP_FR(dep_fr);
     ans_node = DepFr_last_answer(dep_fr);
+#ifdef STUDY_TIMESTAMP_MDT
+    ans_node_ptr child_node = TrNode_child(ans_node);
+    if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
+      DepFr_last_term(dep_fr) = TrNode_entry(child_node);
+    }
+#endif
+
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
     ans_node_ptr child_node = TrNode_child(ans_node);
     if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
@@ -1637,6 +1644,13 @@
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
         LOCK_DEP_FR(dep_fr);
         ans_node = DepFr_last_answer(dep_fr);
+#ifdef STUDY_TIMESTAMP_MDT
+	ans_node_ptr child_node = TrNode_child(ans_node);
+	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
+	  DepFr_last_term(dep_fr) = TrNode_entry(child_node);
+	}
+#endif
+
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
@@ -1934,6 +1948,16 @@
     while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
       LOCK_DEP_FR(dep_fr);
       ans_node = DepFr_last_answer(dep_fr);
+
+#ifdef STUDY_TIMESTAMP_MDT
+    ans_node_ptr child_node = TrNode_child(ans_node);
+    if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
+      DepFr_last_term(dep_fr) = TrNode_entry(child_node);
+    }
+#endif
+
+
+
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {

@@ -547,7 +547,7 @@ typedef struct dependency_frame {
 #else
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+#if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT)
   Term last_consumed_entry;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
   struct dependency_frame *next;

@@ -3290,12 +3290,8 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
   /* better answer */
   if (IsAtomOrIntTerm(t)) {
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
-    //    printf("better answer new answer %ld node = %p \n", (long)t, child_node);
-    //printf("1- TrNode_entry(child_node) = %ld \n", (long) TrNode_entry(child_node) );
     TrNode_entry(child_node) = t;
-    //printf("2- TrNode_entry(child_node) = %ld \n", (long) TrNode_entry(child_node));
     return child_node;
-    //return NULL;
 #else
     ANSWER_SAFE_INSERT_ENTRY(current_node, t, _trie_retry_atom);
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
