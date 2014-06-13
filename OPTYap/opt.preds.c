@@ -210,7 +210,7 @@ struct page_statistics {
 
 void Yap_init_optyap_preds(void) {
 #ifdef THREADS_RANDOM_GENERATION 
-  Yap_InitCPred("random_hos", 2, p_random_hos, SafePredFlag|SyncPredFlag);
+  Yap_InitCPred("random_hos", 3, p_random_hos, SafePredFlag|SyncPredFlag);
 #endif /* THREADS_RANDOM_GENERATION  */
 #ifdef TABLING
   Yap_InitCPred("freeze_choice_point", 1, p_freeze_choice_point, SafePredFlag|SyncPredFlag);
@@ -1304,14 +1304,14 @@ static inline struct page_statistics show_statistics_table_subgoal_answer_frames
 #ifdef THREADS_RANDOM_GENERATION 
 /* random of host operating system */
 static Int p_random_hos( USES_REGS1 ) {
-  int l = 0 ; //IntOfTerm (Deref(ARG1));
-  int h = IntOfTerm (Deref(ARG1));
+  int l = IntOfTerm (Deref(ARG1));
+  int h = IntOfTerm (Deref(ARG2));
   double x;
   drand48_r(&LOCAL_random_buffer, &x);
   x = x * (h - l + 1) + l;
   int r = (int) x;
   
-  return (YAP_Unify(YAP_ARG2,YAP_MkIntTerm(r)));
+  return (YAP_Unify(YAP_ARG3,YAP_MkIntTerm(r)));
 
   //  printf(" %d -- %d \n", IntOfTerm (Deref(ARG1)), IntOfTerm (Deref(ARG2))) ;
   //return (TRUE);
