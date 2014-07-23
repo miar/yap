@@ -1,0 +1,19 @@
+#ifndef LOCK_FREE_HASH.TRIES.H
+#define LOCK_FREE_HASH.TRIES.H
+
+#define SHIFT_SIZE                     3
+#define LFH_TRIE_BUCKETS               (1 << SHIFT_SIZE)
+
+#define V04_SHIFT_ENTRY(ENTRY, N_SHIFTS)               ((ENTRY) >> ((SHIFT_SIZE * (N_SHIFTS)) + NumberOfLowTagBits))
+#define V04_HASH_ENTRY(ENTRY, N_SHIFTS)                (V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) & (BASE_HASH_BUCKETS - 1))
+#define V04_IS_EMPTY_BUCKET(BUCKET, BASE_BUCKET, STR)  (BUCKET == (STR *) BASE_BUCKET)
+#define V04_TAG(PTR)                                   ((long)(PTR) |  (long)0x1)
+#define V04_UNTAG(PTR)                                 ((long)(PTR) & ~(long)(0x1))
+
+#define V04_IS_EQUAL_ENTRY(X, T)                       (TrNode_entry(X) == T)
+#define V04_IS_HASH(PTR)                               ((long)(PTR) & (long)(0x1))
+#define V04_GET_HASH_BUCKET(BUCKET, HASH, T, NS, STR)  (BUCKET = (STR **) V04_UNTAG(HASH) + V04_HASH_ENTRY((long)T, NS))
+#define V04_GET_PREV_HASH(PREV_HASH, CURR_HASH, STR)   (PREV_HASH = (STR **) *(((STR **) V04_UNTAG(CURR_HASH)) - 1))
+#define V04_SET_HASH_BUCKET(BUCKET, V, STR)            (*(BUCKET) = (STR *) V)
+
+#endif /* LOCK_FREE_HASH.TRIES.H */

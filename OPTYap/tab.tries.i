@@ -884,7 +884,6 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
 } 
 
 
-
 static inline void subgoal_trie_insert_bucket_array(sg_node_ptr *curr_hash, sg_node_ptr chain_node, long n_shifts USES_REGS) {
   sg_node_ptr *bucket; 
   TrNode_next(chain_node) = (sg_node_ptr) curr_hash;
@@ -1019,7 +1018,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
 } 
 
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
-
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
 static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr tab_ent, sg_node_ptr parent_node, Term t USES_REGS) {

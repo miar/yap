@@ -127,7 +127,6 @@ typedef struct answer_ref_node {
 #define RefNode_child(X)     ((X)->child)
 
 
-
 /***********************************************************************
 **      subgoal_trie_hash, answer_trie_hash and global_trie_hash      **
 ***********************************************************************/
