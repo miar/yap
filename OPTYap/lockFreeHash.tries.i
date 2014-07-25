@@ -79,7 +79,7 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
 	LFHT_FreeBuckets(new_hash, bucket, LFHT_STR); 
     } else {      
       LFHT_STR_PTR new_node;                                       
-      LFHT_NEW_NODE(new_node, key, NULL);                              
+      LFHT_NEW_NODE(new_node, key, NULL);
       if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), NULL, new_node))
 	return new_node;
       LFHT_FREE_NODE((new_node);
@@ -88,7 +88,7 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
     if (!LFHT_IsHashLevel(chain_next))
       return lfht_check_insert_first_chain(chain_next, key, cn LFHT_PASS_ARGS); 
   }                                                  
-  // chain_next is refering a deeper hash level. The worker must jump its level
+  // chain_next is refering a deeper hash level. The worker must jump its hash level
   LFHT_STR_PTR *jump_hash, *prev_hash;
   jump_hash = (LFHT_STR_PTR *) chain_next;                  
   LFHT_GetPreviousHashLevel(prev_hash, jump_hash, LFHT_STR);
@@ -99,19 +99,26 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
   return lfht_check_insert_bucket_array(jump_hash, key, 0 LFHT_PASS_ARGS);  
 } 
 
+/* subgoal_trie_check_insert_bucket_array */
+static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_hash,  LFHT_NODE_KEY_STR key, int n_shifts LFHT_USES_ARGS) {
+  LFHT_STR_PTR *bucket;  
+  LFHT_GetBucket((bucket, curr_hash, t, n_shifts, LFHT_STR);   
+  if (LFHT_IsEmptyBucket(*bucket, curr_hash, LFHT_STR)) {  
+    LFHT_STR_PTR new_node;     
+    LFHT_NEW_NODE(new_node, key, (LFHT_STR_PTR) curr_hash);
+    if (LFHT_BoolCAS(bucket, curr_hash, new_node))
+      return new_node;
+    LFHT_FREE_NODE((new_node);
+  }
+  LFHT_STR_PTR bucket_next = *bucket;
+  if (LFHT_IsHashLevel(bucket_next))  
+    return lfht_check_insert_bucket_array((LFHT_STR_PTR *)bucket_next, key, (n_shifts + 1) LFHT_PASS_ARGS); 
+  return lfht_check_insert_bucket_chain(curr_hash, bucket_next, key, n_shifts, 0 LFHT_PASS_ARGS);
+}
+
 /***********************************************************ok upto here **************************/
 
-
-
-
 // HERE
-
-
-
-
-
-
-
 
 
 

@@ -10,6 +10,8 @@
 #define LFHT_CELL                         long
 #define LFHT_IsEqualKey(NODE, KEY)        (LFHT_NodeKey(NODE) == KEY)
 #define LFHT_IsHashLevel(PTR)             ((LFHT_CELL)(PTR) & (LFHT_CELL)(0x1))
+     /* V04_IS_EMPTY_BUCKET */
+#define LFHT_IsEmptyBucket(B, H, STR)     (B == (STR *) H)
         /*v04_tag */
 #define LFHT_TagAsHashLevel(PTR)          ((LFHT_CELL)(PTR) | (LFHT_CELL)0x1)
        /*v04_untag */
@@ -26,6 +28,9 @@
 #define LFHT_GetBucket(B, H, K, NS, STR)  (B = (STR **) LFHT_UntagHashLevel(H) + LFHT_KeyOffset((LFHT_CELL)K, NS))
      /* V04_GET_PREV_HASH */
 #define LFHT_GetPreviousHashLevel(PH, CH, STR)  (PH = (STR **) *(((STR **) LFHT_UntagHashLevel(CH)) - 1))
+
+
+
 
 
 /*******************************************************************************
@@ -93,14 +98,4 @@
      FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1) */
 
 #endif /* LFHT_LOCAL_THREAD_BUFFER_FOR_BUCKET_ARRAYS */
-
-/////////////////////////////////////////// ok upto HERE !!!!!
-
-
-
-#define V04_IS_EMPTY_BUCKET(BUCKET, BASE_BUCKET, STR)  (BUCKET == (STR *) BASE_BUCKET)
-
-
-
-
 #endif /* _LOCK_FREE_HASH.TRIES.H */
