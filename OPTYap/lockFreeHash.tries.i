@@ -121,7 +121,7 @@ static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_has
 // HERE
 
 /* subgoal_trie_check_insert_bucket_chain */
-static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, long n_shifts, int count_nodes USES_REGS) {
+static inline sg_node_ptr lfht_check_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, long n_shifts, int count_nodes USES_REGS) {
   if (V04_IS_EQUAL_ENTRY(chain_node, t))
     return chain_node;  
   int cn = count_nodes + 1;
