@@ -36,29 +36,7 @@
 #undef LFHT_ROOT_ADDR
 #endif /* INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE */
 
-####################################################################################
-query_replace (lockFreeHash.tries.h  + lockFreeHash.tries.i) :
-   struct subgoal_trie_node       ->   LFHT_STR
-   sg_node_ptr                    ->   LFHT_STR_PTR
-   NEW_SUBGOAL_TRIE_NODE          ->   LFHT_NEW_NODE
-   FREE_SUBGOAL_TRIE_NODE(PTR)    ->   LFHT_FREE_NODE
-   BASE_HASH_BUCKETS              ->   LFHT_BUCKET_SIZE
-   SHIFT_SIZE                     ->   LFHT_SHIFTS
-   V04_                           ->   LFHT_
-   long                           ->   LFHT_CELL
-   TrNode_entry                   ->   LFHT_NODE_ENTRY                      (DO NOT REPLACE ON CONFIGURATION STUFF)
-   NumberOfLowTagBits             ->   LFHT_NrLowTagBits                    (DO NOT REPLACE ON CONFIGURATION STUFF)
-   BOOL_CAS                       ->   LFHT_BOOL_CAS                        (DO NOT REPLACE ON lockFreeHash.tries.i)
-   USES_REGS                      ->   LFHT_USES_REGS                       (DO NOT REPLACE ON CONFIGURATION STUFF)
-   PASS_REGS                      ->   LFHT_PASS_REGS                       (DO NOT REPLACE ON CONFIGURATION STUFF)
-   PASS_REGS                      ->   LFHT_PASS_ARGS PASS_REGS
 
-####################################################################################
-
-####################################################################################
-External dependencies:
-   check the memory manager
-####################################################################################
 /* answer_trie_check_insert_entry */
 static inline LFHT_STR_PTR lfht_check_insert_entry(LFHT_NODE_ENTRY_STR entry LFHT_USES_ARGS) {
   LFHT_STR_PTR first_node;
@@ -66,7 +44,7 @@ static inline LFHT_STR_PTR lfht_check_insert_entry(LFHT_NODE_ENTRY_STR entry LFH
   if (first_node == NULL) {
     LFHT_STR_PTR new_node;
     LFHT_NEW_NODE(new_node, entry, NULL);
-    if (LFHT_BOOL_CAS(LFHT_ROOT_ADDR, NULL, new_node))
+    if (LFHT_BoolCAS(LFHT_ROOT_ADDR, NULL, new_node))
       return new_node;
     LFHT_FREE_NODE(new_node);
     LFHT_GetFirstNode(first_node);
@@ -93,9 +71,9 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
   if (chain_next == NULL) {
     if (cn == LFHT_MAX_NODES_PER_BUCKET) {  
       LFHT_STR_PTR *new_hash;
-      LFHT_STR_PTR *bucket;                                                    // HERE
+      LFHT_STR_PTR *bucket;                                     
       LFHT_AllocBuckets(new_hash, NULL, LFHT_STR);
-      new_hash = (ans_node_ptr *) V04_TAG(new_hash);
+      new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);                      // HERE
       V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0, LFHT_STR);
       V04_SET_HASH_BUCKET(bucket, chain_node, LFHT_STR);
       if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
