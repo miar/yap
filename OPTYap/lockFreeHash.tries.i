@@ -7,7 +7,7 @@
 #define LFHT_USES_ARGS1                   sg_node_ptr parent_node LFHT_USES_REGS
 #define LFHT_PASS_ARGS                    , parent_node LFHT_PASS_REGS
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
-#define LFHT_NEW_NODE(NODE, ENTRY, NEXT)  {NEW_SUBGOAL_TRIE_NODE(NODE, ENTRY, NULL, parent_node, NEXT);}
+#define LFHT_NEW_NODE(NODE, KEY, NEXT)  {NEW_SUBGOAL_TRIE_NODE(NODE, KEY, NULL, parent_node, NEXT);}
 #define LFHT_FREE_NODE(PTR)               FREE_SUBGOAL_TRIE_NODE(PTR);
 #undef LFHT_STR
 #undef LFHT_STR_PTR
@@ -25,7 +25,7 @@
 #define LFHT_USES_ARGS1                   ans_node_ptr parent_node, int instr LFHT_USES_REGS
 #define LFHT_PASS_ARGS                    , parent_node, instr LFHT_PASS_REGS
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
-#define LFHT_NEW_NODE(NODE, ENTRY, NEXT)  {NEW_ANSWER_TRIE_NODE(NODE, instr, ENTRY, NULL, parent_node, NEXT);}
+#define LFHT_NEW_NODE(NODE, KEY, NEXT)  {NEW_ANSWER_TRIE_NODE(NODE, instr, KEY, NULL, parent_node, NEXT);}
 #define LFHT_FREE_NODE(PTR)               FREE_ANSWER_TRIE_NODE(PTR)
 #undef LFHT_STR
 #undef LFHT_STR_PTR
@@ -38,34 +38,34 @@
 
 
 /* answer_trie_check_insert_entry */
-static inline LFHT_STR_PTR lfht_check_insert_entry(LFHT_NODE_ENTRY_STR entry LFHT_USES_ARGS) {
+static inline LFHT_STR_PTR lfht_check_insert_key(LFHT_NODE_KEY_STR key LFHT_USES_ARGS) {
   LFHT_STR_PTR first_node;
   LFHT_GetFirstNode(first_node);
   if (first_node == NULL) {
     LFHT_STR_PTR new_node;
-    LFHT_NEW_NODE(new_node, entry, NULL);
+    LFHT_NEW_NODE(new_node, key, NULL);
     if (LFHT_BoolCAS(LFHT_ROOT_ADDR, NULL, new_node))
       return new_node;
     LFHT_FREE_NODE(new_node);
     LFHT_GetFirstNode(first_node);
   }  
   if (LFHT_IsHashLevel(first_node))
-    return lfht_check_insert_bucket_array((LFHT_STR_PTR *) first_node, entry, 0 LFHT_PASS_ARGS);
-  return lfht_check_insert_first_chain(first_node, entry, 0 LFHT_PASS_ARGS);
+    return lfht_check_insert_bucket_array((LFHT_STR_PTR *) first_node, key, 0 LFHT_PASS_ARGS);
+  return lfht_check_insert_first_chain(first_node, key, 0 LFHT_PASS_ARGS);
 }
 
 /***********************************************************ok upto here **************************/
 
 /* answer_trie_check_insert_first_chain*/
-static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node, LFHT_NODE_ENTRY_STR entry, int count_nodes LFHT_USES_ARGS) {
-  if (LFHT_IsEqualEntry(chain_node, entry))
+static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node, LFHT_NODE_KEY_STR key, int count_nodes LFHT_USES_ARGS) {
+  if (LFHT_IsEqualKey(chain_node, key))
     return chain_node;  
   int cn = count_nodes + 1;
   LFHT_STR_PTR chain_next;
   chain_next = LFHT_NodeNext(chain_node); 
 
   if (chain_next && !LFHT_IsHashLevel(chain_next))
-    return lfht_check_insert_first_chain(chain_next, entry, cn LFHT_PASS_ARGS); 
+    return lfht_check_insert_first_chain(chain_next, key, cn LFHT_PASS_ARGS); 
   
   // chain_next is a hash pointer or the end of the chain
   if (chain_next == NULL) {
@@ -73,12 +73,12 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
       LFHT_STR_PTR *new_hash;
       LFHT_STR_PTR *bucket;                                     
       LFHT_AllocBuckets(new_hash, NULL, LFHT_STR);
-      new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);                      // HERE
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), 0, LFHT_STR);
-      V04_SET_HASH_BUCKET(bucket, chain_node, LFHT_STR);
-      if (BOOL_CAS(&TrNode_next(chain_node), NULL, new_hash)) {
-	answer_trie_adjust_chain_nodes(new_hash, TrNode_child(parent_node), chain_node, (- 1) PASS_REGS);
-	TrNode_child(parent_node) = (ans_node_ptr) new_hash;
+      new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);         
+      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), 0, LFHT_STR);      
+      LFHT_SetBucket(bucket, chain_node, LFHT_STR);                  
+      if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), NULL, new_hash)) {                
+	lfht_adjust_chain_nodes(new_hash, LFHT_FirstNode, chain_node, (- 1) LFHT_PASS_REGS); 
+	LFHT_FirstNode = (LFHT_STR_PTR) new_hash;                                                  // HERE
 	return answer_trie_check_insert_bucket_array(new_hash, parent_node, t, instr, 0 PASS_REGS);
       } else 
 	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, LFHT_STR);  

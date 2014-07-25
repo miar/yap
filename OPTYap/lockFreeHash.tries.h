@@ -4,36 +4,42 @@
 /*******************************************************************************
  *                            LFHT macros                                      *
  *******************************************************************************/
-#define LFHT_BIT_SHIFT                               3
-#define LFHT_BUCKET_ARRAY_SIZE                       (1 << LFHT_BIT_SHIFT)
-#define LFHT_MAX_NODES_PER_BUCKET                    4
-#define LFHT_CELL                                    long
-#define LFHT_IsEqualEntry(NODE, ENTRY)               (LFHT_NodeEntry(NODE) == ENTRY)
-#define LFHT_IsHashLevel(PTR)                        ((LFHT_CELL)(PTR) & (LFHT_CELL)(0x1))
-#define LFHT_TagAsHashLevel(PTR)             /*v04_tag */               ((LFHT_CELL)(PTR) | (LFHT_CELL)0x1)
-#define LFHT_UntagHashLevel(PTR)             /*v04_untag */             ((LFHT_CELL)(PTR) & ~(LFHT_CELL)(0x1))
-#define LFHT_SetBucketEntry(BUCKET, V, STR)  /* V04_SET_HASH_BUCKET */  (*(BUCKET) = (STR *) V)
-#define LFHT_BoolCAS(PTR, OLD, NEW)          /* LFHT_BOOL_CAS */   __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
-
-
-
-/* V04_GET_HASH_BUCKET */
-#define LFHT_GetBucketEntry(B, H, E, NS, STR)  (B = (STR **) LFHT_UntagHashLevel(H) + V04_HASH_ENTRY((LFHT_CELL)E, NS))
+#define LFHT_BIT_SHIFT                    3
+#define LFHT_BUCKET_ARRAY_SIZE            (1 << LFHT_BIT_SHIFT)
+#define LFHT_MAX_NODES_PER_BUCKET         4
+#define LFHT_CELL                         long
+#define LFHT_IsEqualKey(NODE, KEY)        (LFHT_NodeKey(NODE) == KEY)
+#define LFHT_IsHashLevel(PTR)             ((LFHT_CELL)(PTR) & (LFHT_CELL)(0x1))
+        /*v04_tag */
+#define LFHT_TagAsHashLevel(PTR)          ((LFHT_CELL)(PTR) | (LFHT_CELL)0x1)
+       /*v04_untag */
+#define LFHT_UntagHashLevel(PTR)          ((LFHT_CELL)(PTR) & ~(LFHT_CELL)(0x1))
+       /* V04_SET_HASH_BUCKET */
+#define LFHT_SetBucket(BUCKET, V, STR)    (*(BUCKET) = (STR *) V)
+     /* LFHT_BOOL_CAS */
+#define LFHT_BoolCAS(PTR, OLD, NEW)       __sync_bool_compare_and_swap((PTR), (OLD), (NEW))
+     /* V04_SHIFT_ENTRY */
+#define LFHT_ShiftKeyBits(KEY, NS)        ((KEY) >> ((LFHT_BIT_SHIFT * NS) + LFHT_NrLowTagBits))
+     /* V04_HASH_ENTRY */
+#define LFHT_KeyOffset(KEY, NS)           (LFHT_ShiftKeyBits(KEY, NS) & (LFHT_BUCKET_ARRAY_SIZE - 1))
+      /* V04_GET_HASH_BUCKET */
+#define LFHT_GetBucket(B, H, K, NS, STR)  (B = (STR **) LFHT_UntagHashLevel(H) + LFHT_KeyOffset((LFHT_CELL)K, NS))
 
 /*******************************************************************************
  *                            YapTab compatibility stuff                       *
  *******************************************************************************/
 
-#define LFHT_NodeEntry(NODE)                           TrNode_entry(NODE)
+#define LFHT_NodeKey(NODE)                             TrNode_entry(NODE)
 #define LFHT_NodeNext(NODE)                            TrNode_next(NODE)
 #define LFHT_GetFirstNode(NODE)                        (NODE = (LFHT_STR_PTR) TrNode_child(parent_node))
 #define LFHT_NrLowTagBits                              NumberOfLowTagBits /* 0 (zero) if none */
 #define LFHT_USES_REGS                                 USES_REGS          /* BLANC if no TabMalloc */   
 #define LFHT_PASS_REGS                                 PASS_REGS          /* BLANC if no TabMalloc */ 
-#define LFHT_NODE_ENTRY_STR                            Term
+#define LFHT_NODE_KEY_STR                              Term
 
 /* integrated with TabMalloc. If no TabMalloc, then use malloc */
-#define LFHT_MemAllocBuckets(STR)   /* V04_ALLOC_THB */			\
+     /* V04_ALLOC_THB */	
+#define LFHT_MemAllocBuckets(STR)                        		\
   union trie_hash_buckets *aux;						\
   ALLOC_STRUCT(aux, union trie_hash_buckets, _pages_trie_hash_buckets); \
   STR = aux->hash_buckets
@@ -61,9 +67,9 @@
     }							    \
     BUCKET_PTR = (STR **) alloc_bucket_ptr;	            \
   }
-
-#define LFHT_FreeBuckets(PTR, BKT, STR)    /* V04_FREE_TRIE_HASH_BUCKETS */ \
-  { LFHT_SetBucketEntry(BKT, PTR, STR);				            \
+     /* V04_FREE_TRIE_HASH_BUCKETS */
+#define LFHT_FreeBuckets(PTR, BKT, STR)                                     \
+  { LFHT_SetBucket(BKT, PTR, STR);				            \
     LFHT_LOCAL_BUCKET_BUFFER = (((void**)LFHT_UntagHashLevel(PTR)) - 1);    \
   }
 
@@ -86,8 +92,8 @@
 
 /////////////////////////////////////////// ok upto HERE !!!!!
 
-#define V04_SHIFT_ENTRY(ENTRY, N_SHIFTS)               ((ENTRY) >> ((SHIFT_SIZE * (N_SHIFTS)) + LFHT_NrLowTagBits))
-#define V04_HASH_ENTRY(ENTRY, N_SHIFTS)                (V04_SHIFT_ENTRY(ENTRY, N_SHIFTS) & (BASE_HASH_BUCKETS - 1))
+
+
 #define V04_IS_EMPTY_BUCKET(BUCKET, BASE_BUCKET, STR)  (BUCKET == (STR *) BASE_BUCKET)
 
 
