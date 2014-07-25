@@ -120,6 +120,61 @@ static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_has
 
 // HERE
 
+/* subgoal_trie_check_insert_bucket_chain */
+static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, long n_shifts, int count_nodes USES_REGS) {
+  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+    return chain_node;  
+  int cn = count_nodes + 1;
+  sg_node_ptr chain_next;
+  chain_next = TrNode_next(chain_node);
+  if (!V04_IS_HASH(chain_next))
+    return subgoal_trie_check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, n_shifts, cn PASS_REGS);  
+  
+  // chain_next is a hash pointer
+  if ((sg_node_ptr *)chain_next == curr_hash) {
+    if (cn == MAX_NODES_PER_BUCKET) {
+      sg_node_ptr *new_hash;
+      sg_node_ptr *bucket;
+      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
+      new_hash = (sg_node_ptr *) V04_TAG(new_hash);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
+      V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
+	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
+	subgoal_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
+	V04_SET_HASH_BUCKET(bucket, new_hash, struct subgoal_trie_node);
+	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
+      } else 
+	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node);  
+    } else {
+      sg_node_ptr new_node; 
+      NEW_SUBGOAL_TRIE_NODE(new_node, t, NULL, parent_node, (sg_node_ptr) curr_hash);
+      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_node)) 
+	return new_node;      
+      FREE_SUBGOAL_TRIE_NODE(new_node);
+    }
+    chain_next = TrNode_next(chain_node);
+    if (!V04_IS_HASH(chain_next))
+      return subgoal_trie_check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, n_shifts, cn PASS_REGS);  
+  }
+
+  // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
+  sg_node_ptr *jump_hash, *prev_hash;
+  jump_hash = (sg_node_ptr *) chain_next;
+  V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
+  while (prev_hash != curr_hash) {
+    jump_hash = prev_hash;
+    V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
+  }
+  return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
+}
+
+
+
+
+
+
+
 
 
 
