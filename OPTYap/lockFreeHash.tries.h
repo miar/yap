@@ -1,6 +1,12 @@
 #ifndef _LOCK_FREE_HASH.TRIES.H
 #define _LOCK_FREE_HASH.TRIES.H
 
+
+
+
+
+
+
 /*******************************************************************************
  *                            LFHT macros                                      *
  *******************************************************************************/
@@ -28,10 +34,6 @@
 #define LFHT_GetBucket(B, H, K, NS, STR)  (B = (STR **) LFHT_UntagHashLevel(H) + LFHT_KeyOffset((LFHT_CELL)K, NS))
      /* V04_GET_PREV_HASH */
 #define LFHT_GetPreviousHashLevel(PH, CH, STR)  (PH = (STR **) *(((STR **) LFHT_UntagHashLevel(CH)) - 1))
-
-
-
-
 
 /*******************************************************************************
  *                            YapTab compatibility stuff                       *
