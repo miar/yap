@@ -116,10 +116,6 @@ static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_has
   return lfht_check_insert_bucket_chain(curr_hash, bucket_next, key, n_shifts, 0 LFHT_PASS_ARGS);
 }
 
-/***********************************************************ok upto here **************************/
-
-
-
 /* subgoal_trie_check_insert_bucket_chain */
 static inline LFHT_STR_PTR lfht_check_insert_bucket_chain(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node,  LFHT_NODE_KEY_STR key, int n_shifts, int count_nodes  LFHT_USES_ARGS) {
   if (LFHT_IsEqualKey(chain_node, key))
@@ -145,7 +141,7 @@ static inline LFHT_STR_PTR lfht_check_insert_bucket_chain(LFHT_STR_PTR *curr_has
         LFHT_SetBucket(bucket, new_hash, LFHT_STR);
 	return lfht_check_insert_bucket_array(new_hash, key, (n_shifts + 1) LFHT_PASS_ARGS); 
       } else 
-	LFHT_FreeBuckets(new_hash, bucket, LFHT_STR); // HERE
+	LFHT_FreeBuckets(new_hash, bucket, LFHT_STR); 
     } else {
       LFHT_STR_PTR new_node;
       LFHT_NEW_NODE(new_node, key, (LFHT_STR_PTR) curr_hash);
@@ -154,24 +150,22 @@ static inline LFHT_STR_PTR lfht_check_insert_bucket_chain(LFHT_STR_PTR *curr_has
       LFHT_FREE_NODE(new_node);
     }
     chain_next = LFHT_NodeNext(chain_node);
-    if (!LFHT_IsHashLevel(chain_next))
-
-      return subgoal_trie_check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, n_shifts, cn PASS_REGS);  
+    if (!LFHT_IsHashLevel(chain_next))     
+      return lfht_check_insert_bucket_chain(curr_hash, chain_next, key, n_shifts, cn LFHT_PASS_ARGS);
   }
-
-  // chain_next is pointig to an hash which is newer than mine. I must jump to the correct hash
-  sg_node_ptr *jump_hash, *prev_hash;
-  jump_hash = (sg_node_ptr *) chain_next;
-  V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
+  // chain_next is refering a deeper hash level. The worker must jump its hash level
+  LFHT_STR_PTR *jump_hash, *prev_hash;
+  jump_hash = (LFHT_STR_PTR *) chain_next;                  
+  LFHT_GetPreviousHashLevel(prev_hash, jump_hash, LFHT_STR);  
   while (prev_hash != curr_hash) {
     jump_hash = prev_hash;
-    V04_GET_PREV_HASH(prev_hash, jump_hash, struct subgoal_trie_node);
+    LFHT_GetPreviousHashLevel(prev_hash, jump_hash, LFHT_STR);
   }
-  return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
+  return lfht_check_insert_bucket_array(jump_hash, key, (n_shifts + 1) LFHT_PASS_ARGS); 
 }
 
-
-
+/***********************************************************ok upto here **************************/
+// HERE
 
 
 
