@@ -164,13 +164,29 @@ static inline LFHT_STR_PTR lfht_check_insert_bucket_chain(LFHT_STR_PTR *curr_has
   return lfht_check_insert_bucket_array(jump_hash, key, (n_shifts + 1) LFHT_PASS_ARGS); 
 }
 
+static inline void lfht_adjust_chain_nodes(LFHT_STR_PTR *new_hash, LFHT_STR_PTR chain_node, LFHT_STR_PTR last_node, int n_shifts LFHT_USES_REGS) {
+  if (chain_node == last_node)
+    return;
+  lfht_adjust_chain_nodes(new_hash, LFHT_NodeNext(chain_node), last_node, n_shifts LFHT_PASS_REGS);
+  return lfht_insert_bucket_array(new_hash, chain_node, (n_shifts + 1) LFHT_PASS_REGS);
+}
+
+static inline void lfht_insert_bucket_array(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node, int n_shifts LFHT_USES_REGS) {
+  LFHT_STR_PTR *bucket; 
+  LFHT_NodeNext(chain_node) = (LFHT_STR_PTR) curr_hash;
+  LFHT_GetBucket(bucket, curr_hash, LFHT_NodeKey(chain_node), n_shifts, LFHT_STR);
+  if (LFHT_IsEmptyBucket(*bucket, curr_hash, LFHT_STR))
+    if (LFHT_BoolCAS(bucket, curr_hash, chain_node))      
+      return;  
+  LFHT_STR_PTR bucket_next = *bucket;  
+  if (LFHT_IsHashLevel(bucket_next))  
+    return lfht_insert_bucket_array((LFHT_STR_PTR *)bucket_next, chain_node, (n_shifts + 1) LFHT_PASS_ARGS);   
+  return lfht_insert_bucket_chain( curr_hash, bucket_next, chain_node, n_shifts, 0 LFHT_PASS_ARGS); 
+}
+
+
 /***********************************************************ok upto here **************************/
 // HERE
-
-
-
-
-
 
 
 
