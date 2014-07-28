@@ -71,7 +71,7 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
       new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);         
       LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), 0, LFHT_STR);      
       LFHT_SetBucket(bucket, chain_node, LFHT_STR);                  
-      if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), NULL, new_hash)) {                
+      if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), NULL, new_hash)) {
 	lfht_adjust_chain_nodes(new_hash, LFHT_FirstNode, chain_node, (- 1) LFHT_PASS_REGS); 
 	LFHT_FirstNode = (LFHT_STR_PTR) new_hash;                                                  
 	return lfht_check_insert_bucket_array(new_hash, key, 0 LFHT_PASS_ARGS);
@@ -82,7 +82,7 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
       LFHT_NEW_NODE(new_node, key, NULL);
       if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), NULL, new_node))
 	return new_node;
-      LFHT_FREE_NODE((new_node);
+      LFHT_FREE_NODE(new_node);
     }
     chain_next = LFHT_NodeNext(chain_node);
     if (!LFHT_IsHashLevel(chain_next))
@@ -118,43 +118,44 @@ static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_has
 
 /***********************************************************ok upto here **************************/
 
-// HERE
+
 
 /* subgoal_trie_check_insert_bucket_chain */
-static inline sg_node_ptr lfht_check_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr parent_node, Term t, long n_shifts, int count_nodes USES_REGS) {
-  if (V04_IS_EQUAL_ENTRY(chain_node, t))
+static inline LFHT_STR_PTR lfht_check_insert_bucket_chain(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node,  LFHT_NODE_KEY_STR key, int n_shifts, int count_nodes  LFHT_USES_ARGS) {
+  if (LFHT_IsEqualKey(chain_node, key))
     return chain_node;  
   int cn = count_nodes + 1;
-  sg_node_ptr chain_next;
-  chain_next = TrNode_next(chain_node);
-  if (!V04_IS_HASH(chain_next))
-    return subgoal_trie_check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, n_shifts, cn PASS_REGS);  
+  LFHT_STR_PTR chain_next;
+  chain_next = LFHT_NodeNext(chain_node);
+  if (!LFHT_IsHashLevel(chain_next))
+    return lfht_check_insert_bucket_chain(curr_hash, chain_next, key, n_shifts, cn LFHT_PASS_ARGS);  
   
   // chain_next is a hash pointer
-  if ((sg_node_ptr *)chain_next == curr_hash) {
-    if (cn == MAX_NODES_PER_BUCKET) {
-      sg_node_ptr *new_hash;
-      sg_node_ptr *bucket;
-      V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
-      new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
-      V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
-      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
-	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
-	subgoal_trie_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts PASS_REGS);
-	V04_SET_HASH_BUCKET(bucket, new_hash, struct subgoal_trie_node);
-	return subgoal_trie_check_insert_bucket_array(new_hash, parent_node, t, (n_shifts + 1) PASS_REGS);
+  if ((LFHT_STR_PTR *)chain_next == curr_hash) {
+    if (cn == LFHT_MAX_NODES_PER_BUCKET) {
+      LFHT_STR_PTR *new_hash;
+      LFHT_STR_PTR *bucket;
+      LFHT_AllocBuckets(new_hash, curr_hash, LFHT_STR);
+      new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);         
+      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), n_shifts + 1, LFHT_STR);
+      LFHT_SetBucket(bucket, chain_node, LFHT_STR);                 
+      if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), curr_hash, new_hash)) {
+	LFHT_GetBucket(bucket, curr_hash, key, n_shifts, LFHT_STR);   
+	lfht_adjust_chain_nodes(new_hash, *bucket, chain_node, n_shifts LFHT_PASS_REGS); 
+        LFHT_SetBucket(bucket, new_hash, LFHT_STR);
+	return lfht_check_insert_bucket_array(new_hash, key, (n_shifts + 1) LFHT_PASS_ARGS); 
       } else 
-	V04_FREE_TRIE_HASH_BUCKETS(new_hash, bucket, struct subgoal_trie_node);  
+	LFHT_FreeBuckets(new_hash, bucket, LFHT_STR); // HERE
     } else {
-      sg_node_ptr new_node; 
-      NEW_SUBGOAL_TRIE_NODE(new_node, t, NULL, parent_node, (sg_node_ptr) curr_hash);
-      if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_node)) 
+      LFHT_STR_PTR new_node;
+      LFHT_NEW_NODE(new_node, key, (LFHT_STR_PTR) curr_hash);
+      if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), curr_hash, new_node))
 	return new_node;      
-      FREE_SUBGOAL_TRIE_NODE(new_node);
+      LFHT_FREE_NODE(new_node);
     }
-    chain_next = TrNode_next(chain_node);
-    if (!V04_IS_HASH(chain_next))
+    chain_next = LFHT_NodeNext(chain_node);
+    if (!LFHT_IsHashLevel(chain_next))
+
       return subgoal_trie_check_insert_bucket_chain(curr_hash, chain_next, parent_node, t, n_shifts, cn PASS_REGS);  
   }
 
