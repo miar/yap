@@ -1,7 +1,6 @@
 #ifdef T1
 #define USES_ARGS , int a, int b
 #define PASS_ARGS , a, b
-
 #define FUNC          subgoal_trie
 #define CALL_FUNC(X)  subgoal_trie(X PASS_ARGS)
 static inline int FUNC (int ar1 USES_ARGS );

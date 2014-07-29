@@ -8,12 +8,15 @@
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
 #define LFHT_NEW_NODE(NODE, KEY, NEXT)    {NEW_SUBGOAL_TRIE_NODE(NODE, KEY, NULL, parent_node, NEXT);}
 #define LFHT_FREE_NODE(PTR)               FREE_SUBGOAL_TRIE_NODE(PTR);
-#undef LFHT_STR
-#undef LFHT_STR_PTR
-#undef LFHT_NEW_NODE
-#undef LFHT_FREE_NODE
-#undef LFHT_PASS_ARGS
-#undef LFHT_ROOT_ADDR
+
+#define LFHT_CHECK_INSERT_KEY            subgoal_trie_check_insert_key
+#define LFHT_CHECK_INSERT_FIRST_CHAIN    subgoal_trie_check_insert_first_chain
+#define LFHT_CHECK_INSERT_BUCKET_ARRAY   subgoal_trie_check_insert_bucket_array
+#define LFHT_CHECK_INSERT_BUCKET_CHAIN   subgoal_trie_check_insert_bucket_chain
+#define LFHT_ADJUST_CHAIN_NODES          subgoal_trie_adjust_chain_nodes
+#define LFHT_INSERT_BUCKET_ARRAY         subgoal_trie_insert_bucket_array
+#define LFHT_INSERT_BUCKET_CHAIN         subgoal_trie_insert_bucket_chain
+
 #endif /* INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE */
 
 #ifdef INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
@@ -24,12 +27,23 @@
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
 #define LFHT_NEW_NODE(NODE, KEY, NEXT)    {NEW_ANSWER_TRIE_NODE(NODE, instr, KEY, NULL, parent_node, NEXT);}
 #define LFHT_FREE_NODE(PTR)               FREE_ANSWER_TRIE_NODE(PTR)
-#undef LFHT_STR
-#undef LFHT_STR_PTR
-#undef LFHT_NEW_NODE
-#undef LFHT_FREE_NODE
-#undef LFHT_PASS_ARGS
-#undef LFHT_ROOT_ADDR
+
+#define LFHT_CHECK_INSERT_KEY            answer_trie_check_insert_key
+#define LFHT_CHECK_INSERT_FIRST_CHAIN    answer_trie_check_insert_first_chain
+#define LFHT_CHECK_INSERT_BUCKET_ARRAY   answer_trie_check_insert_bucket_array
+#define LFHT_CHECK_INSERT_BUCKET_CHAIN   answer_trie_check_insert_bucket_chain
+#define LFHT_ADJUST_CHAIN_NODES          answer_trie_adjust_chain_nodes
+#define LFHT_INSERT_BUCKET_ARRAY         answer_trie_insert_bucket_array
+#define LFHT_INSERT_BUCKET_CHAIN         answer_trie_insert_bucket_chain
+
+static inline LFHT_STR_PTR LFHT_CHECK_INSERT_KEY(LFHT_NODE_KEY_STR key LFHT_USES_ARGS);
+static inline LFHT_STR_PTR LFHT_CHECK_INSERT_FIRST_CHAIN(LFHT_STR_PTR chain_node, LFHT_NODE_KEY_STR key, int count_nodes LFHT_USES_ARGS);
+static inline LFHT_STR_PTR LFHT_CHECK_INSERT_BUCKET_ARRAY(LFHT_STR_PTR *curr_hash,  LFHT_NODE_KEY_STR key, int n_shifts LFHT_USES_ARGS);
+static inline LFHT_STR_PTR LFHT_CHECK_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node,  LFHT_NODE_KEY_STR key, int n_shifts, int count_nodes  LFHT_USES_ARGS);
+static inline void LFHT_ADJUST_CHAIN_NODES(LFHT_STR_PTR *new_hash, LFHT_STR_PTR chain_node, LFHT_STR_PTR last_node, int n_shifts LFHT_USES_REGS);
+static inline void LFHT_INSERT_BUCKET_ARRAY(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node, int n_shifts LFHT_USES_REGS);
+static inline void LFHT_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node, LFHT_STR_PTR adjust_node, int n_shifts, int count_nodes LFHT_USES_ARGS);
+
 #endif /* INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE */
 
 static inline LFHT_STR_PTR lfht_check_insert_key(LFHT_NODE_KEY_STR key LFHT_USES_ARGS) {
@@ -93,7 +107,7 @@ static inline LFHT_STR_PTR lfht_check_insert_first_chain(LFHT_STR_PTR chain_node
   return lfht_check_insert_bucket_array(jump_hash, key, 0 LFHT_PASS_ARGS);  
 } 
 
-static inline LFHT_STR_PTR lhft_check_insert_bucket_array(LFHT_STR_PTR *curr_hash,  LFHT_NODE_KEY_STR key, int n_shifts LFHT_USES_ARGS) {
+static inline LFHT_STR_PTR lfht_check_insert_bucket_array(LFHT_STR_PTR *curr_hash,  LFHT_NODE_KEY_STR key, int n_shifts LFHT_USES_ARGS) {
   LFHT_STR_PTR *bucket;  
   LFHT_GetBucket((bucket, curr_hash, t, n_shifts, LFHT_STR);   
   if (LFHT_IsEmptyBucket(*bucket, curr_hash, LFHT_STR)) {  
@@ -221,3 +235,17 @@ static inline void lfht_insert_bucket_chain(LFHT_STR_PTR *curr_hash, LFHT_STR_PT
   }
   return lfht_insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) LFHT_PASS_ARGS); 
 }
+
+#undef LFHT_STR
+#undef LFHT_STR_PTR
+#undef LFHT_NEW_NODE
+#undef LFHT_FREE_NODE
+#undef LFHT_PASS_ARGS
+#undef LFHT_ROOT_ADDR
+#undef LFHT_CHECK_INSERT_KEY
+#undef LFHT_CHECK_INSERT_FIRST_CHAIN
+#undef LFHT_CHECK_INSERT_BUCKET_ARRAY
+#undef LFHT_CHECK_INSERT_BUCKET_CHAIN
+#undef LFHT_ADJUST_CHAIN_NODES
+#undef LFHT_INSERT_BUCKET_ARRAY
+#undef LFHT_INSERT_BUCKET_CHAIN

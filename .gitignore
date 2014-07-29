@@ -11,3 +11,4 @@
 *.dylib
 docs/yap.info*
 .build
+
