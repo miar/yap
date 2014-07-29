@@ -225,11 +225,3 @@ static inline void lfht_insert_bucket_chain(LFHT_STR_PTR *curr_hash, LFHT_STR_PT
   }
   return lfht_insert_bucket_array(jump_hash, adjust_node, (n_shifts + 1) LFHT_PASS_ARGS); 
 }
-
-
-
-
-
-
-
-
