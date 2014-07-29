@@ -4,16 +4,14 @@
 #define LFHT_STR                          struct subgoal_trie_node
 #define LFHT_STR_PTR                      sg_node_ptr
 #define LFHT_USES_ARGS                    , sg_node_ptr parent_node LFHT_USES_REGS
-#define LFHT_USES_ARGS1                   sg_node_ptr parent_node LFHT_USES_REGS
 #define LFHT_PASS_ARGS                    , parent_node LFHT_PASS_REGS
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
-#define LFHT_NEW_NODE(NODE, KEY, NEXT)  {NEW_SUBGOAL_TRIE_NODE(NODE, KEY, NULL, parent_node, NEXT);}
+#define LFHT_NEW_NODE(NODE, KEY, NEXT)    {NEW_SUBGOAL_TRIE_NODE(NODE, KEY, NULL, parent_node, NEXT);}
 #define LFHT_FREE_NODE(PTR)               FREE_SUBGOAL_TRIE_NODE(PTR);
 #undef LFHT_STR
 #undef LFHT_STR_PTR
 #undef LFHT_NEW_NODE
 #undef LFHT_FREE_NODE
-#undef LFHT_USES_ARGS1
 #undef LFHT_PASS_ARGS
 #undef LFHT_ROOT_ADDR
 #endif /* INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE */
@@ -22,7 +20,6 @@
 #define LFHT_STR                          struct answer_trie_node
 #define LFHT_STR_PTR                      ans_node_ptr
 #define LFHT_USES_ARGS                    , ans_node_ptr parent_node, int instr LFHT_USES_REGS
-#define LFHT_USES_ARGS1                   ans_node_ptr parent_node, int instr LFHT_USES_REGS
 #define LFHT_PASS_ARGS                    , parent_node, instr LFHT_PASS_REGS
 #define LFHT_ROOT_ADDR                    (&(TrNode_child(parent_node)))
 #define LFHT_NEW_NODE(NODE, KEY, NEXT)    {NEW_ANSWER_TRIE_NODE(NODE, instr, KEY, NULL, parent_node, NEXT);}
@@ -31,7 +28,6 @@
 #undef LFHT_STR_PTR
 #undef LFHT_NEW_NODE
 #undef LFHT_FREE_NODE
-#undef LFHT_USES_ARGS1
 #undef LFHT_PASS_ARGS
 #undef LFHT_ROOT_ADDR
 #endif /* INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE */
