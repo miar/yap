@@ -1,15 +1,19 @@
 #ifndef _LOCK_FREE_HASH.TRIES.H
 #define _LOCK_FREE_HASH.TRIES.H
 
-
-
-
-
-
-
 /*******************************************************************************
  *                            LFHT macros                                      *
  *******************************************************************************/
+/* common macros - do not change*/
+#define LFHT_CALL_CHECK_INSERT_FIRST_CHAIN(F, K, S)        LFHT_CHECK_INSERT_FIRST_CHAIN(F, K, S LFHT_PASS_ARGS)
+#define LFHT_CALL_CHECK_INSERT_BUCKET_ARRAY(F, K, S)       LFHT_CHECK_INSERT_BUCKET_ARRAY(F, K, S LFHT_PASS_ARGS)
+#define LFHT_CALL_CHECK_INSERT_BUCKET_CHAIN(H, N, K, S, C) LFHT_CHECK_INSERT_BUCKET_CHAIN(H, N, K, S, C LFHT_PASS_ARGS)
+#define LFHT_CALL_ADJUST_CHAIN_NODES(H, N, L, S)           LFHT_ADJUST_CHAIN_NODES(H, N, L, S LFHT_PASS_REGS)
+#define LFHT_CALL_INSERT_BUCKET_ARRAY(B, C, S)             LFHT_INSERT_BUCKET_ARRAY(B, C, S LFHT_PASS_ARGS)
+#define LFHT_CALL_INSERT_BUCKET_CHAIN(H, N, L, S, C)       LFHT_INSERT_BUCKET_CHAIN(H, N, L, S, C LFHT_PASS_ARGS)
+
+
+
 #define LFHT_BIT_SHIFT                    3
 #define LFHT_BUCKET_ARRAY_SIZE            (1 << LFHT_BIT_SHIFT)
 #define LFHT_MAX_NODES_PER_BUCKET         4
@@ -39,17 +43,13 @@
  *                            YapTab compatibility stuff                       *
  *******************************************************************************/
 
-#define LFHT_NodeKey(NODE)                             TrNode_entry(NODE)
-#define LFHT_NodeNext(NODE)                            TrNode_next(NODE)
-#define LFHT_GetFirstNode(NODE)                        (NODE = (LFHT_STR_PTR) TrNode_child(parent_node))
-#define LFHT_FirstNode                                 TrNode_child(parent_node)
 #define LFHT_NrLowTagBits                              NumberOfLowTagBits /* 0 (zero) if none */
 #define LFHT_USES_REGS                                 USES_REGS          /* BLANC if no TabMalloc */   
 #define LFHT_PASS_REGS                                 PASS_REGS          /* BLANC if no TabMalloc */ 
 #define LFHT_NODE_KEY_STR                              Term
 
 /* integrated with TabMalloc. If no TabMalloc, then use malloc */
-     /* V04_ALLOC_THB */	
+
 #define LFHT_MemAllocBuckets(STR)                        		\
   union trie_hash_buckets *aux;						\
   ALLOC_STRUCT(aux, union trie_hash_buckets, _pages_trie_hash_buckets); \
