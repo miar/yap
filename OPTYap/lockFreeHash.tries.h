@@ -1,17 +1,17 @@
-#ifndef _LOCK_FREE_HASH.TRIES.H
-#define _LOCK_FREE_HASH.TRIES.H
+#ifndef _LOCK_FREE_HASH_TRIES_H
+#define _LOCK_FREE_HASH_TRIES_H
 
 /*******************************************************************************
  *                            LFHT macros                                      *
  *******************************************************************************/
 /* common macros - do not change*/
+#define LFHT_CALL_CHECK_INSERT_KEY(K)                      LFHT_CHECK_INSERT_KEY(K LFHT_PASS_ARGS)
 #define LFHT_CALL_CHECK_INSERT_FIRST_CHAIN(F, K, S)        LFHT_CHECK_INSERT_FIRST_CHAIN(F, K, S LFHT_PASS_ARGS)
 #define LFHT_CALL_CHECK_INSERT_BUCKET_ARRAY(F, K, S)       LFHT_CHECK_INSERT_BUCKET_ARRAY(F, K, S LFHT_PASS_ARGS)
 #define LFHT_CALL_CHECK_INSERT_BUCKET_CHAIN(H, N, K, S, C) LFHT_CHECK_INSERT_BUCKET_CHAIN(H, N, K, S, C LFHT_PASS_ARGS)
 #define LFHT_CALL_ADJUST_CHAIN_NODES(H, N, L, S)           LFHT_ADJUST_CHAIN_NODES(H, N, L, S LFHT_PASS_REGS)
-#define LFHT_CALL_INSERT_BUCKET_ARRAY(B, C, S)             LFHT_INSERT_BUCKET_ARRAY(B, C, S LFHT_PASS_ARGS)
-#define LFHT_CALL_INSERT_BUCKET_CHAIN(H, N, L, S, C)       LFHT_INSERT_BUCKET_CHAIN(H, N, L, S, C LFHT_PASS_ARGS)
-
+#define LFHT_CALL_INSERT_BUCKET_ARRAY(B, C, S)             LFHT_INSERT_BUCKET_ARRAY(B, C, S LFHT_PASS_REGS)
+#define LFHT_CALL_INSERT_BUCKET_CHAIN(H, N, L, S, C)       LFHT_INSERT_BUCKET_CHAIN(H, N, L, S, C LFHT_PASS_REGS)
 
 
 #define LFHT_BIT_SHIFT                    3
@@ -100,4 +100,4 @@
      FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1) */
 
 #endif /* LFHT_LOCAL_THREAD_BUFFER_FOR_BUCKET_ARRAYS */
-#endif /* _LOCK_FREE_HASH.TRIES.H */
+#endif /* _LOCK_FREE_HASH_TRIES_H */

@@ -837,7 +837,11 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 
 #ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
+#define INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
+#include "lockFreeHash.tries.i"
 
+//HERE
+#ifdef MIG_HERE
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   Term t = TrNode_entry(adjust_node);
   int cn = count_nodes + 1;
@@ -1016,7 +1020,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
   }
   return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, 0 PASS_REGS);  
 } 
-
+#endif /* MIG_HERE */
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
@@ -1024,6 +1028,8 @@ static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr tab_ent
 #else
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, sg_node_ptr parent_node, Term t USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
+  return LFHT_CALL_CHECK_INSERT_KEY(t);
+#ifdef MIG_HERE
   sg_node_ptr child_node;
   child_node = (sg_node_ptr) TrNode_child(parent_node);
   if (child_node == NULL) {
@@ -1038,6 +1044,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
   if (!V04_IS_HASH(child_node))
     return subgoal_trie_check_insert_first_chain(child_node, parent_node, t, 0 PASS_REGS);
   return subgoal_trie_check_insert_bucket_array((sg_node_ptr *) child_node, parent_node, t, 0  PASS_REGS);
+#endif /* MIG_HERE */
 }
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_SUBGOAL_TRIE_CHECK_INSERT */
