@@ -2,6 +2,27 @@
 #define _LOCK_FREE_HASH_TRIES_H
 
 /*******************************************************************************
+ *                            YapTab compatibility stuff                       *
+ *******************************************************************************/
+/* 0 (zero) if none */
+#define LFHT_NrLowTagBits                              NumberOfLowTagBits
+/* BLANC if no TabMalloc */
+#define LFHT_USES_REGS                                 USES_REGS
+/* BLANC if no TabMalloc */ 
+#define LFHT_PASS_REGS                                 PASS_REGS
+#define LFHT_NODE_KEY_STR                              Term
+
+/*******************************************************************************
+ *                            LFHT configure parameters                        *
+ *******************************************************************************/
+/* common macros - do not change*/
+
+#define LFHT_BIT_SHIFT                    3
+#define LFHT_BUCKET_ARRAY_SIZE            (1 << LFHT_BIT_SHIFT)
+#define LFHT_MAX_NODES_PER_BUCKET         4
+#define LFHT_CELL                         long
+
+/*******************************************************************************
  *                            LFHT macros                                      *
  *******************************************************************************/
 /* common macros - do not change*/
@@ -13,11 +34,6 @@
 #define LFHT_CALL_INSERT_BUCKET_ARRAY(B, C, S)             LFHT_INSERT_BUCKET_ARRAY(B, C, S LFHT_PASS_REGS)
 #define LFHT_CALL_INSERT_BUCKET_CHAIN(H, N, L, S, C)       LFHT_INSERT_BUCKET_CHAIN(H, N, L, S, C LFHT_PASS_REGS)
 
-
-#define LFHT_BIT_SHIFT                    3
-#define LFHT_BUCKET_ARRAY_SIZE            (1 << LFHT_BIT_SHIFT)
-#define LFHT_MAX_NODES_PER_BUCKET         4
-#define LFHT_CELL                         long
 #define LFHT_IsEqualKey(NODE, KEY)        (LFHT_NodeKey(NODE) == KEY)
 #define LFHT_IsHashLevel(PTR)             ((LFHT_CELL)(PTR) & (LFHT_CELL)(0x1))
      /* V04_IS_EMPTY_BUCKET */
@@ -38,15 +54,6 @@
 #define LFHT_GetBucket(B, H, K, NS, STR)  (B = (STR **) LFHT_UntagHashLevel(H) + LFHT_KeyOffset((LFHT_CELL)K, NS))
      /* V04_GET_PREV_HASH */
 #define LFHT_GetPreviousHashLevel(PH, CH, STR)  (PH = (STR **) *(((STR **) LFHT_UntagHashLevel(CH)) - 1))
-
-/*******************************************************************************
- *                            YapTab compatibility stuff                       *
- *******************************************************************************/
-
-#define LFHT_NrLowTagBits                              NumberOfLowTagBits /* 0 (zero) if none */
-#define LFHT_USES_REGS                                 USES_REGS          /* BLANC if no TabMalloc */   
-#define LFHT_PASS_REGS                                 PASS_REGS          /* BLANC if no TabMalloc */ 
-#define LFHT_NODE_KEY_STR                              Term
 
 /* integrated with TabMalloc. If no TabMalloc, then use malloc */
 

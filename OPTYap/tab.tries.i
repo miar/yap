@@ -1028,7 +1028,8 @@ static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr tab_ent
 #else
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, sg_node_ptr parent_node, Term t USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
-  return LFHT_CALL_CHECK_INSERT_KEY(t);
+  //  return LFHT_CALL_CHECK_INSERT_KEY(t);
+  
 #ifdef MIG_HERE
   sg_node_ptr child_node;
   child_node = (sg_node_ptr) TrNode_child(parent_node);
