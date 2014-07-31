@@ -21,7 +21,7 @@
 #include "YapHeap.h"
 #include "tab.macros.h"
 
-#ifdef MIG_HERE
+#ifdef _______________________MIG_HERE_________________
 #ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *, sg_node_ptr, sg_node_ptr, long, int USES_REGS);
 static inline void subgoal_trie_insert_bucket_array(sg_node_ptr *, sg_node_ptr, long USES_REGS);
@@ -30,8 +30,6 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *, 
 static inline sg_node_ptr subgoal_trie_check_insert_bucket_array(sg_node_ptr *, sg_node_ptr, Term, long USES_REGS);
 static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr, sg_node_ptr, Term, int USES_REGS);
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
-#endif /* MIG_HERE */
-
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
 static inline void answer_trie_insert_bucket_chain(ans_node_ptr *, ans_node_ptr, ans_node_ptr, long, int USES_REGS);
 static inline void answer_trie_insert_bucket_array(ans_node_ptr *, ans_node_ptr, long USES_REGS);
@@ -40,7 +38,7 @@ static inline ans_node_ptr answer_trie_check_insert_bucket_chain(ans_node_ptr *,
 static inline ans_node_ptr answer_trie_check_insert_bucket_array(ans_node_ptr *, ans_node_ptr, Term, int, long USES_REGS);
 static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr, ans_node_ptr, Term, int, int USES_REGS);
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
-
+#endif /* _______________________MIG_HERE_________________ */
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr, sg_node_ptr, Term USES_REGS);
 static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr, sg_node_ptr, Term USES_REGS);
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr, ans_node_ptr, Term, int USES_REGS);

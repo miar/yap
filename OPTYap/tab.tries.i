@@ -839,9 +839,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
 #define INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
 #include "lockFreeHash.tries.i"
+#undef INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
 
-//HERE
-#ifdef MIG_HERE
+#ifdef _______________________MIG_HERE_________________
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   Term t = TrNode_entry(adjust_node);
   int cn = count_nodes + 1;
@@ -1020,7 +1020,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_first_chain(sg_node_ptr chai
   }
   return subgoal_trie_check_insert_bucket_array(jump_hash, parent_node, t, 0 PASS_REGS);  
 } 
-#endif /* MIG_HERE */
+#endif /*  _______________________MIG_HERE_________________ */
 #endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
@@ -1028,9 +1028,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr tab_ent
 #else
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, sg_node_ptr parent_node, Term t USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
-  //  return LFHT_CALL_CHECK_INSERT_KEY(t);
-  
-#ifdef MIG_HERE
+  return LFHT_SUBGOAL_TRIE_CHECK_INSERT_ENTRY(t, parent_node);
+
+#ifdef  _______________________MIG_HERE_________________
   sg_node_ptr child_node;
   child_node = (sg_node_ptr) TrNode_child(parent_node);
   if (child_node == NULL) {
@@ -1045,7 +1045,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
   if (!V04_IS_HASH(child_node))
     return subgoal_trie_check_insert_first_chain(child_node, parent_node, t, 0 PASS_REGS);
   return subgoal_trie_check_insert_bucket_array((sg_node_ptr *) child_node, parent_node, t, 0  PASS_REGS);
-#endif /* MIG_HERE */
+#endif /* _______________________MIG_HERE_________________ */
 }
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
 #endif /* INCLUDE_SUBGOAL_TRIE_CHECK_INSERT */
@@ -2123,6 +2123,11 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
 #ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
+#define INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
+#include "lockFreeHash.tries.i"
+#undef INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
+#ifdef _______________________MIG_HERE_________________
+
 
 static inline void answer_trie_insert_bucket_chain(ans_node_ptr *curr_hash, ans_node_ptr chain_node, ans_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
   Term t = TrNode_entry(adjust_node);
@@ -2304,7 +2309,7 @@ static inline ans_node_ptr answer_trie_check_insert_first_chain(ans_node_ptr cha
   }
   return answer_trie_check_insert_bucket_array(jump_hash, parent_node, t, instr, 0 PASS_REGS);  
 } 
-
+#endif /*  _______________________MIG_HERE_________________ */
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE */
 
 #ifdef MODE_GLOBAL_TRIE_ENTRY
@@ -2312,8 +2317,12 @@ static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, an
 #else
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
-  ans_node_ptr child_node;
   //printf(" term = %d \n", t>>3);
+  return LFHT_ANSWER_TRIE_CHECK_INSERT_ENTRY(t, parent_node, instr);
+
+#ifdef  _______________________MIG_HERE_________________
+  ans_node_ptr child_node;
+
   child_node = (ans_node_ptr) TrNode_child(parent_node);
   if (child_node == NULL) {
     ans_node_ptr new_child_node;
@@ -2327,6 +2336,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
   if (!V04_IS_HASH(child_node))
     return answer_trie_check_insert_first_chain(child_node, parent_node, t, instr, 0 PASS_REGS);
   return answer_trie_check_insert_bucket_array((ans_node_ptr *) child_node, parent_node, t, instr, 0  PASS_REGS);
+#endif /* _______________________MIG_HERE_________________ */
 }
 
 #endif /* ANSWER_TRIE_LOCK_LEVEL */

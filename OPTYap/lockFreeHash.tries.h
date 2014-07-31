@@ -4,6 +4,11 @@
 /*******************************************************************************
  *                            YapTab compatibility stuff                       *
  *******************************************************************************/
+
+/* persistent macros - macros used to call the lfht model from outside files */
+#define LFHT_SUBGOAL_TRIE_CHECK_INSERT_ENTRY(K, P)   subgoal_trie_check_insert_key(K, P PASS_REGS)
+#define LFHT_ANSWER_TRIE_CHECK_INSERT_ENTRY(K, P, I)   answer_trie_check_insert_key(K, P, I PASS_REGS)
+
 /* 0 (zero) if none */
 #define LFHT_NrLowTagBits                              NumberOfLowTagBits
 /* BLANC if no TabMalloc */

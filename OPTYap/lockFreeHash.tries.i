@@ -1,6 +1,7 @@
 #include "lockFreeHash.tries.h"
 
 #ifdef INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
+/* nonpersistent macros - macros used inside the lfht model */
 #define LFHT_STR                          struct subgoal_trie_node
 #define LFHT_STR_PTR                      sg_node_ptr
 #define LFHT_USES_ARGS                    , LFHT_STR_PTR parent_node LFHT_USES_REGS
@@ -27,7 +28,9 @@ static inline void LFHT_ADJUST_CHAIN_NODES(LFHT_STR_PTR *new_hash, LFHT_STR_PTR 
 static inline void LFHT_INSERT_BUCKET_ARRAY(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node, int n_shifts LFHT_USES_REGS);
 static inline void LFHT_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PTR chain_node, LFHT_STR_PTR adjust_node, int n_shifts, int count_nodes LFHT_USES_REGS);
 #endif /* INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE */
+
 #ifdef INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
+/* nonpersistent macros - macros used inside the lfht model */
 #define LFHT_STR                          struct answer_trie_node
 #define LFHT_STR_PTR                      ans_node_ptr
 #define LFHT_USES_ARGS                    , LFHT_STR_PTR parent_node, int instr LFHT_USES_REGS
@@ -251,7 +254,6 @@ static inline void LFHT_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PT
 #undef LFHT_CALL_INSERT_BUCKET_CHAIN 
 */
 
-/*
 #undef LFHT_STR
 #undef LFHT_STR_PTR
 #undef LFHT_USES_ARGS
@@ -270,4 +272,4 @@ static inline void LFHT_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PT
 #undef LFHT_ADJUST_CHAIN_NODES
 #undef LFHT_INSERT_BUCKET_ARRAY
 #undef LFHT_INSERT_BUCKET_CHAIN
-*/
+

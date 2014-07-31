@@ -62,8 +62,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1
-////#define THREADS_FULL_SHARING 1  
+/////#define THREADS_SUBGOAL_SHARING 1
+#define THREADS_FULL_SHARING 1  
 /* #define THREADS_CONSUMER_SHARING 1  -- NOT WORKING*/
 
 //#define EXTRA_STATISTICS   1
@@ -107,16 +107,16 @@
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+/////////#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-/////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
 //////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      
-//////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
@@ -134,7 +134,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-#define MODE_DIRECTED_TABLING 1 
+///#define MODE_DIRECTED_TABLING 1 
 //#define TIMESTAMP_MODE_DIRECTED_TABLING 1 /* must be active THREADS_SUBGOAL_SHARING + MODE_DIRECTED_TABLING --- ATTENTION : ONLY FOR INTEGERS AND MIN/MAX OPERATORS ON THE LAST ARGUMENT*/
 //#define STUDY_TIMESTAMP_MDT 1
 
