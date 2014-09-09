@@ -102,50 +102,6 @@
 #endif /* DETERMINISTIC_TABLING */
 
 
-#ifdef THREADS_CONSUMER_SHARING
-#define store_generator_consumer_node(TAB_ENT, SG_FR, DEP_ON_STACK,ARITY)   \
-       {  register CELL *pt_args;				            \
-          register choiceptr gccp;				            \
-          register dep_fr_ptr new_dep_fr;                                   \
-          /* store args */						    \
-          pt_args = XREGS + (ARITY);                                        \
-	  while (pt_args > XREGS) {                                         \
-            register CELL aux_arg = pt_args[0];                             \
-            --YENV;                                                         \
-            --pt_args;                                                      \
-            *YENV = aux_arg;                                                \
-	  }                                                                 \
-          /* initialize gcp and adjust subgoal frame field */               \
-          YENV = (CELL *) (GEN_CP(YENV) - 1);                               \
-          gccp = NORM_CP(YENV);                                             \
-          SgFr_gen_cp(SG_FR) = gccp;					    \
-          /* store generator choice point */		                    \
-          HBREG = H;                                                        \
-          store_yaam_reg_cpdepth(gccp);                                     \
-          gccp->cp_tr = TR;                                                 \
-          gccp->cp_ap = ANSWER_RESOLUTION_COMPLETION;                       \
-          gccp->cp_h  = H;                                                  \
-          gccp->cp_b  = B;                                                  \
-          gccp->cp_env = ENV;                                               \
-          gccp->cp_cp = CPREG;                                              \
-          /* store dependency frame */                                      \
-          new_dependency_frame(new_dep_fr, DEP_ON_STACK, LOCAL_top_or_fr,   \
-			       gccp, gccp, SG_FR, TRUE, LOCAL_top_dep_fr);  \
-          LOCAL_top_dep_fr = new_dep_fr;                                    \
-          GEN_CP(gccp)->cp_dep_fr = LOCAL_top_dep_fr;                       \
-          GEN_CP(gccp)->cp_sg_fr = SG_FR;                                   \
-	  /* adjust freeze registers */					    \
-	  H_FZ = H;							    \
-	  B_FZ = gccp;							    \
-	  TR_FZ = TR;							    \
-	  store_low_level_trace_info(GEN_CP(gccp), TAB_ENT);		    \
-          set_cut((CELL *)gccp, B);                                         \
-          B = gccp;                                                         \
-          YAPOR_SET_LOAD(B);                                                \
-          SET_BB(B);                                                        \
-          TABLING_ERROR_CHECKING_STACK;                                     \
-       }
-#endif /* THREADS_CONSUMER_SHARING */
 
 
 #define restore_generator_node(ARITY, AP)               \
@@ -238,32 +194,6 @@
   load_answer(ANSWER, SUBS_PTR)
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 
-#ifdef THREADS_CONSUMER_SHARING
-#define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
-        { CELL *subs_ptr;                                                      \
-          /* restore consumer choice point */                                  \
-          H = HBREG = PROTECT_FROZEN_H(B);                                     \
-          restore_yaam_reg_cpdepth(B);                                         \
-          CPREG = B->cp_cp;                                                    \
-          ENV = B->cp_env;                                                     \
-          /* set_cut(YENV, B->cp_b); --> no effect */                          \
-          PREG = (yamop *) CPREG;                                              \
-          PREFETCH_OP(PREG);                                                   \
-          /* load answer from table to global stack */                         \
-          if (B == DepFr_leader_cp(DEP_FR) || DepFr_external(DEP_FR)) {        \
-            /*  B is a generator-consumer node  */                             \
-            TABLING_ERROR_CHECKING(generator_consumer, IS_BATCHED_GEN_CP(B));  \
-            subs_ptr = (CELL *) (GEN_CP(B) + 1);                               \
-            subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);                       \
-	  } else {                                                             \
-            subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
-	  }                                                                    \
-          FTNA_3_load_answer(ANSWER, subs_ptr);                                \
-          /* procceed */                                                       \
-          YENV = ENV;                                                          \
-          GONext();                                                            \
-        }
-#else
 #define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
         { CELL *subs_ptr;                                                      \
           /* restore consumer choice point */                                  \
@@ -289,8 +219,6 @@
           YENV = ENV;                                                          \
           GONext();                                                            \
         }
-#endif /* THREADS_CONSUMER_SHARING */
-
 
 #define store_loader_node(TAB_ENT, ANSWER)                    \
         { register choiceptr lcp;                             \
@@ -510,7 +438,7 @@
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
       if (SgFr_sg_ent_state(sg_fr) >= complete) {
@@ -521,19 +449,8 @@
 	SgFr_active_workers(sg_fr)++;      
       UNLOCK_SG_FR(sg_fr);
     } 
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 #endif /*!THREADS_SUBGOAL_FRAME_BY_WID*/
-
-#ifdef THREADS_CONSUMER_SHARING
-    if (SgFr_state(sg_fr) == ready_external) {
-      init_subgoal_frame(sg_fr);
-      store_generator_consumer_node(tab_ent, sg_fr, TRUE, PREG->u.Otapl.s);
-      PREFETCH_OP(PREG);
-      allocate_environment();
-      check_for_deadlock(sg_fr);
-      goto answer_resolution_completion;
-    } else
-#endif /* THREADS_CONSUMER_SHARING */
 
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */      
@@ -612,12 +529,12 @@
 	  TRAIL_FRAME(sg_fr);
 	}
 #endif /* LIMIT_TABLING */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
           /* load answers from the trie */
 	  UNLOCK_SG_FR(sg_fr);
 	  if(TrNode_child(ans_node) != NULL) {
@@ -630,11 +547,11 @@
           GONext();
 	} else {
 	  /* execute compiled code from the trie */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	  if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
           if (SgFr_state(sg_fr) < compiled)
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 	    update_answer_trie(sg_fr);
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
@@ -678,7 +595,7 @@
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
       if (SgFr_sg_ent_state(sg_fr) >= complete) {
@@ -689,18 +606,8 @@
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
     }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 #endif /*!THREADS_SUBGOAL_FRAME_BY_WID */
-#ifdef THREADS_CONSUMER_SHARING
-    if (SgFr_state(sg_fr) == ready_external) {
-      init_subgoal_frame(sg_fr);
-      store_generator_consumer_node(tab_ent, sg_fr, TRUE, PREG->u.Otapl.s);
-      PREFETCH_OP(PREG);
-      allocate_environment();
-      check_for_deadlock(sg_fr);
-      goto answer_resolution_completion;
-    } else
-#endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
       init_subgoal_frame(sg_fr);
@@ -772,12 +679,12 @@
 	  TRAIL_FRAME(sg_fr);
 	}
 #endif /* LIMIT_TABLING */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
           /* load answers from the trie */
 	  UNLOCK_SG_FR(sg_fr);
 	  if(TrNode_child(ans_node) != NULL) {
@@ -790,11 +697,11 @@
           GONext();
 	} else {
 	  /* execute compiled code from the trie */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	  if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
 	  if (SgFr_state(sg_fr) < compiled)
-#endif /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING*/
+#endif /*THREADS_FULL_SHARING */
 	    update_answer_trie(sg_fr);
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
@@ -851,7 +758,7 @@
 
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
     if (SgFr_state(sg_fr) <= ready) {
       LOCK_SG_FR(sg_fr);
       if (SgFr_sg_ent_state(sg_fr) >= complete) {
@@ -862,18 +769,8 @@
 	SgFr_active_workers(sg_fr)++;
       UNLOCK_SG_FR(sg_fr);
     }
-#endif /*  THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /*  THREADS_FULL_SHARING */
 #endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
-#ifdef THREADS_CONSUMER_SHARING
-    if (SgFr_state(sg_fr) == ready_external) {
-      init_subgoal_frame(sg_fr);
-      store_generator_consumer_node(tab_ent, sg_fr, TRUE , PREG->u.Otapl.s);
-      PREFETCH_OP(PREG);
-      allocate_environment();
-      check_for_deadlock(sg_fr);
-      goto answer_resolution_completion;
-    } else
-#endif /* THREADS_CONSUMER_SHARING */
     if (SgFr_state(sg_fr) == ready) {
       //      printf("first call in C\n");
       /* subgoal new */
@@ -947,12 +844,12 @@
 	  TRAIL_FRAME(sg_fr);
 	}
 #endif /* LIMIT_TABLING */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	LOCK_SG_FR(sg_fr);
 	if (IsMode_LoadAnswers(TabEnt_mode(tab_ent)) || SgFr_active_workers(sg_fr) > 0) {
 #else
         if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
           /* load answers from the trie */
 	  UNLOCK_SG_FR(sg_fr);
 	  if(TrNode_child(ans_node) != NULL) {
@@ -965,11 +862,11 @@
           GONext();
 	} else {
 	  /* execute compiled code from the trie */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	  if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
 	  if (SgFr_state(sg_fr) < compiled)
-#endif /*THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /*THREADS_FULL_SHARING */
 	    update_answer_trie(sg_fr);
 	  
 	  UNLOCK_SG_FR(sg_fr);
@@ -1894,10 +1791,6 @@
 #endif /* YAPOR */
     {
 
-#ifdef THREADS_CONSUMER_SHARING
-    goto answer_resolution_completion;
-#endif /* THREADS_CONSUMER_SHARING */
-
       if (IS_BATCHED_GEN_CP(B)) {
         B->cp_ap = NULL;
         if (EQUAL_OR_YOUNGER_CP(B_FZ, B) && B != DepFr_leader_cp(LOCAL_top_dep_fr)) {
@@ -1918,9 +1811,6 @@
 
 
   completion:
-#ifdef THREADS_CONSUMER_SHARING
-  goto answer_resolution_completion;
-#endif /* THREADS_CONSUMER_SHARING */
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
 #ifdef THREADS_FULL_SHARING_FTNA_3
@@ -2191,10 +2081,6 @@
       GONext();
     } else
 #endif /* YAPOR */
-
-#ifdef THREADS_CONSUMER_SHARING
-complete_all:
-#endif /* THREADS_CONSUMER_SHARING */
     {
       /* complete all */
       sg_fr_ptr sg_fr;
@@ -2216,13 +2102,7 @@ complete_all:
 	gettimeofday(&tv2, NULL);
 	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
-
-#ifdef THREADS_CONSUMER_SHARING
-      if (IS_BATCHED_GEN_CP(B) || SgFr_gen_worker(sg_fr) != worker_id) {  /* if it is an gen_cons node then all the answers were already consumed */
-#else
       if (IS_BATCHED_GEN_CP(B)) {
-#endif /*THREADS_CONSUMER_SHARING */
         /* backtrack */
         B = B->cp_b;
         SET_BB(PROTECT_FROZEN_B(B));
@@ -2267,7 +2147,7 @@ complete_all:
 	    YENV = ENV;
             GONext();
 	  } else {
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	    LOCK_SG_FR(sg_fr);
 	    if (SgFr_active_workers(sg_fr) > 0) {
 	      /* load answers from the trie */
@@ -2281,14 +2161,14 @@ complete_all:
 	      YENV = ENV;
 	      GONext();
 	    }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 	    /* execute compiled code from the trie */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	    if (SgFr_sg_ent_state(sg_fr) < compiled)
 #else
 	    LOCK_SG_FR(sg_fr);
 	    if (SgFr_state(sg_fr) < compiled)
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 	      update_answer_trie(sg_fr);	    
 	    UNLOCK_SG_FR(sg_fr);
 	    PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
@@ -2302,191 +2182,3 @@ complete_all:
     }
     END_PREFETCH()
   ENDBOp();
-
-
-/************************************************************************
-**                 table_answer_resolution_completion                  **
-************************************************************************/
-
-#ifdef THREADS_CONSUMER_SHARING
-  BOp(table_answer_resolution_completion, Otapl)
-answer_resolution_completion:
-{
-   INIT_PREFETCH()
-     int do_not_complete_tables;
-     int wid = worker_id ;
-     do {
-       dep_fr_ptr dep_fr;
-       ans_node_ptr ans_node;
-     
-
-       do_not_complete_tables = 0; /* 0 - complete all the tables 1 - do not complete all the tables */	
-       if (B->cp_ap == ANSWER_RESOLUTION_COMPLETION ){
-	 /* generator consumer node (external node) */
-	 if ((IS_BATCHED_GEN_CP(B) && (EQUAL_OR_YOUNGER_CP(B_FZ, B) && B != DepFr_leader_cp(LOCAL_top_dep_fr))) ||
-	     (B != DepFr_leader_cp(LOCAL_top_dep_fr))) {
-	   /* not leader on that node */
-	   INFO_THREADS("ans_reso_com (1) : not leader on that node dep_fr = %p leader_node =%p", LOCAL_top_dep_fr, GEN_CP(DepFr_leader_cp(LOCAL_top_dep_fr))->cp_dep_fr);
-	   ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;  
-	   B->cp_ap = ANSWER_RESOLUTION;
-	   goto answer_resolution;
-	 }
-	 /* leader on that node */
-	 dep_fr = GEN_CP(B)->cp_dep_fr;
-	 ans_node = DepFr_last_answer(dep_fr);
-	 if (TrNode_child(ans_node)) {
-	   /* unconsumed answer */
-	   ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;
-	   ans_node = DepFr_last_answer(dep_fr) = TrNode_child(ans_node);
-	   INFO_THREADS("ans_reso_com (2) : consume_answer =%p dep_fr = %p leader_node =%p", ans_node, dep_fr, GEN_CP(DepFr_leader_cp(dep_fr))->cp_dep_fr);
-	   consume_answer_and_procceed(dep_fr, ans_node);      
-	 }
-
-	 sg_fr_ptr sg_fr = GEN_CP(B)->cp_sg_fr;
-	 if (SgFr_sg_ent_state(sg_fr) < complete || (SgFr_sg_ent_state(sg_fr) >= complete && TrNode_child(ans_node)!= NULL))
-	   do_not_complete_tables = 1; 
-
-       } else {   /* using the B->cp_ap == ANSWER_RESOLUTION_COMPLETION to distinguish gen_cons nodes from gen */
-	 /* generator node */
-	 if (IS_BATCHED_GEN_CP(B)) { 
-	   if (EQUAL_OR_YOUNGER_CP(B_FZ, B) && B != DepFr_leader_cp(LOCAL_top_dep_fr)) {
-	     /* not leader on that node */
-	     ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;  
-	     B->cp_ap = NULL;
-	     B = B->cp_b;
-	     goto fail;
-	   }
-	 } else {
-	   if (B != DepFr_leader_cp(LOCAL_top_dep_fr)) {
-	     /* not leader on that node */
-       	     ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;
-       	     B->cp_ap = ANSWER_RESOLUTION;
-       	     B = B->cp_b;
-	     INFO_THREADS("ans_reso_com (3) : not leader on that node dep_fr = %p leader_node =%p", LOCAL_top_dep_fr, GEN_CP(DepFr_leader_cp(LOCAL_top_dep_fr))->cp_dep_fr);
-       	     goto fail;
-       	   }
-       	 }
-       }
-       
-       /* leader on that node */
-
-       /* no unconsumed answers */
-
-       dep_fr = LOCAL_top_dep_fr;
-       
-       /* check for dependency frames with unconsumed answers */
-       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
-       	 ans_node = DepFr_last_answer(dep_fr);
-       	 if (TrNode_child(ans_node)) {
-       	   ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;
-	   /*dependency frame with unconsumed answers */
-       	   ans_node = DepFr_last_answer(dep_fr) = TrNode_child(ans_node);
-       	  if (IS_BATCHED_GEN_CP(B))
-	    DepFr_backchain_cp(dep_fr) = B->cp_b;
-	  else
-	    DepFr_backchain_cp(dep_fr) = B; 
-	   
-
-
-	   /*rebind variables, update registers, consume answer and procceed */
-
-       	   TABLING_ERROR_CHECKING(answer_resolution_completion, EQUAL_OR_YOUNGER_CP(B, DepFr_cons_cp(dep_fr)));
-       	   TABLING_ERROR_CHECKING(answer_resolution_completion, B->cp_tr > DepFr_cons_cp(dep_fr)->cp_tr);	   
-       	   rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr,B->cp_tr);   //don't know if it is the same unbind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
-	   
-       	   TABLING_ERROR_CHECKING(answer_resolution_completion, TR != B->cp_tr && !IsPairTerm((CELL)TrailTerm(TR - 1)));
-       	   TABLING_ERROR_CHECKING(answer_resolution_completion, TR != B->cp_tr && (tr_fr_ptr) RepPair((CELL)TrailTerm(TR - 1)) != B->cp_tr);
-       	   B = DepFr_cons_cp(dep_fr);
-       	   TR = TR_FZ;
-       	   if (TR != B->cp_tr)
-       	     TRAIL_LINK(B->cp_tr);
-	   INFO_THREADS("ans_reso_com (4) : consume_answer =%p dep_fr = %p leader_node =%p", ans_node, dep_fr, GEN_CP(DepFr_leader_cp(dep_fr))->cp_dep_fr);
-       	   consume_answer_and_procceed(dep_fr, ans_node);
-	 }
-
-
-	 if (DepFr_external(dep_fr) == TRUE){
-	   sg_fr_ptr sg_fr = GEN_CP(DepFr_cons_cp(dep_fr))->cp_sg_fr;
-	   if (SgFr_sg_ent_state(sg_fr) < complete || (SgFr_sg_ent_state(sg_fr) >= complete && TrNode_child(ans_node)!= NULL))
-	     do_not_complete_tables = 1;
-	   
-	 }
-	 dep_fr = DepFr_next(dep_fr);
-       }       
-
-       /******************************** a terminaçao das threads *************************************/ 
-
-       if (do_not_complete_tables == 1){
-	 /*all the dependency frames have consumed all answers and we have external tables */
-	 if (ThDepFr_next(GLOBAL_th_dep_fr(wid)) == wid)
-	   /* worker_id is not inside an SCC */
-	   continue;
-	 
-	 if (ThDepFr_state(GLOBAL_th_dep_fr(wid)) == working) {
-	   int c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-	   do {
-	     ThDepFr_terminator(GLOBAL_th_dep_fr(c_wid)) = 1;
-	     c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-	   }while(c_wid != wid);
-	   ThDepFr_terminator(GLOBAL_th_dep_fr(wid)) = 1;
-	   ThDepFr_state(GLOBAL_th_dep_fr(wid)) = idle;	 
-
-	 }else if (ThDepFr_state(GLOBAL_th_dep_fr(wid)) == idle){ 
-	   int l_wid = wid;  /* leader wid */
-	   int c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-	   int jump_state = TRUE;
-	   do{
-	     if (ThDepFr_state(GLOBAL_th_dep_fr(c_wid)) != idle){
-	       jump_state = FALSE;
-	       break;
-	     } else 
-	       if (l_wid > c_wid)
-		 l_wid = c_wid;
-	     c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-	   } while(c_wid != wid);
-	   
-	   if (jump_state && l_wid == wid){
-	     /* wid is the current leader thread */
-	     ThDepFr_terminator(GLOBAL_th_dep_fr(wid)) = 0;
-	     c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-	     do {
-	       dep_fr_ptr remote_dep_fr = REMOTE_top_dep_fr(c_wid);
-	       while(YOUNGER_CP(DepFr_cons_cp(remote_dep_fr),DepFr_leader_cp(REMOTE_top_dep_fr(c_wid)))){
-		 if (TrNode_child(DepFr_last_answer(remote_dep_fr))){
-		   /* dependency frame with unconsumed answers */
-		   jump_state = FALSE;
-		   break;
-		 }
-		 remote_dep_fr = DepFr_next(remote_dep_fr);
-	       }      
-	       if (ThDepFr_state(GLOBAL_th_dep_fr(c_wid)) != idle){
-		 jump_state = FALSE;
-		 break;
-	       }
-	       c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-	     } while(c_wid != wid);
-	   }
-	   
-	   if (jump_state && ThDepFr_terminator(GLOBAL_th_dep_fr(wid)) == 0){
-	     c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-	     do {
-	       ThDepFr_state(GLOBAL_th_dep_fr(c_wid)) = completing;
-	       c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-	     }while(c_wid != wid);
-	     ThDepFr_state(GLOBAL_th_dep_fr(wid)) = completing;
-	   }
-	 }else if (ThDepFr_state(GLOBAL_th_dep_fr(wid)) == completing){
-	   INFO_THREADS("ans_reso_com (5) : completing thread_state =%d",ThDepFr_state(GLOBAL_th_dep_fr(wid)));
-	   break;  	     /*do_not_complete_tables = 0;   -- same as "break;" */
-	 }
-       }       
-      } while(do_not_complete_tables);
-
-     END_PREFETCH()
-     INFO_THREADS("ans_reso_com (6) : completing thread_state =%d",ThDepFr_state(GLOBAL_th_dep_fr(worker_id)));  
-
-    goto complete_all;
-}
-
-  ENDBOp();
-#endif /* THREADS_CONSUMER_SHARING */

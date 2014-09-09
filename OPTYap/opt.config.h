@@ -63,8 +63,7 @@
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
 /////#define THREADS_SUBGOAL_SHARING 1
-#define THREADS_FULL_SHARING 1  
-/* #define THREADS_CONSUMER_SHARING 1  -- NOT WORKING*/
+#define THREADS_FULL_SHARING 1
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
@@ -317,7 +316,7 @@
 #endif /* TABLING && (YAPOR || THREADS) */
 
 #if defined(TABLING) && defined(THREADS)
-#if !defined(THREADS_NO_SHARING) && !defined(THREADS_SUBGOAL_SHARING) && !defined(THREADS_FULL_SHARING) && !defined(THREADS_CONSUMER_SHARING)
+#if !defined(THREADS_NO_SHARING) && !defined(THREADS_SUBGOAL_SHARING) && !defined(THREADS_FULL_SHARING)
 #error Define a multithreading table design
 #endif
 #if defined(THREADS_NO_SHARING) && defined(THREADS_SUBGOAL_SHARING)
@@ -326,18 +325,10 @@
 #if defined(THREADS_NO_SHARING) && defined(THREADS_FULL_SHARING)
 #error Do not define multiple multithreading table designs
 #endif
-#if defined(THREADS_NO_SHARING) && defined(THREADS_CONSUMER_SHARING)
-#error Do not define multiple multithreading table designs
-#endif
 #if defined(THREADS_SUBGOAL_SHARING) && defined(THREADS_FULL_SHARING)
 #error Do not define multiple multithreading table designs
 #endif
-#if defined(THREADS_SUBGOAL_SHARING) && defined(THREADS_CONSUMER_SHARING)
-#error Do not define multiple multithreading table designs
-#endif
-#if defined(THREADS_FULL_SHARING) && defined(THREADS_CONSUMER_SHARING)
-#error Do not define multiple multithreading table designs
-#endif
+
 #ifdef THREADS_NO_SHARING
 #undef SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL
 #undef SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL
@@ -362,7 +353,6 @@
 #undef THREADS_NO_SHARING
 #undef THREADS_SUBGOAL_SHARING
 #undef THREADS_FULL_SHARING
-#undef THREADS_CONSUMER_SHARING
 #endif /* TABLING && THREADS */
 
 #ifdef TRIE_LOCK_USING_NODE_FIELD
@@ -405,7 +395,7 @@
 #endif
 
 
-#if defined(YAPOR) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(YAPOR) || defined(THREADS_FULL_SHARING)
 #undef TABLING_EARLY_COMPLETION
 #endif
 

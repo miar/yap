@@ -90,11 +90,6 @@ static inline void consumer_trie_free_bucket_array(ans_ref_ptr * USES_REGS);
 
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #endif /* THREADS_FULL_SHARING */
-#ifdef THREADS_CONSUMER_SHARING
-static inline void add_to_tdv(int, int);
-static inline void check_for_deadlock(sg_fr_ptr);
-static inline sg_fr_ptr deadlock_detection(sg_fr_ptr);
-#endif /* THREADS_CONSUMER_SHARING */
 static inline Int freeze_current_cp(void);
 static inline void wake_frozen_cp(Int);
 static inline void abolish_frozen_cps_until(Int);
@@ -241,11 +236,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define IS_BATCHED_NORM_GEN_CP(CP)  (GEN_CP(CP)->cp_dep_fr == NULL)
 #define IS_BATCHED_GEN_CP(CP)       (IS_DET_GEN_CP(CP) || IS_BATCHED_NORM_GEN_CP(CP))
 #else
-#ifdef THREADS_CONSUMER_SHARING
-#define IS_BATCHED_GEN_CP(CP)       (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(GEN_CP(CP)->cp_sg_fr))))
-#else
 #define IS_BATCHED_GEN_CP(CP)       (GEN_CP(CP)->cp_dep_fr == NULL)
-#endif /* THREADS_CONSUMER_SHARING */
 #endif /* DETERMINISTIC_TABLING */
 
 /* tagging nodes */
@@ -437,7 +428,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define INIT_LOCK_SG_FR(SG_FR)
 #define LOCK_SG_FR(SG_FR)
 #define UNLOCK_SG_FR(SG_FR)
-#endif /* YAPOR || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* YAPOR || THREADS_FULL_SHARING */
 
 #ifdef YAPOR
 #define INIT_LOCK_DEP_FR(DEP_FR)    INIT_LOCK(DepFr_lock(DEP_FR))
@@ -566,14 +557,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           TabEnt_subgoal_trie(TAB_ENT) = sg_node;                         \
 	}
 #endif /* THREADS_NO_SHARING */
-
-#ifdef THREADS_CONSUMER_SHARING
-#define DepFr_init_external_field(DEP_FR, IS_EXTERNAL)          \
-        DepFr_external(DEP_FR) = IS_EXTERNAL
-#else
 #define DepFr_init_external_field(DEP_FR, IS_EXTERNAL)
-#endif /* THREADS_CONSUMER_SHARING */
-
 
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
 #define Init_mode_directed_full_sharing_fields(SG_ENT)        \
@@ -584,7 +568,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif
 
 
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 
 
 #ifdef THREADS_FULL_SHARING_FTNA
@@ -642,7 +626,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 				 (CELL) (&TrNode_child((ans_node_ptr)DEP_FR)));      \
         else                                                                                      \
           DepFr_last_answer(DEP_FR) = NULL
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
 
 
@@ -706,7 +690,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #endif /* !THREADS_SUBGOAL_FRAME_BY_WID */
 
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 
 #define new_subgoal_frame(SG_FR, SG_ENT)		           \
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
@@ -745,7 +729,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgFr_next(SG_FR) = LOCAL_top_sg_fr;                      \
           LOCAL_top_sg_fr = SG_FR;                                 \
 	}
-#endif /* THREADS_FULL_SHARING) || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING  */
 
 
 
@@ -1278,7 +1262,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
     ALLOC_SG_FR_ARRAY(new_buckets, THREADS_NUM_BUCKETS);
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)new_buckets | (CELL)0x1)))
       FREE_SG_FR_ARRAY(new_buckets);
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
     sg_ent_ptr sg_ent;
     new_subgoal_entry(sg_ent);
     if (!BOOL_CAS(&(TrNode_sg_fr(sg_node)), NULL, (sg_node_ptr)((CELL)sg_ent | (CELL)0x1))){
@@ -1291,7 +1275,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket(
 #if defined(THREADS_SUBGOAL_SHARING)
                                                       (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
 						       (void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)))
 #endif
 						      );
@@ -1305,13 +1289,13 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
 #ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS
   return sg_fr_addr;
 #endif
-#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
   if (*sg_fr_addr == NULL) {
     LOCK_SUBGOAL_NODE(sg_node);
     if (*sg_fr_addr == NULL) {
 #if defined(THREADS_SUBGOAL_SHARING)      
       ALLOC_SG_FR_ARRAY(TrNode_sg_fr(sg_node), THREADS_NUM_BUCKETS); 
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
       sg_ent_ptr sg_ent;
       new_subgoal_entry(sg_ent);
       TrNode_sg_ent(sg_node) = (sg_node_ptr) sg_ent;
@@ -1323,7 +1307,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
   sg_fr_addr = (sg_fr_ptr *) get_insert_thread_bucket(
 #if defined(THREADS_SUBGOAL_SHARING)
                                 (void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)),
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
                                 (void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))),
 #endif
 #ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
@@ -1332,7 +1316,7 @@ static inline sg_fr_ptr *get_insert_subgoal_frame_addr(sg_node_ptr sg_node USES_
                                    &HASH_TRIE_LOCK(sg_node)
 #endif                           
   );
-#endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING */
   return sg_fr_addr;
 }
 
@@ -1347,7 +1331,7 @@ static inline sg_fr_ptr get_subgoal_frame(sg_node_ptr sg_node) {
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   return *sg_fr_addr;
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   return *sg_fr_addr;
 #else
@@ -1366,7 +1350,7 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
   abolish_thread_buckets((void **) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node)));
   return sg_fr;
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-#elif defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#elif defined(THREADS_FULL_SHARING)
   sg_fr_ptr *sg_fr_addr = (sg_fr_ptr *) get_thread_bucket((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
   sg_fr_ptr sg_fr = *sg_fr_addr;
   abolish_thread_buckets((void **) &SgEnt_sg_fr((sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node))));
@@ -1381,102 +1365,6 @@ static inline sg_fr_ptr get_subgoal_frame_for_abolish(sg_node_ptr sg_node USES_R
   return (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(sg_node));
 #endif
 }
-
-
-#ifdef THREADS_CONSUMER_SHARING
-static inline void add_to_tdv(int wid, int wid_dep) {
-#ifdef OUTPUT_THREADS_TABLING
-  CACHE_REGS
-#endif /* OUTPUT_THREADS_TABLING */
-  // thread wid next of thread wid_dep
-  /* check before insert */
-  int c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-  do {
-    if (c_wid == wid_dep)
-      break;
-    c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-  } while( c_wid != wid );
-  if (c_wid == wid_dep)
-    return;
-
-  if (wid < wid_dep) {
-    LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid)));
-    LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid_dep)));
-  } else {
-    LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid_dep)));
-    LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid)));
-  }
-  
-  c_wid = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-  do {
-    if (c_wid == wid_dep)
-      break;
-    c_wid = ThDepFr_next(GLOBAL_th_dep_fr(c_wid));
-  } while( c_wid != wid );
-  if ( c_wid == wid ){
-    // joining the two different SCCs
-    int t = ThDepFr_next(GLOBAL_th_dep_fr(wid));
-    ThDepFr_next(GLOBAL_th_dep_fr(wid)) = ThDepFr_next(GLOBAL_th_dep_fr(wid_dep));
-    ThDepFr_next(GLOBAL_th_dep_fr(wid_dep)) = t;
-  }
-
-  INFO_THREADS("add_to_tdv (2) :tdv_next[%d] = %d tdv_next[%d]= %d", wid, ThDepFr_next(GLOBAL_th_dep_fr(wid)), wid_dep, ThDepFr_next(GLOBAL_th_dep_fr(wid_dep)));
-
-  UNLOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid)));
-  UNLOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid_dep)));
-  return;
-}
-
-
-static inline void check_for_deadlock(sg_fr_ptr sg_fr) {
-  CACHE_REGS
-  sg_fr_ptr local_sg_fr = deadlock_detection(sg_fr);
-
-  if (local_sg_fr){
-    LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(worker_id)));
-    if (YOUNGER_CP(DepFr_leader_cp(LOCAL_top_dep_fr),SgFr_gen_cp(local_sg_fr)))
-      DepFr_leader_cp(LOCAL_top_dep_fr) = SgFr_gen_cp(local_sg_fr);
-
-    UNLOCK(ThDepFr_lock(GLOBAL_th_dep_fr(worker_id)));
-  }
-  return; 
-}
-
-
-static inline sg_fr_ptr deadlock_detection(sg_fr_ptr sg_fr) {
-  CACHE_REGS
-  sg_fr_ptr remote_sg_fr = REMOTE_top_sg_fr(SgFr_gen_worker(sg_fr));
-
-  while( SgFr_sg_ent(remote_sg_fr) != SgFr_sg_ent(sg_fr)){
-    sg_fr_ptr local_sg_fr = SgFr_next(LOCAL_top_sg_fr);
-    while(local_sg_fr){
-      if (      SgFr_sg_ent(local_sg_fr)   == SgFr_sg_ent(remote_sg_fr) || 
-         (      SgFr_gen_worker(remote_sg_fr) != SgFr_gen_worker(sg_fr)       &&  /* jump to other chain */
-                SgFr_gen_worker(remote_sg_fr) != worker_id                      &&  /* not jumping to the chain of the thread that is detecting the deadlock */
-	        deadlock_detection(remote_sg_fr))){
-	
-	sg_fr_ptr leader_remote_sg_fr;
-	do 
-	  leader_remote_sg_fr = SgFr_next(remote_sg_fr);
-	while(SgFr_sg_ent(leader_remote_sg_fr) != SgFr_sg_ent(sg_fr));
-	LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(SgFr_gen_worker(leader_remote_sg_fr)))); 
-
-	if (YOUNGER_CP(DepFr_leader_cp(REMOTE_top_dep_fr(SgFr_gen_worker(leader_remote_sg_fr))),SgFr_gen_cp(leader_remote_sg_fr)))
-	  DepFr_leader_cp(REMOTE_top_dep_fr(SgFr_gen_worker(leader_remote_sg_fr))) = SgFr_gen_cp(leader_remote_sg_fr);
-	UNLOCK(ThDepFr_lock(GLOBAL_th_dep_fr(SgFr_gen_worker(leader_remote_sg_fr))));
-	
-	add_to_tdv(SgFr_gen_worker(local_sg_fr),SgFr_gen_worker(leader_remote_sg_fr));
-
-      	return local_sg_fr;
-      }
-      local_sg_fr = SgFr_next(local_sg_fr);
-    }
-    remote_sg_fr = SgFr_next(remote_sg_fr);
-  }
-  return NULL;
-}
-#endif /* THREADS_CONSUMER_SHARING */
-
 
 static inline Int freeze_current_cp(void) {
   CACHE_REGS
@@ -1637,7 +1525,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
 #endif
 
   LOCK_SG_FR(sg_fr);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
   if (SgFr_sg_ent_state(sg_fr) < complete) {
@@ -1753,7 +1641,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   } 
 
 #endif /* MODE_DIRECTED_TABLING */
-#else /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING*/
+#else /* !THREADS_FULL_SHARING */
 
 #ifdef MODE_DIRECTED_TABLING
   if (SgFr_invalid_chain(sg_fr)) {
@@ -1788,7 +1676,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
     }
   }
 #endif /* MODE_DIRECTED_TABLING */
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
 #ifdef THREADS_FULL_SHARING
 #if defined(THREADS_SUBGOAL_FRAME_BY_WID) && defined(THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE)

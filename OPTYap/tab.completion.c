@@ -137,12 +137,6 @@ void private_completion(sg_fr_ptr sg_fr) {
 
   /* adjust freeze registers */
   adjust_freeze_registers();
-
-  /* adjust thread dependency */
-#ifdef THREADS_CONSUMER_SHARING
-  ThDepFr_state(GLOBAL_th_dep_fr(worker_id)) = working;
-  ThDepFr_next(GLOBAL_th_dep_fr(worker_id)) = worker_id;
-#endif /* THREADS_CONSUMER_SHARING */
   return;
 }
 

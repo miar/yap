@@ -108,32 +108,6 @@ typedef struct {
 #endif /* (TABLING || !YAPOR_COW) && MULTI_ASSIGNMENT_VARIABLES */
 
 
-
-
-/***************************************
-**      threads_dependency_frame      **
-***************************************/
-
-#ifdef THREADS_CONSUMER_SHARING
-struct threads_dependency_frame {
-  lockvar lock;
-  enum {
-    working,
-    idle,
-    completing
-  } state;
-  int terminator;
-  int next;
-};
-#endif /* THREADS_CONSUMER_SHARING */
-
-#define ThDepFr_lock(X)        ((X).lock)
-#define ThDepFr_state(X)       ((X).state)
-#define ThDepFr_terminator(X)  ((X).terminator)
-#define ThDepFr_next(X)        ((X).next)
-
-
-
 /**************************
 **      page_header      **
 **************************/
@@ -208,7 +182,7 @@ struct global_pages {
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct global_page_entry sg_fr_array_pages;
 #endif
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   struct global_page_entry subgoal_entry_pages;
 #endif
   struct global_page_entry subgoal_frame_pages;
@@ -262,7 +236,7 @@ struct local_pages {
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   struct local_page_entry sg_fr_array_pages;
 #endif
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   struct local_page_entry subgoal_entry_pages;
 #endif
   struct local_page_entry subgoal_frame_pages;
@@ -395,9 +369,6 @@ struct global_optyap_data {
 #ifdef YAPOR
   struct dependency_frame *root_dependency_frame;
 #endif /* YAPOR */
-#ifdef THREADS_CONSUMER_SHARING
-  struct threads_dependency_frame threads_dependency_frame[MAX_THREADS];
-#endif /*THREADS_CONSUMER_SHARING*/
   CELL table_var_enumerator[MAX_TABLE_VARS];
 #ifdef TRIE_LOCK_USING_GLOBAL_ARRAY
   lockvar trie_locks[TRIE_LOCK_BUCKETS];

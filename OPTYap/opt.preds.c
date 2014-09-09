@@ -81,9 +81,9 @@ static inline realtime current_time(void);
 
 #ifdef TABLING
 static inline struct page_statistics show_statistics_table_entries(IOSTREAM *out);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 static inline struct page_statistics show_statistics_subgoal_entries(IOSTREAM *out);
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 static inline struct page_statistics show_statistics_subgoal_frames(IOSTREAM *out);
 static inline struct page_statistics show_statistics_dependency_frames(IOSTREAM *out);
 static inline struct page_statistics show_statistics_subgoal_trie_nodes(IOSTREAM *out);
@@ -741,10 +741,10 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   Sfprintf(out, "Execution data structures\n");
   stats = show_statistics_table_entries(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   stats = show_statistics_subgoal_entries(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
   stats = show_statistics_subgoal_frames(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
   stats = show_statistics_dependency_frames(out);
@@ -989,10 +989,10 @@ static Int p_show_statistics_opt( USES_REGS1 ) {
   Sfprintf(out, "Execution data structures\n");
   stats = show_statistics_table_entries(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   stats = show_statistics_subgoal_entries(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
   stats = show_statistics_subgoal_frames(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
   stats = show_statistics_dependency_frames(out);
@@ -1067,7 +1067,7 @@ static Int p_get_optyap_statistics( USES_REGS1 ) {
     bytes += PgEnt_bytes_in_use(stats);
     if (value != 0) structs = PgEnt_strs_in_use(stats);
   }
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   if (value == 0 || value == 16) {  /* subgoal_entries */
     GET_PAGE_STATS(stats, struct subgoal_entry, _pages_sg_ent);
     bytes += PgEnt_bytes_in_use(stats);
@@ -1209,11 +1209,11 @@ static inline struct page_statistics show_statistics_table_entries(IOSTREAM *out
 }
 
 
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 static inline struct page_statistics show_statistics_subgoal_entries(IOSTREAM *out) {
   SHOW_PAGE_STATS(out, struct subgoal_entry, _pages_sg_ent, "Subgoal entries:              ");
 }
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
 
 static inline struct page_statistics show_statistics_subgoal_frames(IOSTREAM *out) {

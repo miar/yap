@@ -87,7 +87,7 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_sg_fr_array, struct sg_fr_bkt_array);
 #endif
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_sg_ent, struct subgoal_entry);
 #endif
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_sg_fr, struct subgoal_frame);
@@ -228,9 +228,9 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
 
 
 void Yap_init_local_optyap_data(int wid) {
-#if defined(YAPOR_THREADS) || defined(THREADS_CONSUMER_SHARING)
+#if defined(YAPOR_THREADS)
   CACHE_REGS
-#endif /* YAPOR_THREADS || THREADS_CONSUMER_SHARING */
+#endif /* YAPOR_THREADS */
 
 #if defined(TABLING) && (defined(YAPOR) || defined(THREADS))
   /* local data related to memory management */
@@ -244,7 +244,7 @@ void Yap_init_local_optyap_data(int wid) {
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_sg_fr_array(wid), struct sg_fr_bkt_array);
 #endif
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_sg_ent(wid), struct subgoal_entry);
 #endif
   INIT_LOCAL_PAGE_ENTRY(REMOTE_pages_sg_fr(wid), struct subgoal_frame);
@@ -304,13 +304,6 @@ void Yap_init_local_optyap_data(int wid) {
   Set_REMOTE_top_cp_on_stack(wid, (choiceptr) LOCAL_LocalBase); /* ??? */
   REMOTE_top_susp_or_fr(wid) = GLOBAL_root_or_fr;
 #endif /* YAPOR */
-#ifdef THREADS_CONSUMER_SHARING
-  ThDepFr_terminator(GLOBAL_th_dep_fr(wid)) = 0;
-  ThDepFr_next(GLOBAL_th_dep_fr(wid)) = wid;
-  ThDepFr_state(GLOBAL_th_dep_fr(wid)) = working;
-  INIT_LOCK(ThDepFr_lock(GLOBAL_th_dep_fr(wid)));
-#endif /* THREADS_CONSUMER_SHARING */
-
 #endif /* TABLING */
   return;
 }

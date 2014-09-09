@@ -834,9 +834,6 @@
 #ifdef TABLING
       /* instructions type Otapl */
     case _table_answer_resolution:
-#ifdef THREADS_CONSUMER_SHARING
-    case _table_answer_resolution_completion:
-#endif
     case _table_completion:
     case _table_load_answer:
     case _table_retry:

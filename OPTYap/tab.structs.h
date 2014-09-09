@@ -290,13 +290,12 @@ struct loader_choicept {
 
 typedef enum {          /* do not change order !!! */
   incomplete      = 0,  /* INCOMPLETE_TABLING */
-  ready_external  = 1,  /* THREADS_CONSUMER_SHARING */
-  ready           = 2,
-  evaluating      = 3,
-  complete        = 4,
-  complete_in_use = 5,  /* LIMIT_TABLING */
-  compiled        = 6,
-  compiled_in_use = 7   /* LIMIT_TABLING */
+  ready           = 1,
+  evaluating      = 2,
+  complete        = 3,
+  complete_in_use = 4,  /* LIMIT_TABLING */
+  compiled        = 5,
+  compiled_in_use = 6   /* LIMIT_TABLING */
 } subgoal_state_flag;
 
 
@@ -343,10 +342,10 @@ typedef struct subgoal_entry {
 #ifdef YAPOR
   struct or_frame *top_or_frame_on_generator_branch;
 #endif /* YAPOR */
-#if defined(YAPOR) || defined(THREADS_CONSUMER_SHARING)
+#if defined(YAPOR)
   int generator_worker;
-#endif /* YAPOR || THREADS_CONSUMER_SHARING */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#endif /* YAPOR */
+#if defined(THREADS_FULL_SHARING)
   subgoal_state_flag state_flag;
   int active_workers;
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
@@ -357,7 +356,7 @@ typedef struct subgoal_entry {
 #ifdef USE_PAGES_MALLOC
   struct subgoal_entry * next; 
 #endif /*USE_PAGES_MALLOC */
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 }* sg_ent_ptr;
 
 #define SgEnt_lock(X)                    ((X)->lock)
@@ -392,7 +391,7 @@ typedef struct subgoal_frame {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
   struct subgoal_frame *next_wid;
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   struct subgoal_entry *subgoal_entry;
 #ifdef THREADS_FULL_SHARING
 #ifdef THREADS_FULL_SHARING_FTNA 
@@ -406,7 +405,7 @@ typedef struct subgoal_frame {
 #endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
   subgoal_state_flag state_flag;
   choiceptr generator_choice_point;
 #ifdef INCOMPLETE_TABLING
@@ -441,11 +440,11 @@ typedef struct subgoal_frame {
 } *sg_fr_ptr;
 
 /* subgoal_entry fields */
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 #define SUBGOAL_ENTRY(X)                SgFr_sg_ent(X)->
 #else
 #define SUBGOAL_ENTRY(X)                (X)->subgoal_entry.
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
 #define SgFr_query_number(X)            (SUBGOAL_ENTRY(X) query_number)
 #define SgFr_lock(X)                    (SUBGOAL_ENTRY(X) lock)
@@ -535,9 +534,6 @@ typedef struct dependency_frame {
   long timestamp;
 #endif /* TIMESTAMP_CHECK */
 #endif /* YAPOR */
-#ifdef THREADS_CONSUMER_SHARING
-  int generator_is_external;
-#endif /* THREADS_CONSUMER_SHARING */
   choiceptr backchain_choice_point;
   choiceptr leader_choice_point;
   choiceptr consumer_choice_point;
@@ -665,6 +661,7 @@ typedef struct subgoal_frame_hash_buckets {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_ */
 
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(THREADS_FULL_SHARING_FTNA_3) || defined(LFHT_LOCAL_THREAD_BUFFER_FOR_BUCKET_ARRAYS)
+
 #define BASE_HASH_BUCKETS_2               8   // MUST BE THE SAME AS BASE_HASH_BUCKETS
 
 union trie_hash_buckets {

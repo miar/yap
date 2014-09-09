@@ -208,9 +208,9 @@ thread_die(int wid, int always_die)
   DETACH_PAGES(_pages_void);
 #endif /* USE_PAGES_MALLOC */
   DETACH_PAGES(_pages_tab_ent);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   DETACH_PAGES(_pages_sg_ent);
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
   DETACH_PAGES(_pages_sg_fr);
   DETACH_PAGES(_pages_dep_fr);

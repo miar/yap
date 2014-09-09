@@ -154,17 +154,17 @@ static struct trie_statistics{
 #define TrStat_gt_refs         trie_stats.global_trie_references
 #endif /*THREADS */
 
-#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
 #define IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES  if (worker_id == 0)
 #else
 #define IF_ABOLISH_SUBGOAL_TRIE_SHARED_DATA_STRUCTURES
-#endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING */
 
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 #define IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES  if (worker_id == 0)
 #else
 #define IF_ABOLISH_ANSWER_TRIE_SHARED_DATA_STRUCTURES
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 
 #define SHOW_TABLE_STR_ARRAY_SIZE  100000
 #define SHOW_TABLE_ARITY_ARRAY_SIZE 10000
@@ -778,7 +778,6 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
 
   /* test if hashing */
 
-
   if (IS_ANSWER_TRIE_HASH(current_node)) {
     ans_node_ptr *bucket, *last_bucket;
     ans_hash_ptr hash;
@@ -1371,7 +1370,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #endif /* !THREADS */
   if (*sg_fr_end == NULL) {
     /* new tabled subgoal */
-#if !defined(THREADS_FULL_SHARING) && !defined(THREADS_CONSUMER_SHARING)
+#if !defined(THREADS_FULL_SHARING)
 #ifdef MODE_DIRECTED_TABLING
     if (subs_pos) {
       ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
@@ -1399,12 +1398,9 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     __sync_synchronize();
     TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
     UNLOCK_SUBGOAL_NODE(current_sg_node);
-#else /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#else /* THREADS_FULL_SHARING */
     sg_ent_ptr sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_ent(current_sg_node));
     new_subgoal_frame(sg_fr, sg_ent);
-#ifdef THREADS_CONSUMER_SHARING
-    SgFr_state(sg_fr) = ready_external;
-#endif /* THREADS_CONSUMER_SHARING */
     if (SgEnt_sg_ent_state(sg_ent) == ready) {
       LOCK(SgEnt_lock(sg_ent));
       if (SgEnt_sg_ent_state(sg_ent) == ready) {
@@ -1417,16 +1413,12 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 	  mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
 	SgEnt_init_mode_directed_fields(sg_ent, mode_directed);
-#ifdef THREADS_CONSUMER_SHARING
-	SgEnt_gen_worker(sg_ent) = worker_id;
-	SgFr_state(sg_fr) = ready;
-#endif /* THREADS_CONSUMER_SHARING */
       }
       SgEnt_sg_ent_state(sg_ent) = evaluating;
       UNLOCK(SgEnt_lock(sg_ent));
     }
     *sg_fr_end = sg_fr;
-#endif /* !THREADS_FULL_SHARING && !THREADS_CONSUMER_SHARING */
+#endif /* !THREADS_FULL_SHARING */
   } else {
     /* repeated tabled subgoal */
 #ifndef THREADS
@@ -1700,9 +1692,8 @@ void update_answer_trie(sg_fr_ptr sg_fr) {
   SgFr_hash_chain(sg_fr) = NULL;
   SgFr_state(sg_fr) += 2;  /* complete --> compiled : complete_in_use --> compiled_in_use */
 
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
   SgFr_sg_ent_state(sg_fr) += 2;  /* complete --> compiled */
-#ifdef THREADS_FULL_SHARING
   if (IsMode_Batched(TabEnt_mode(SgFr_tab_ent(sg_fr)))) {
     /* cleaning bits used by batched mode and shifting the instruction back to the original place */
     ans_node_ptr leaf_ans_trie_node = SgFr_first_answer(sg_fr);
@@ -1713,7 +1704,6 @@ void update_answer_trie(sg_fr_ptr sg_fr) {
     ANSWER_LEAF_NODE_INSTR_ABSOLUTE(leaf_ans_trie_node);
   }
 #endif /* THREADS_FULL_SHARING */
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
   current_node = TrNode_child(SgFr_answer_trie(sg_fr));
   if (current_node) {
 #ifdef YAPOR
@@ -1807,9 +1797,9 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */
+#endif /* THREADS_FULL_SHARING */
 #if defined(MODE_DIRECTED_TABLING)
 	if (SgFr_invalid_chain(sg_fr)) {
 	  ans_node_ptr next_node, invalid_node = SgFr_invalid_chain(sg_fr);
@@ -1981,7 +1971,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
 #ifdef THREADS_SUBGOAL_SHARING_WITH_PAGES_SG_FR_ARRAY
     ATTACH_PAGES(_pages_sg_fr_array);
 #endif
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
     ATTACH_PAGES(_pages_sg_ent);
 #endif
     ATTACH_PAGES(_pages_sg_fr);
@@ -2099,9 +2089,9 @@ void abolish_table(tab_ent_ptr tab_ent) {
         if (sg_fr) {
 	  SgFr_hash_chain(sg_fr) = NULL;
 	  FREE_ANSWER_TRIE_NODE(SgFr_answer_trie(sg_fr));
-#if defined(THREADS_FULL_SHARING) || defined(THREADS_CONSUMER_SHARING)
+#if defined(THREADS_FULL_SHARING)
 	  FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
-#endif /* THREADS_FULL_SHARING || THREADS_CONSUMER_SHARING */	  
+#endif /* THREADS_FULL_SHARING */	  
 #ifdef LIMIT_TABLING
 	  remove_from_global_sg_fr_list(sg_fr);
 #endif /* LIMIT_TABLING */
