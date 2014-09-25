@@ -1136,6 +1136,10 @@ static inline void **get_insert_thread_bucket(void **buckets
   
 
   /*****************NEVER ON THIS POINT FOR NOW  ***/
+  /* CHECK THIS -------------- */
+  /* ATTENTION : 32 BUCKETS DIRECT + 32 BUCKETS INDIRECT_1 = 64 BUCKETS ORIGINAL STRUCTURE 
+                 32 BUCKETS INDIRECT_1 * 32 = 1024 THREADS - CHECK THESIS PHD */
+
 
   /* indirect bucket */
 
