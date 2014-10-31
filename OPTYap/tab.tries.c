@@ -1415,8 +1415,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #endif /* !THREADS_FULL_SHARING */
   } else {
     /* repeated tabled subgoal */
-    //sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(*sg_fr_end);
-    sg_fr = (sg_fr_ptr) *sg_fr_end;
+    sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(*sg_fr_end);
 #ifdef LIMIT_TABLING
     if (SgFr_state(sg_fr) <= ready) {  /* incomplete or ready */
       remove_from_global_sg_fr_list(sg_fr);
