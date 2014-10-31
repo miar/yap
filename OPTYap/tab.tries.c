@@ -1388,10 +1388,13 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
       new_subgoal_frame(sg_fr, preg, mode_directed);
       SgFr_sg_fr_array(sg_fr) = buckets;
     }
+    *sg_fr_end = sg_fr;
 #else
     new_subgoal_frame(sg_fr, preg, mode_directed);
-#endif /* THREADS_SUBGOAL_SHARING */
     *sg_fr_end = sg_fr;
+    TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
+#endif /* THREADS_SUBGOAL_SHARING */
+
 #else /* THREADS_FULL_SHARING */
     sg_ent_ptr sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_ent(current_sg_node));
     new_subgoal_frame(sg_fr, sg_ent);

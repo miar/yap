@@ -63,9 +63,9 @@
 /************************************************************************
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
-//#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1
-////#define THREADS_FULL_SHARING 1
+#define THREADS_NO_SHARING 1
+//#define THREADS_SUBGOAL_SHARING 1
+//#define THREADS_FULL_SHARING 1
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
@@ -97,7 +97,7 @@
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
 #define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-/////#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
@@ -109,7 +109,7 @@
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
 #define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
-/////#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
+//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
@@ -129,8 +129,8 @@
 ** Data structure to be used for locking the trie when using the  **
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
-//#define TRIE_LOCK_USING_NODE_FIELD   1
-#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
+#define TRIE_LOCK_USING_NODE_FIELD   1
+//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
