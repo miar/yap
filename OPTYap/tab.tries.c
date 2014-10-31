@@ -1364,10 +1364,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
   *bucket = sg_fr;
   return sg_fr;
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-   sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
-#ifndef THREADS
-  LOCK_SUBGOAL_NODE(current_sg_node);
-#endif /* !THREADS */
+  sg_fr_ptr *sg_fr_end = get_insert_subgoal_frame_addr(current_sg_node PASS_REGS);
   if (*sg_fr_end == NULL) {
     /* new tabled subgoal */
 #if !defined(THREADS_FULL_SHARING)
@@ -1395,9 +1392,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
     new_subgoal_frame(sg_fr, preg, mode_directed);
 #endif /* THREADS_SUBGOAL_SHARING */
     *sg_fr_end = sg_fr;
-    __sync_synchronize();
-    TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
-    UNLOCK_SUBGOAL_NODE(current_sg_node);
 #else /* THREADS_FULL_SHARING */
     sg_ent_ptr sg_ent = (sg_ent_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_ent(current_sg_node));
     new_subgoal_frame(sg_fr, sg_ent);
@@ -1421,10 +1415,8 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 #endif /* !THREADS_FULL_SHARING */
   } else {
     /* repeated tabled subgoal */
-#ifndef THREADS
-    UNLOCK_SUBGOAL_NODE(current_sg_node);
-#endif /* !THREADS */
-    sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(*sg_fr_end);
+    //sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(*sg_fr_end);
+    sg_fr = (sg_fr_ptr) *sg_fr_end;
 #ifdef LIMIT_TABLING
     if (SgFr_state(sg_fr) <= ready) {  /* incomplete or ready */
       remove_from_global_sg_fr_list(sg_fr);

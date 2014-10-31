@@ -185,7 +185,7 @@ typedef struct answer_trie_hash_buckets {
 typedef struct answer_trie_hash {
   /* the first field is used for compatibility **
   ** with the answer_trie_node data structure  */
-  OPCODE mark;
+  OPCODE mark; // why is OPCODE ?? AND NOT Term
   int number_of_buckets;
   int number_of_nodes;
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL

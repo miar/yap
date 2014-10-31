@@ -179,8 +179,9 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
     RESET_VARIABLE(pt);
   }
 #ifdef TRIE_LOCK_USING_GLOBAL_ARRAY
-  for (i = 0; i < TRIE_LOCK_BUCKETS; i++)
+  for (i = 0; i < TRIE_LOCK_BUCKETS; i++) {
     INIT_LOCK(GLOBAL_trie_locks(i));
+  }
 #endif /* TRIE_LOCK_USING_GLOBAL_ARRAY */
 
 #ifdef EXTRA_STATISTICS

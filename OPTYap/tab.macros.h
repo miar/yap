@@ -270,13 +270,13 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))
 
 
-#define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
+#define SUBGOAL_TRIE_HASH_MARK          ((Term) MakeTableVarTerm(MAX_TABLE_VARS + 1))
 #define IS_SUBGOAL_TRIE_HASH(NODE)      (TrNode_entry(NODE) == SUBGOAL_TRIE_HASH_MARK)
 #define ANSWER_TRIE_HASH_MARK           0
 #define IS_ANSWER_TRIE_HASH(NODE)       (TrNode_instr(NODE) == ANSWER_TRIE_HASH_MARK)
-#define GLOBAL_TRIE_HASH_MARK           ((Term) MakeTableVarTerm(MAX_TABLE_VARS))
+#define GLOBAL_TRIE_HASH_MARK           ((Term) MakeTableVarTerm(MAX_TABLE_VARS + 1))
 #define IS_GLOBAL_TRIE_HASH(NODE)       (TrNode_entry(NODE) == GLOBAL_TRIE_HASH_MARK)
-#define HASH_TRIE_LOCK(NODE)            GLOBAL_trie_locks((((CELL) (NODE)) >> 5) & (TRIE_LOCK_BUCKETS - 1))
+#define HASH_TRIE_LOCK(NODE)            (GLOBAL_trie_locks((((CELL) (NODE)) >> LowTagBits) & (TRIE_LOCK_BUCKETS - 1)))
 
 /* auxiliary stack */
 #define STACK_PUSH_UP(ITEM, STACK)          *--(STACK) = (CELL)(ITEM)
@@ -491,7 +491,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #else
 #ifdef SUBGOAL_TRIE_LOCK_USING_NODE_FIELD
 #define TRYLOCK_SUBGOAL_NODE(NODE)      TRY_LOCK(TrNode_lock(NODE))
-#define LOCK_SUBGOAL_NODE(NODE)         LOCK(TrNode_lock(NODE))
+#define LOCK_SUBGOAL_NODE(NODE)         LOCK(TrNode_lock(NODE)) 
 #define UNLOCK_SUBGOAL_NODE(NODE)       UNLOCK(TrNode_lock(NODE))
 #define SgNode_init_lock_field(NODE)    INIT_LOCK(TrNode_lock(NODE))
 #elif defined(SUBGOAL_TRIE_LOCK_USING_GLOBAL_ARRAY)

@@ -195,7 +195,6 @@ thread_die(int wid, int always_die)
   //#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
 
-
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {
     abolish_table(tab_ent);

@@ -16,13 +16,15 @@
 ****************************************************************/
 /* thread safe generation of random numbers */
 
-#define THREADS_RANDOM_GENERATION  1 
+///#define THREADS_RANDOM_GENERATION  1 
 
 /****************************
 **      default sizes      **
 ****************************/
 #define MAX_TABLE_VARS     1000
 #define TRIE_LOCK_BUCKETS  512
+
+
 /************************original - inicio ********************/
 ///#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
 
@@ -50,7 +52,7 @@
 **      use shared pages memory alloc scheme ? (optional)      **
 ****************************************************************/
 
-#define USE_PAGES_MALLOC 1  /* disable with full_sharing + mode_directed_tabling */
+//#define USE_PAGES_MALLOC 1  /* disable with full_sharing + mode_directed_tabling */
 
 /**********************************************************************
 **      trail freeze scheme for tabling (mandatory, define one)      **
@@ -62,8 +64,8 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-/////#define THREADS_SUBGOAL_SHARING 1
-#define THREADS_FULL_SHARING 1
+#define THREADS_SUBGOAL_SHARING 1
+////#define THREADS_FULL_SHARING 1
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
@@ -94,28 +96,28 @@
 *************************************************************************/
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-///////#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+/////#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 /////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
-/////////#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
-//#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
+#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL 1 
+/////#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
+//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
 //////#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
-#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
+///#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+///#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
 #define GLOBAL_TRIE_LOCK_AT_WRITE_LEVEL 1
@@ -127,8 +129,8 @@
 ** Data structure to be used for locking the trie when using the  **
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
-#define TRIE_LOCK_USING_NODE_FIELD   1
-//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
+//#define TRIE_LOCK_USING_NODE_FIELD   1
+#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
@@ -192,9 +194,9 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
-#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+//#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
                            
-#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
+//#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
 /* -> missing to implement with THREADS_SUBGOAL_SHARING only*/
 
 //#define THREADS_SUBGOAL_COMPLETION_WAIT  1 /* activate MODE_DIRECTED_TABLING AND SUBGOAL_SHARING. makes no sence to use this with FULL_SHARING */
@@ -395,7 +397,7 @@
 #endif
 
 
-#if defined(YAPOR) || defined(THREADS_FULL_SHARING)
+#if defined(YAPOR) /*|| defined(THREADS_FULL_SHARING) */
 #undef TABLING_EARLY_COMPLETION
 #endif
 
