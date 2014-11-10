@@ -93,12 +93,12 @@ extern int Yap_page_size;
 	  }								                   \
         }
 #define ALLOC_BUCKETS(BUCKET_PTR, NUM_BUCKETS)                                             \
-        { void **alloc_bucket_ptr;                                                         \
+       {  void **alloc_bucket_ptr;		                                           \
           ALLOC_BLOCK(alloc_bucket_ptr, NUM_BUCKETS * sizeof(void *), void *);             \
           INIT_BUCKETS(alloc_bucket_ptr, NUM_BUCKETS);		                           \
           BUCKET_PTR = (void *) alloc_bucket_ptr;			                   \
         }
-#define FREE_BUCKETS(BUCKET_PTR)  FREE_BLOCK(BUCKET_PTR)
+#define FREE_BUCKETS(BUCKET_PTR)                       FREE_BLOCK(BUCKET_PTR)
 
 #ifndef USE_PAGES_MALLOC
 /*******************************************************************************************
@@ -283,12 +283,12 @@ extern int Yap_page_size;
             if (SgFr_first_answer(sg_fr) &&                                                \
                 SgFr_first_answer(sg_fr) != SgFr_answer_trie(sg_fr)) {                     \
               SgFr_state(sg_fr) = ready;                                                   \
-	      free_answer_hash_chain(SgFr_hash_chain(sg_fr));                              \
+	      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);                    \
 	      SgFr_hash_chain(sg_fr) = NULL;                                               \
 	      SgFr_first_answer(sg_fr) = NULL;                                             \
               SgFr_last_answer(sg_fr) = NULL;                                              \
               free_answer_trie(TrNode_child(SgFr_answer_trie(sg_fr)),                      \
-                               TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);             \
+                               TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);   \
               TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;                                \
 	    }                                                                              \
           } while (PgEnt_first(GLOBAL_pages_void) == PgEnt_first(PG_ENT));                 \

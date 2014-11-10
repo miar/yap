@@ -185,13 +185,13 @@
 
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
-#define FTNA_3_load_answer(ANSWER, SUBS_PTR)		\
+#define FTNA_3_load_answer(ANSWER, SUBS_PTR)	        \
   /* Deref ANSWER */					\
   ans_node_ptr leaf_node = TrNode_entry(ANSWER);	\
-  load_answer(leaf_node, subs_ptr)
+  load_answer(leaf_node, subs_ptr PASS_REGS)
 #else
 #define FTNA_3_load_answer(ANSWER, SUBS_PTR)		\
-  load_answer(ANSWER, SUBS_PTR)
+  load_answer(ANSWER, SUBS_PTR PASS_REGS)
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 
 #define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
@@ -330,7 +330,7 @@
       
     PREG = (yamop *) CPREG;
     PREFETCH_OP(PREG);
-    load_answer(ans_node, subs_ptr);
+    load_answer(ans_node, subs_ptr PASS_REGS);
 
     YENV = ENV;
     GONext();
@@ -370,7 +370,7 @@
       FTNA_3_load_answer((ans_ref_ptr)ans_node, subs_ptr);
 #else
       SgFr_try_answer(sg_fr) = ans_node;
-      load_answer(ans_node, subs_ptr);
+      load_answer(ans_node, subs_ptr PASS_REGS);
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
       YENV = ENV;
       GONext();
@@ -418,7 +418,7 @@
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
-    sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
@@ -483,7 +483,7 @@
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
-      load_answer(ans_node, subs_ptr);
+      load_answer(ans_node, subs_ptr PASS_REGS);
       YENV = ENV;
       GONext();
 #endif /* INCOMPLETE_TABLING */
@@ -542,7 +542,7 @@
 	  }
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);
-          load_answer(ans_node, YENV);
+          load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
 	} else {
@@ -552,7 +552,7 @@
 #else
           if (SgFr_state(sg_fr) < compiled)
 #endif /* THREADS_FULL_SHARING */
-	    update_answer_trie(sg_fr);
+	    update_answer_trie(sg_fr PASS_REGS);
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
 	  PREFETCH_OP(PREG);
@@ -576,7 +576,7 @@
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
-    sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
@@ -632,7 +632,7 @@
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
-      load_answer(ans_node, subs_ptr);
+      load_answer(ans_node, subs_ptr PASS_REGS);
       YENV = ENV;
       GONext();
 #endif /* INCOMPLETE_TABLING */
@@ -692,7 +692,7 @@
 	  }
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);
-          load_answer(ans_node, YENV);
+          load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
 	} else {
@@ -702,7 +702,7 @@
 #else
 	  if (SgFr_state(sg_fr) < compiled)
 #endif /*THREADS_FULL_SHARING */
-	    update_answer_trie(sg_fr);
+	    update_answer_trie(sg_fr PASS_REGS);
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
 	  PREFETCH_OP(PREG);
@@ -732,7 +732,7 @@
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-    sg_fr = subgoal_search(PREG, YENV_ADDRESS);
+    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
@@ -796,7 +796,7 @@
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
-      load_answer(ans_node, subs_ptr);
+      load_answer(ans_node, subs_ptr PASS_REGS);
       YENV = ENV;
       GONext();
 #endif /* INCOMPLETE_TABLING */
@@ -857,7 +857,7 @@
 	  }
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);
-          load_answer(ans_node, YENV);
+          load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
 	} else {
@@ -867,7 +867,7 @@
 #else
 	  if (SgFr_state(sg_fr) < compiled)
 #endif /*THREADS_FULL_SHARING */
-	    update_answer_trie(sg_fr);
+	    update_answer_trie(sg_fr PASS_REGS);
 	  
 	  UNLOCK_SG_FR(sg_fr);
 	  PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
@@ -1027,7 +1027,7 @@
 
 #ifdef MODE_DIRECTED_TABLING
     if (SgFr_mode_directed(sg_fr)) {
-      ans_node = mode_directed_answer_search(sg_fr, subs_ptr);
+      ans_node = mode_directed_answer_search(sg_fr, subs_ptr PASS_REGS);
   
       if (ans_node == NULL) {
 	/* no answer inserted */
@@ -1036,7 +1036,7 @@
       }
     } else
 #endif /* MODE_DIRECTED_TABLING */
-     ans_node = answer_search(sg_fr, subs_ptr);
+     ans_node = answer_search(sg_fr, subs_ptr PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     struct timeval tv1, tv2;
@@ -1057,13 +1057,13 @@
 	  /* call is deterministic (i.e., the number of substitution variables is zero or      */
 	  /* there are no more alternatives) then the current answer is deterministic and we   */
 	  /* can perform an early completion and remove the current generator choice point     */
-	  private_completion(sg_fr);
+	  private_completion(sg_fr PASS_REGS);
 	  B = B->cp_b;
 	  SET_BB(PROTECT_FROZEN_B(B));
 	} else if (*subs_ptr == 0) {
 	  /* if the number of substitution variables is zero, an answer is sufficient to perform */
 	  /* an early completion, but the current generator choice point cannot be removed       */
-	  mark_as_completed(sg_fr);
+	  mark_as_completed(sg_fr PASS_REGS);
 	  if (gcp->cp_ap != NULL)
 	    gcp->cp_ap = COMPLETION;
 	}
@@ -1086,7 +1086,7 @@
 	/* if the number of substitution variables is zero, an answer is sufficient to perform */
 	/* an early completion, but the current generator choice point cannot be removed       */
 	if (SgFr_state(sg_fr) < complete)
-	  mark_as_completed(sg_fr);
+	  mark_as_completed(sg_fr  PASS_REGS);
 	if (gcp->cp_ap != ANSWER_RESOLUTION)
 	  gcp->cp_ap = COMPLETION;
       }
@@ -1356,13 +1356,13 @@
 	  /* call is deterministic (i.e., the number of substitution variables is zero or      */
 	  /* there are no more alternatives) then the current answer is deterministic and we   */
 	  /* can perform an early completion and remove the current generator choice point     */
-	  private_completion(sg_fr);
+	  private_completion(sg_fr PASS_REGS);
 	  B = B->cp_b;
 	  SET_BB(PROTECT_FROZEN_B(B));
 	} else if (*subs_ptr == 0) {
 	  /* if the number of substitution variables is zero, an answer is sufficient to perform */
           /* an early completion, but the current generator choice point cannot be removed       */
-	  mark_as_completed(sg_fr);
+	  mark_as_completed(sg_fr  PASS_REGS);
 	  if (gcp->cp_ap != NULL)
 	    gcp->cp_ap = COMPLETION;
 	}
@@ -1382,7 +1382,7 @@
 	if (*subs_ptr == 0) {
 	  /* if the number of substitution variables is zero, an answer is sufficient to perform */
           /* an early completion, but the current generator choice point cannot be removed       */
-	  mark_as_completed(sg_fr);
+	  mark_as_completed(sg_fr  PASS_REGS);
 	  if (gcp->cp_ap != ANSWER_RESOLUTION)
 	    gcp->cp_ap = COMPLETION;
 	}
@@ -2096,7 +2096,7 @@
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-      private_completion(sg_fr);
+      private_completion(sg_fr PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD________________
 	gettimeofday(&tv2, NULL);
@@ -2143,7 +2143,7 @@
 	    }
             PREG = (yamop *) CPREG;
             PREFETCH_OP(PREG);
-            load_answer(first_node, YENV);
+            load_answer(first_node, YENV PASS_REGS);
 	    YENV = ENV;
             GONext();
 	  } else {
@@ -2157,7 +2157,7 @@
 	      }
 	      PREG = (yamop *) CPREG;
 	      PREFETCH_OP(PREG);
-	      load_answer(first_node, YENV);
+	      load_answer(first_node, YENV PASS_REGS);
 	      YENV = ENV;
 	      GONext();
 	    }
@@ -2169,7 +2169,7 @@
 	    LOCK_SG_FR(sg_fr);
 	    if (SgFr_state(sg_fr) < compiled)
 #endif /* THREADS_FULL_SHARING */
-	      update_answer_trie(sg_fr);	    
+	      update_answer_trie(sg_fr PASS_REGS);	    
 	    UNLOCK_SG_FR(sg_fr);
 	    PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
 	    PREFETCH_OP(PREG);

@@ -181,6 +181,8 @@ thread_die(int wid, int always_die)
 #ifdef TABLING
   CACHE_REGS
 
+    //    printf("LOCAL_debug_count_buckets = %d\n", LOCAL_debug_count_buckets);
+
   tab_ent_ptr tab_ent;
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD
   cputime_by_thread_utime[cputime_by_thread_run][wid] = Yap_cputime_by_thread_utime()- cputime_by_thread_utime[cputime_by_thread_run][wid];
@@ -197,7 +199,7 @@ thread_die(int wid, int always_die)
 
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {
-    abolish_table(tab_ent);
+    abolish_table(tab_ent PASS_REGS);
     tab_ent = TabEnt_next(tab_ent);
   }
 
@@ -272,15 +274,12 @@ setup_engine(int myworker_id, int init_thread)
   DEBUG_TLOCK_ACCESS(2, myworker_id);
   pthread_mutex_unlock(&(REMOTE_ThreadHandle(myworker_id).tlock));  
 #ifdef TABLING
+
+  /*#ifdef DEBUG_COUNT_ALLOC_BUCKETS
+  LOCAL_debug_count_buckets = 0;
+#endif  DEBUG_COUNT_ALLOC_BUCKETS */
+
   new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
-#ifdef THREADS_LOCAL_SG_FR_HASH_BUCKETS_____________ /* not working */
-  sg_fr_hash_bkts_ptr sg_fr_hash_bkts; 
-  ALLOC_BLOCK(sg_fr_hash_bkts, sizeof(struct subgoal_frame_hash_buckets), struct subgoal_frame_hash_buckets);
-  SgFrHashBkts_number_of_buckets(sg_fr_hash_bkts) = BASE_SG_FR_HASH_BUCKETS;
-  ALLOC_BLOCK(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS * sizeof(sg_fr_ptr), sg_fr_ptr);
-  INIT_BUCKETS(SgFrHashBkts_buckets(sg_fr_hash_bkts), BASE_SG_FR_HASH_BUCKETS);
-  LOCAL_sg_fr_hash_buckets = sg_fr_hash_bkts;
-#endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC)
   LOCAL_trie_buckets_buffer = NULL;
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC */

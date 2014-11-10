@@ -45,7 +45,7 @@ static void complete_suspension_branch(susp_fr_ptr susp_fr, choiceptr top_cp, or
            /* SgFr_state(aux_sg_fr) == evaluating && */
            (SgFr_state(aux_sg_fr) == evaluating || SgFr_first_answer(aux_sg_fr) == SgFr_answer_trie(aux_sg_fr)) &&
            EQUAL_OR_YOUNGER_CP(SgFr_gen_cp(aux_sg_fr), top_cp)) {
-      mark_as_completed(aux_sg_fr);
+      mark_as_completed(aux_sg_fr  PASS_REGS);
       aux_sg_fr = SgFr_next(aux_sg_fr);
     }
   } else {
@@ -54,7 +54,7 @@ static void complete_suspension_branch(susp_fr_ptr susp_fr, choiceptr top_cp, or
            /* SgFr_state(aux_sg_fr) == evaluating && */
            (SgFr_state(aux_sg_fr) == evaluating || SgFr_first_answer(aux_sg_fr) == SgFr_answer_trie(aux_sg_fr)) &&
            YOUNGER_CP(SgFr_gen_cp(aux_sg_fr), top_cp)) {
-      mark_as_completed(aux_sg_fr);
+      mark_as_completed(aux_sg_fr  PASS_REGS);
       aux_sg_fr = SgFr_next(aux_sg_fr);
     }
   }
@@ -103,8 +103,7 @@ static void complete_suspension_branch(susp_fr_ptr susp_fr, choiceptr top_cp, or
 **      Global functions      **
 *******************************/
 
-void private_completion(sg_fr_ptr sg_fr) {
-  CACHE_REGS
+void private_completion(sg_fr_ptr sg_fr USES_REGS) {
 
   /* complete subgoals */
 #ifdef LIMIT_TABLING
@@ -112,19 +111,19 @@ void private_completion(sg_fr_ptr sg_fr) {
   while (LOCAL_top_sg_fr != sg_fr) {
     aux_sg_fr = LOCAL_top_sg_fr;
     LOCAL_top_sg_fr = SgFr_next(aux_sg_fr);
-    mark_as_completed(aux_sg_fr);
+    mark_as_completed(aux_sg_fr  PASS_REGS);
     insert_into_global_sg_fr_list(aux_sg_fr);
   }
   aux_sg_fr = LOCAL_top_sg_fr;
   LOCAL_top_sg_fr = SgFr_next(aux_sg_fr);
-  mark_as_completed(aux_sg_fr);
+  mark_as_completed(aux_sg_fr  PASS_REGS);
   insert_into_global_sg_fr_list(aux_sg_fr);
 #else
   while (LOCAL_top_sg_fr != sg_fr) {
-    mark_as_completed(LOCAL_top_sg_fr);
+    mark_as_completed(LOCAL_top_sg_fr  PASS_REGS);
     LOCAL_top_sg_fr = SgFr_next(LOCAL_top_sg_fr);
   }
-  mark_as_completed(LOCAL_top_sg_fr);
+  mark_as_completed(LOCAL_top_sg_fr  PASS_REGS);
   LOCAL_top_sg_fr = SgFr_next(LOCAL_top_sg_fr);
 #endif /* LIMIT_TABLING */
 
@@ -162,7 +161,7 @@ void public_completion(void) {
 #endif /* DETERMINISTIC_TABLING */
       top_sg_fr = SgFr_next(GEN_CP(Get_LOCAL_top_cp())->cp_sg_fr);
     do {
-      mark_as_completed(LOCAL_top_sg_fr);
+      mark_as_completed(LOCAL_top_sg_fr  PASS_REGS);
       LOCAL_top_sg_fr = SgFr_next(LOCAL_top_sg_fr);
     } while (LOCAL_top_sg_fr != top_sg_fr);
 
@@ -178,13 +177,13 @@ void public_completion(void) {
     if (DepFr_leader_dep_is_on_stack(LOCAL_top_dep_fr)) {
       while (LOCAL_top_sg_fr && 
              EQUAL_OR_YOUNGER_CP(SgFr_gen_cp(LOCAL_top_sg_fr), Get_LOCAL_top_cp())) {
-        mark_as_completed(LOCAL_top_sg_fr);
+        mark_as_completed(LOCAL_top_sg_fr  PASS_REGS);
         LOCAL_top_sg_fr = SgFr_next(LOCAL_top_sg_fr);
       }
     } else {
       while (LOCAL_top_sg_fr && 
              YOUNGER_CP(SgFr_gen_cp(LOCAL_top_sg_fr), Get_LOCAL_top_cp())) {
-        mark_as_completed(LOCAL_top_sg_fr);
+        mark_as_completed(LOCAL_top_sg_fr  PASS_REGS);
         LOCAL_top_sg_fr = SgFr_next(LOCAL_top_sg_fr);
       }
     }

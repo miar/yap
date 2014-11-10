@@ -481,7 +481,7 @@ static Int p_abolish_table( USES_REGS1 ) {
     tab_ent = RepPredProp(PredPropByFunc(FunctorOfTerm(t), mod))->TableOfPred;
   else
     return (FALSE);
-  abolish_table(tab_ent);
+  abolish_table(tab_ent PASS_REGS);
   return (TRUE);
 }
 
@@ -490,7 +490,7 @@ static Int p_abolish_all_tables( USES_REGS1 ) {
   tab_ent_ptr tab_ent;
   tab_ent = GLOBAL_root_tab_ent;
   while (tab_ent) {
-    abolish_table(tab_ent);
+    abolish_table(tab_ent PASS_REGS);
     tab_ent = TabEnt_next(tab_ent);
   }
 #ifdef EXTRA_STATISTICS_CPUTIME_BY_THREAD

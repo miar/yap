@@ -1129,8 +1129,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 **      Global functions      **
 *******************************/
 
-sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
-  CACHE_REGS
+sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   CELL *stack_vars;
   int i, subs_arity, pred_arity;
   tab_ent_ptr tab_ent;
@@ -1432,9 +1431,8 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr) {
 }
 
 
-ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
+ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #define subs_arity *subs_ptr
-  CACHE_REGS
   CELL *stack_vars;
   int i, vars_arity;
   ans_node_ptr current_ans_node;
@@ -1470,9 +1468,8 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 
 #if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01)
  
-ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
+ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #define subs_arity *subs_ptr
-  CACHE_REGS
   CELL *stack_vars;
   int i, j, vars_arity;
   ans_node_ptr current_ans_node, invalid_ans_node;
@@ -1564,9 +1561,8 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 
 #elif defined(THREADS_FULL_SHARING_MODE_DIRECTED_V02)
 
-ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
+ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #define subs_arity *subs_ptr
-  CACHE_REGS
   CELL *stack_vars;
   int i, j, vars_arity;
   ans_node_ptr current_ans_node;
@@ -1630,8 +1626,8 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr) {
 #endif /* MODE_DIRECTED_TABLING */
 
 
-void load_answer(ans_node_ptr current_ans_node, CELL *subs_ptr) {
-  CACHE_REGS
+void load_answer(ans_node_ptr current_ans_node, CELL *subs_ptr USES_REGS) {
+
 #define subs_arity *subs_ptr
   CELL *stack_terms;
   int i;
@@ -1679,10 +1675,10 @@ CELL *exec_substitution(gt_node_ptr current_node, CELL *aux_stack) {
 }
 
 
-void update_answer_trie(sg_fr_ptr sg_fr) {
+void update_answer_trie(sg_fr_ptr sg_fr USES_REGS) {
   ans_node_ptr current_node;
 
-  free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+  free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
   SgFr_hash_chain(sg_fr) = NULL;
   SgFr_state(sg_fr) += 2;  /* complete --> compiled : complete_in_use --> compiled_in_use */
 
@@ -1715,8 +1711,7 @@ void update_answer_trie(sg_fr_ptr sg_fr) {
 }
 
 
-void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
-  CACHE_REGS
+void free_subgoal_trie(sg_node_ptr current_node, int mode, int position USES_REGS) {
     
   if (IS_SUBGOAL_TRIE_HASH(current_node)) {
     sg_node_ptr *bucket, *last_bucket;
@@ -1735,7 +1730,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 	do {
 	  current_node = next_node;
 	  next_node = TrNode_next(current_node);
-	  free_subgoal_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
+	  free_subgoal_trie(current_node, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
 	} while (next_node);
       }
     } while (++bucket != last_bucket);
@@ -1778,17 +1773,27 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
       child_mode = TRAVERSE_MODE_DOUBLE_END;
     else
       child_mode = TRAVERSE_MODE_NORMAL;
-    free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
+    free_subgoal_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST PASS_REGS);
   }
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
   else {    
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
       ans_node = SgFr_answer_trie(sg_fr);
-      if (TrNode_child(ans_node))
-      	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      if (TrNode_child(ans_node)) {
+
+	/*	struct timeval tv1, tv2;
+		gettimeofday(&tv1, NULL); */
+	//	lixo_free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+
+	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
+	/*gettimeofday(&tv2, NULL);
+	int ttime= ((int)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	
+	printf("1   - wid = %d  free_answer_trie tv2 - tv1 = %d\n", worker_id, ttime); */
+      }
 	SgFr_hash_chain(sg_fr) = NULL;
 	FREE_ANSWER_TRIE_NODE(ans_node);
 #if defined(THREADS_FULL_SHARING)
@@ -1835,7 +1840,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
     while (next_node) {
       current_node = next_node;
       next_node = TrNode_next(current_node);
-      free_subgoal_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
+      free_subgoal_trie(current_node, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
     }
   } else {
     CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
@@ -1845,8 +1850,8 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position) {
 }
 
 
-void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
-  CACHE_REGS
+
+void free_answer_trie(ans_node_ptr current_node, int mode, int position USES_REGS) {
 
 #ifdef TABLING_INNER_CUTS
     if (! IS_ANSWER_LEAF_NODE(current_node) && TrNode_child(current_node)) {
@@ -1876,7 +1881,7 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 	child_mode = TRAVERSE_MODE_DOUBLE_END;
       else
 	child_mode = TRAVERSE_MODE_NORMAL;
-      free_answer_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST);
+      free_answer_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST PASS_REGS);
     }
     if (position == TRAVERSE_POSITION_FIRST) {
       ans_node_ptr next_node = TrNode_next(current_node);
@@ -1885,7 +1890,7 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
       while (next_node) {
 	current_node = next_node;
 	next_node = TrNode_next(current_node);
-	free_answer_trie(current_node, mode, TRAVERSE_POSITION_NEXT);
+	free_answer_trie(current_node, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
       }
     } else {
       CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
@@ -1895,9 +1900,8 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position) {
 }
 
 
-void free_answer_hash_chain(ans_hash_ptr hash) {
-  CACHE_REGS    
- 
+
+void free_answer_hash_chain(ans_hash_ptr hash USES_REGS) {
     while (hash) {
       ans_node_ptr chain_node, *bucket, *last_bucket;
       ans_hash_ptr next_hash;
@@ -1952,8 +1956,7 @@ void free_answer_hash_chain(ans_hash_ptr hash) {
 ** all threads abolish their local data structures, and the main thread also abolishes  **
 ** all shared data structures, if no other thread is running (worker_id == 0).  **
 *****************************************************************************************/
-void abolish_table(tab_ent_ptr tab_ent) {
-  CACHE_REGS
+void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 
   sg_node_ptr sg_node;
 #if defined(THREADS)
@@ -2011,11 +2014,11 @@ void abolish_table(tab_ent_ptr tab_ent) {
     while(sg_fr) {      
       sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
       ans_node_ptr ans_node;
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
       ans_node = SgFr_answer_trie(sg_fr);
 
       if (TrNode_child(ans_node))
-      	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
       SgFr_hash_chain(sg_fr) = NULL;
       FREE_ANSWER_TRIE_NODE(ans_node);
 #ifndef THREADS_LOCAL_SG_FR_HASH_BUCKETS
@@ -2075,7 +2078,7 @@ void abolish_table(tab_ent_ptr tab_ent) {
   if (sg_node) {
     if (TrNode_child(sg_node)) {
       if (TabEnt_arity(tab_ent)) {
-          free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);  
+          free_subgoal_trie(TrNode_child(sg_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);  
       } 
 #ifndef  THREADS_SUBGOAL_FRAME_BY_WID
       else {
@@ -2110,11 +2113,11 @@ void abolish_table(tab_ent_ptr tab_ent) {
   while (sg_fr) {
     sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
     ans_node_ptr ans_node;
-    free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+    free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
     ans_node = SgFr_answer_trie(sg_fr);
 
     if (TrNode_child(ans_node))
-      free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+      free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
     SgFr_hash_chain(sg_fr) = NULL;
     FREE_ANSWER_TRIE_NODE(ans_node);
 #if defined(THREADS_FULL_SHARING_FTNA_3) 
@@ -2131,10 +2134,10 @@ void abolish_table(tab_ent_ptr tab_ent) {
     sg_fr_ptr next_sg_fr = SgFr_next_complete(sg_fr);
     if (SgEnt_sg_fr(SgFr_sg_ent(sg_fr)) == sg_fr) {
       ans_node_ptr ans_node;
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
       ans_node = SgFr_answer_trie(sg_fr);
       if (TrNode_child(ans_node))
-	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);
+	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
       FREE_ANSWER_TRIE_NODE(ans_node);      
       FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
     }

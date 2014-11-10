@@ -28,7 +28,12 @@
 /************************original - inicio ********************/
 ///#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
 
-#define THREADS_DIRECT_BUCKETS    65
+#define THREADS_DIRECT_BUCKETS    65   //NEW_MIAR
+//#define THREADS_DIRECT_BUCKETS    34  
+
+
+//#define THREADS_DIRECT_BUCKETS    4
+
 //%%#define THREADS_INDIRECT_BUCKETS  ((MAX_THREADS - THREADS_DIRECT_BUCKETS) / THREADS_DIRECT_BUCKETS)  /* (1024 - 32) / 32 = 31 */ 
 #define THREADS_INDIRECT_BUCKETS   0
 #define THREADS_NUM_BUCKETS       (THREADS_DIRECT_BUCKETS + THREADS_INDIRECT_BUCKETS)
@@ -63,8 +68,8 @@
 /************************************************************************
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
-#define THREADS_NO_SHARING 1
-//#define THREADS_SUBGOAL_SHARING 1
+//#define THREADS_NO_SHARING 1
+#define THREADS_SUBGOAL_SHARING 1
 //#define THREADS_FULL_SHARING 1
 
 //#define EXTRA_STATISTICS   1
@@ -135,7 +140,7 @@
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
 *********************************************************/
-///#define MODE_DIRECTED_TABLING 1 
+///#define MODE_DIRECTED_TABLING 1    remove CACHE_REGS opt.proto.h
 //#define TIMESTAMP_MODE_DIRECTED_TABLING 1 /* must be active THREADS_SUBGOAL_SHARING + MODE_DIRECTED_TABLING --- ATTENTION : ONLY FOR INTEGERS AND MIN/MAX OPERATORS ON THE LAST ARGUMENT*/
 //#define STUDY_TIMESTAMP_MDT 1
 
@@ -148,7 +153,7 @@
 /******************************************************
 **      support trie compact pairs ? (optional)      **
 ******************************************************/
-#define TRIE_COMPACT_PAIRS 1
+//#define TRIE_COMPACT_PAIRS 1
 
 /************************************************************
 **      support global trie for subterms ? (optional)      **
@@ -158,7 +163,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1   /*  REMOVE IF FULL_SHARING i'm using always this simply because it is better */
+//#define INCOMPLETE_TABLING 1   /*  REMOVE IF FULL_SHARING i'm using always this simply because it is better */
 
 /******************************************************
 **      limit the table space size ? (optional)      **
@@ -173,18 +178,19 @@
 /******************************************************************
 **      support tabling inner cuts with OPTYap ? (optional)      **
 ******************************************************************/
-#define TABLING_INNER_CUTS 1
+//#define TABLING_INNER_CUTS 1
 
 /*********************************************************************
 **      use timestamps for suspension with OPTYap ? (optional)      **
 *********************************************************************/
-#define TIMESTAMP_CHECK 1
+//#define TIMESTAMP_CHECK 1
 
 /*************************************************
 **      enable error checking ? (optional)      **
 *************************************************/
 /* #define DEBUG_TABLING 1 */
 /* #define DEBUG_YAPOR 1 */
+//#define DEBUG_COUNT_ALLOC_BUCKETS 1   /* not working */
 
 /**************************************************
 **      extra multi-threaded tabling flags       **
@@ -198,6 +204,9 @@
                            
 //#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
 /* -> missing to implement with THREADS_SUBGOAL_SHARING only*/
+
+//#define THREADS_SUBGOAL_FRAME_SHARE_COMPLETE   1 /* no _WID Mode. share the subgoal frame on the threads 0*/
+
 
 //#define THREADS_SUBGOAL_COMPLETION_WAIT  1 /* activate MODE_DIRECTED_TABLING AND SUBGOAL_SHARING. makes no sence to use this with FULL_SHARING */
                                                                                           

@@ -95,7 +95,7 @@ static inline void wake_frozen_cp(Int);
 static inline void abolish_frozen_cps_until(Int);
 static inline void abolish_frozen_cps_all(void);
 static inline void adjust_freeze_registers(void);
-static inline void mark_as_completed(sg_fr_ptr);
+static inline void mark_as_completed(sg_fr_ptr USES_REGS);
 static inline void unbind_variables(tr_fr_ptr, tr_fr_ptr);
 static inline void rebind_variables(tr_fr_ptr, tr_fr_ptr);
 static inline void restore_bindings(tr_fr_ptr, tr_fr_ptr);
@@ -263,8 +263,10 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define MAX_NODES_PER_TRIE_LEVEL        8  //-> DEFAULT
 //#define MAX_NODES_PER_BUCKET            (MAX_NODES_PER_TRIE_LEVEL / 2)
 #define MAX_NODES_PER_BUCKET            4
+
 //#define BASE_HASH_BUCKETS               64 //-> DEFAULT
-#define BASE_HASH_BUCKETS               8  //-> V04 BASE_HASH_BUCKETS_2  DEFAULT
+#define BASE_HASH_BUCKETS               8  //-> V04 BASE_HASH_BUCKETS_2  NEW_MIAR
+
 //#define BASE_SG_FR_HASH_BUCKETS         8192 // knapsack 16 threads -> 32768 path right + btree 17 -> 8192
 #define HASH_ENTRY(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> NumberOfLowTagBits) & (NUM_BUCKETS - 1))
 #define HASH_ENTRY_SG_FR(ENTRY, NUM_BUCKETS)  ((((CELL) ENTRY) >> 8) & (NUM_BUCKETS - 1))
@@ -501,7 +503,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define SgNode_init_lock_field(NODE)
 #else
 #define TRYLOCK_SUBGOAL_NODE(NODE)
-#define LOCK_SUBGOAL_NODE(NODE)
+#define LOCK_SUBGOAL_NODE(NODE) 
 #define UNLOCK_SUBGOAL_NODE(NODE)
 #define SgNode_init_lock_field(NODE)
 #endif /* SUBGOAL_TRIE_LOCK_LEVEL */
@@ -1187,12 +1189,7 @@ static inline void **get_thread_bucket(void **buckets) {
 
 
 static inline void abolish_thread_buckets(void **buckets) {
-  
-#ifdef THREADS_SUBGOAL_SHARING_WITH_SG_FR_ARRAY
-  CACHE_REGS
-  /* NOT ABOLISHING INDIRECT BUCKETS FOR NOW  */
-  FREE_SG_FR_ARRAY(*buckets);
-#else    
+
   int i;
 
   /* abolish indirect buckets */
@@ -1209,7 +1206,6 @@ static inline void abolish_thread_buckets(void **buckets) {
   buckets -= THREADS_DIRECT_BUCKETS;
   FREE_BUCKETS(buckets);
 #endif /* THREADS_SUBGOAL_SHARING */
-#endif 
 }
 #endif /* THREADS */
 
@@ -1238,6 +1234,7 @@ static inline sg_node_ptr get_subgoal_trie(tab_ent_ptr tab_ent) {
 
 
 static inline sg_node_ptr get_subgoal_trie_for_abolish(tab_ent_ptr tab_ent USES_REGS) {
+
 #ifdef THREADS_NO_SHARING
   sg_node_ptr *sg_node_addr = (sg_node_ptr *) get_thread_bucket((void **) &TabEnt_subgoal_trie(tab_ent));
   sg_node_ptr sg_node = *sg_node_addr;
@@ -1248,6 +1245,8 @@ static inline sg_node_ptr get_subgoal_trie_for_abolish(tab_ent_ptr tab_ent USES_
 #else
   return TabEnt_subgoal_trie(tab_ent);
 #endif /* THREADS_NO_SHARING */
+  
+
 }
 
 
@@ -1518,8 +1517,7 @@ static void invalidate_answer_trie(ans_node_ptr current_node, sg_fr_ptr sg_fr, i
 #endif /* THREADS_FULL_SHARING_MODE_DIRECTED_V02 */
 
 
-static inline void mark_as_completed(sg_fr_ptr sg_fr) {
-  CACHE_REGS
+static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 
 #ifdef TABLING_EARLY_COMPLETION
     /* as example the test_single02 passes here more than once with tabling_early_completion*/
@@ -1728,12 +1726,15 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr) {
   LOCAL_top_sg_fr_complete = sg_fr;
 
 #else  /* !THREADS_SUBGOAL_FRAME_BY_WID */
+#ifdef THREADS_SUBGOAL_FRAME_SHARE_COMPLETE
   sg_fr_ptr *sg_fr_array;
   sg_fr_array = (sg_fr_ptr *) SgFr_sg_fr_array(sg_fr);  
-  if (!BOOL_CAS(sg_fr_array, NULL, sg_fr)) {
-    SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
-    LOCAL_top_sg_fr_complete = sg_fr;
-  }
+  if (!BOOL_CAS(sg_fr_array, NULL, sg_fr)) 
+#endif /* THREADS_SUBGOAL_FRAME_SHARE_COMPLETE */
+    {
+      SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
+      LOCAL_top_sg_fr_complete = sg_fr;
+    }
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING */
@@ -1996,13 +1997,13 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       consumer_trie_free_structs(sg_fr PASS_REGS);
 #endif
 #ifndef THREADS_FULL_SHARING
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr));
+      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
       SgFr_hash_chain(sg_fr) = NULL;
       SgFr_first_answer(sg_fr) = NULL;
       SgFr_last_answer(sg_fr) = NULL;
       ans_node_ptr node = TrNode_child(SgFr_answer_trie(sg_fr));
       TrNode_child(SgFr_answer_trie(sg_fr)) = NULL;
-      free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST);      
+      free_answer_trie(node, TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);      
 #ifdef MODE_DIRECTED_TABLING
       ans_node_ptr invalid_node = SgFr_invalid_chain(sg_fr);
       SgFr_invalid_chain(sg_fr) = NULL;

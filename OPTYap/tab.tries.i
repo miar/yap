@@ -161,7 +161,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      //      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets); 
     }
     UNLOCK_SUBGOAL_NODE(parent_node);
     return child_node;
@@ -409,7 +409,7 @@ subgoal_trie_hash:
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      //      FREE_BUCKETS(old_hash_buckets);
+      // FREE_BUCKETS(old_hash_buckets);
     }
     UNLOCK_SUBGOAL_NODE(parent_node);
     return child_node;
@@ -1145,7 +1145,7 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      //      FREE_BUCKETS(old_hash_buckets);
+      // FREE_BUCKETS(old_hash_buckets); 
     }
     UNLOCK_ANSWER_NODE(parent_node);
     return child_node;
@@ -1397,7 +1397,7 @@ answer_trie_hash:
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      //      FREE_BUCKETS(old_hash_buckets);
+      // FREE_BUCKETS(old_hash_buckets); 
     }
     UNLOCK_ANSWER_NODE(parent_node);
     return child_node;
@@ -2436,7 +2436,7 @@ static inline gt_node_ptr global_trie_check_insert_entry(gt_node_ptr parent_node
       } while (old_bucket != old_hash_buckets);
       Hash_buckets(hash) = new_hash_buckets;
       Hash_num_buckets(hash) = num_buckets;
-      //      FREE_BUCKETS(old_hash_buckets);
+      //      FREE_BUCKETS(old_hash_buckets); 
     }
     UNLOCK_GLOBAL_NODE(parent_node);
     return child_node;

@@ -43,18 +43,18 @@ void finish_yapor(void);
 **************************/
 
 #ifdef TABLING
-sg_fr_ptr subgoal_search(yamop *, CELL **);
-ans_node_ptr answer_search(sg_fr_ptr, CELL *);
+sg_fr_ptr subgoal_search(yamop *, CELL ** USES_REGS);
+ans_node_ptr answer_search(sg_fr_ptr, CELL * USES_REGS);
 #ifdef MODE_DIRECTED_TABLING
-ans_node_ptr mode_directed_answer_search(sg_fr_ptr, CELL *);
+ans_node_ptr mode_directed_answer_search(sg_fr_ptr, CELL * USES_REGS);
 #endif /* MODE_DIRECTED_TABLING */
-void load_answer(ans_node_ptr, CELL *);
+void load_answer(ans_node_ptr, CELL * USES_REGS);
 CELL *exec_substitution(gt_node_ptr, CELL *);
-void update_answer_trie(sg_fr_ptr);
-void free_subgoal_trie(sg_node_ptr, int, int);
-void free_answer_trie(ans_node_ptr, int, int);
-void free_answer_hash_chain(ans_hash_ptr);
-void abolish_table(tab_ent_ptr);
+void update_answer_trie(sg_fr_ptr USES_REGS);
+void free_subgoal_trie(sg_node_ptr, int, int USES_REGS);
+void free_answer_trie(ans_node_ptr, int, int USES_REGS);
+void free_answer_hash_chain(ans_hash_ptr USES_REGS);
+void abolish_table(tab_ent_ptr USES_REGS);
 void show_table(tab_ent_ptr, int, IOSTREAM *);
 void show_global_trie(int, IOSTREAM *);
 #endif /* TABLING */
@@ -66,7 +66,7 @@ void show_global_trie(int, IOSTREAM *);
 *******************************/
 
 #ifdef TABLING 
-void private_completion(sg_fr_ptr);
+void private_completion(sg_fr_ptr USES_REGS);
 #ifdef YAPOR
 void public_completion(void);
 void complete_suspension_frames(or_fr_ptr);
