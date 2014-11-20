@@ -79,7 +79,7 @@
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
-#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. */
+//#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. */
  /* do not use mode_direct_tabling.  tab.macros.h has TWO versions, one that uses the code has the hashes of afs_v04 and the second with modified code and hashes with no prev field */ 
 /* ATTENTION -- added tag_as_answer_leaf_node. might cause some overhead. remove on table_new_answer for runtime testing */
 
@@ -101,14 +101,14 @@
 *************************************************************************/
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
-//#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
@@ -117,11 +117,11 @@
 //#define ANSWER_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS   1
 /* #define ANSWER_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL 1     /* always define this for atomic level versions - remove the write_level flag */
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V02 1    
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1      
-//#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
 //#define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 /* #define GLOBAL_TRIE_LOCK_AT_NODE_LEVEL  1 */
@@ -134,8 +134,8 @@
 ** Data structure to be used for locking the trie when using the  **
 ** (TRIE_TYPE)_LOCK_AT_[NODE|WRITE]_LEVEL schemes                 **
 *******************************************************************/
-//#define TRIE_LOCK_USING_NODE_FIELD   1
-#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
+#define TRIE_LOCK_USING_NODE_FIELD   1
+//#define TRIE_LOCK_USING_GLOBAL_ARRAY 1
 
 /*********************************************************
 **      support mode directed tabling ? (optional)      **
