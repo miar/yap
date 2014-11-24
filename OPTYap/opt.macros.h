@@ -283,6 +283,7 @@ extern int Yap_page_size;
             if (SgFr_first_answer(sg_fr) &&                                                \
                 SgFr_first_answer(sg_fr) != SgFr_answer_trie(sg_fr)) {                     \
               SgFr_state(sg_fr) = ready;                                                   \
+	      /* to remove free_answer_hash_chain with ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */ \
 	      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);                    \
 	      SgFr_hash_chain(sg_fr) = NULL;                                               \
 	      SgFr_first_answer(sg_fr) = NULL;                                             \
@@ -296,6 +297,9 @@ extern int Yap_page_size;
         } else {						                           \
 	  ALLOC_SPACE();                                                                   \
         }
+
+
+
 #elif THREADS
 #define RECOVER_ALLOC_SPACE(PG_ENT, EXTRA_PG_ENT)					   \
         LOCK(PgEnt_lock(EXTRA_PG_ENT));    		                                   \
@@ -478,7 +482,10 @@ extern int Yap_page_size;
   STR = aux->hash_buckets
 
 
-#define V04_FREE_THB(STR)               //FREE_STRUCT((union trie_hash_buckets*)STR, union trie_hash_buckets, _pages_trie_hash_buckets)
+#define V04_FREE_BUCKETS(STR)               FREE_STRUCT((union trie_hash_buckets*)STR, union trie_hash_buckets, _pages_trie_hash_buckets)
+
+#define V04_FREE_THB(STR)               FREE_STRUCT((union trie_hash_buckets*)STR, union trie_hash_buckets, _pages_trie_hash_buckets)
+
 
 #define ALLOC_ANSWER_REF_NODE(STR)     ALLOC_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
 #define FREE_ANSWER_REF_NODE(STR)      FREE_STRUCT(STR, struct answer_ref_node, _pages_ans_ref_node)
@@ -605,6 +612,9 @@ extern int Yap_page_size;
     LOCAL_trie_buckets_buffer = (((void**)V04_UNTAG(PTR)) - 1);                \
   }
 
+#define V04_FREE_BUCKET_ARRAY(PTR)				\
+  V04_FREE_BUCKETS(((union trie_hash_buckets *)(((long)V04_UNTAG(PTR)) - sizeof(ans_node_ptr *))));
+
 #else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */
 
 #define V04_ALLOC_BUCKETS(BUCKET_PTR, PREV_HASH, STR)	                             \
@@ -617,6 +627,11 @@ extern int Yap_page_size;
 #define V04_FREE_TRIE_HASH_BUCKETS(PTR, BKT, STR)				     \
    V04_FREE_THB(((STR *) V04_UNTAG(PTR)) - 1) /* DOES NOT DO ANYTHING */
   /*  FREE_BLOCK(((ans_node_ptr *) V04_UNTAG(STR)) - 1) */
+
+
+#define V04_FREE_BUCKET_ARRAY(PTR)				\
+  V04_FREE_BUCKETS(((union trie_hash_buckets *)(((long)V04_UNTAG(PTR)) - sizeof(ans_node_ptr *))));
+
 
 
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_MIGS_ALLOC */

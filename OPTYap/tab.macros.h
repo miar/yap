@@ -1997,7 +1997,9 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       consumer_trie_free_structs(sg_fr PASS_REGS);
 #endif
 #ifndef THREADS_FULL_SHARING
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
+#ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 
+    free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
+#endif
       SgFr_hash_chain(sg_fr) = NULL;
       SgFr_first_answer(sg_fr) = NULL;
       SgFr_last_answer(sg_fr) = NULL;
