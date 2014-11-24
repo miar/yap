@@ -833,9 +833,9 @@ static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, s
 
 #ifndef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
-#define INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
-#include "lockFreeHash.tries.i"
-#undef INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
+//#define INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
+//#include "lockFreeHash.tries.i"
+//#undef INCLUDE_SUBGOAL_LOCK_FREE_HASH_TRIE
 
 #ifdef _______________________MIG_HERE_________________
 static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_node_ptr chain_node, sg_node_ptr adjust_node, long n_shifts, int count_nodes USES_REGS) { 
@@ -1024,7 +1024,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_gt_entry(tab_ent_ptr tab_ent
 #else
 static inline sg_node_ptr subgoal_trie_check_insert_entry(tab_ent_ptr tab_ent, sg_node_ptr parent_node, Term t USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
-  return LFHT_SUBGOAL_TRIE_CHECK_INSERT_ENTRY(t, parent_node);
+  //  return LFHT_SUBGOAL_TRIE_CHECK_INSERT_ENTRY(t, parent_node);
 
 #ifdef  _______________________MIG_HERE_________________
   sg_node_ptr child_node;
@@ -2119,9 +2119,9 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 
 #ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE
 #define ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_COMPILE_ONCE 1
-#define INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
-#include "lockFreeHash.tries.i"
-#undef INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
+//#define INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
+//#include "lockFreeHash.tries.i"
+//#undef INCLUDE_ANSWER_LOCK_FREE_HASH_TRIE
 #ifdef _______________________MIG_HERE_________________
 
 
@@ -2314,7 +2314,7 @@ static inline ans_node_ptr answer_trie_check_insert_gt_entry(sg_fr_ptr sg_fr, an
 static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_node_ptr parent_node, Term t, int instr USES_REGS) {
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   //printf(" term = %d \n", t>>3);
-  return LFHT_ANSWER_TRIE_CHECK_INSERT_ENTRY(t, parent_node, instr);
+  //  return LFHT_ANSWER_TRIE_CHECK_INSERT_ENTRY(t, parent_node, instr);
 
 #ifdef  _______________________MIG_HERE_________________
   ans_node_ptr child_node;

@@ -52,7 +52,9 @@ void load_answer(ans_node_ptr, CELL * USES_REGS);
 CELL *exec_substitution(gt_node_ptr, CELL *);
 void update_answer_trie(sg_fr_ptr USES_REGS);
 void free_subgoal_trie(sg_node_ptr, int, int USES_REGS);
+//#ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
 void free_answer_trie(ans_node_ptr, int, int USES_REGS);
+//#endif /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 void free_answer_hash_chain(ans_hash_ptr USES_REGS);
 void abolish_table(tab_ent_ptr USES_REGS);
 void show_table(tab_ent_ptr, int, IOSTREAM *);

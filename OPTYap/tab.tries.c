@@ -1780,7 +1780,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position USES_REG
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
+      //      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);  MIAR
       ans_node = SgFr_answer_trie(sg_fr);
       if (TrNode_child(ans_node)) {
 	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
@@ -1841,88 +1841,48 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position USES_REG
 }
 
 
-
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
-
-static inline void LFHT_ABOLISH_CHAIN(LFHT_STR_PTR chain_node, LFHT_STR_PTR * end_chain) {
-
-  LFHT_STR_PTR current_node = chain_node;
+ 
+void abolish_chain(ans_node_ptr current_node, ans_node_ptr *end_chain USES_REGS) {
+  if ((ans_node_ptr *) current_node == end_chain)
+    return;
+  abolish_chain(TrNode_next(current_node), end_chain PASS_REGS);
   if (! IS_ANSWER_LEAF_NODE(current_node)) {
-    int child_mode;
-    if (mode == TRAVERSE_MODE_NORMAL) {
-      Term t = TrNode_entry(current_node);
-      if (IsApplTerm(t)) {
-	Functor f = (Functor) RepAppl(t);
-	if (f == FunctorDouble)
-	  child_mode = TRAVERSE_MODE_DOUBLE;
-	else if (f == FunctorLongInt)
-	  child_mode = TRAVERSE_MODE_LONGINT;
-	else
-	  child_mode = TRAVERSE_MODE_NORMAL;
-      } else
-	  child_mode = TRAVERSE_MODE_NORMAL;
-    } else if (mode == TRAVERSE_MODE_LONGINT)
-      child_mode = TRAVERSE_MODE_LONGINT_END;
-    else if (mode == TRAVERSE_MODE_DOUBLE)
-#if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
-      child_mode = TRAVERSE_MODE_DOUBLE2;
-    else if (mode == TRAVERSE_MODE_DOUBLE2)
-#endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
-      child_mode = TRAVERSE_MODE_DOUBLE_END;
-    else
-      child_mode = TRAVERSE_MODE_NORMAL;
+    int child_mode = 1;
     free_answer_trie(TrNode_child(current_node), child_mode, TRAVERSE_POSITION_FIRST PASS_REGS);
   }
-  if (position == TRAVERSE_POSITION_FIRST) {
-    ans_node_ptr next_node = TrNode_next(current_node);
-    CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
-    FREE_ANSWER_TRIE_NODE(current_node);
-    while (next_node != end_chain) {
-      current_node = next_node;
-      next_node = TrNode_next(current_node);      
-      LFHT_ABOLISH_CHAIN(current_node, end_chain);
-      free_answer_trie(current_node, mode, TRAVERSE_POSITION_NEXT PASS_REGS);
-    }
-  } else {
-    CHECK_DECREMENT_GLOBAL_TRIE_REFERENCE(TrNode_entry(current_node), mode);
-    FREE_ANSWER_TRIE_NODE(current_node);
-  }
+  FREE_ANSWER_TRIE_NODE(current_node);
   return;
 }
 
-
-static inline void LFHT_ABOLISH_BUCKET_ARRAY(LFHT_STR_PTR *curr_hash) {
+void abolish_bucket_array(ans_node_ptr *curr_hash USES_REGS) {
   int i;
-  LFHT_STR_PTR *bucket;
-  bucket = (LFHT_STR_PTR *) LFHT_UntagHashLevel(curr_hash);
-  for (i = 0; i < LFHT_BUCKET_ARRAY_SIZE ; i++) {
-    if (LFHT_IsHashLevel((*bucket)))
-      LFHT_ABOLISH_BUCKET_ARRAY((LFHT_STR_PTR *) *bucket);
-    else
-      LFHT_ABOLISH_CHAIN((LFHT_STR_PTR)*bucket, curr_hash);
+  ans_node_ptr *bucket;
+  bucket = (ans_node_ptr *) V04_UNTAG(curr_hash);
+  for (i = 0; i < BASE_HASH_BUCKETS ; i++) {
+    if (!V04_IS_EMPTY_BUCKET(*bucket, curr_hash, struct answer_trie_node)) {
+      if (V04_IS_HASH((*bucket))) {
+	//	printf("is hash level b %p\n", *bucket);
+	abolish_bucket_array((ans_node_ptr *) *bucket PASS_REGS);
+      } else {
+	abolish_chain((ans_node_ptr)*bucket, curr_hash PASS_REGS);
+      }
+    }
     bucket++;
   }
-  LFHT_FreeBuckets(curr_hash, NULL, NULL);
+  //LFHT_FreeBuckets(curr_hash, NULL, NULL); 
+  return;
+}
+
+void free_answer_trie(ans_node_ptr first_node, int mode, int position USES_REGS) {
+  if (V04_IS_HASH(first_node)) {
+    abolish_bucket_array((ans_node_ptr *) first_node PASS_REGS);
+  } else
+    abolish_chain(first_node, (ans_node_ptr *)NULL PASS_REGS);
   return;
 }
 
 
-void free_answer_trie(ans_node_ptr current_node, int mode, int position USES_REGS) {
-  LFHT_STR_PTR first_node;
-  first_node = current_node;
-  if (first_node == NULL)
-    return;
-  if (LFHT_IsHashLevel(first_node))
-    LFHT_ABOLISH_BUCKET_ARRAY((LFHT_STR_PTR *) first_node);
-  else
-    LFHT_ABOLISH_CHAIN(first_node, (LFHT_STR_PTR *)NULL);
-  return;
-}
-
-
- 
- 
- 
 #else /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 
 void free_answer_trie(ans_node_ptr current_node, int mode, int position USES_REGS) {
@@ -1973,7 +1933,7 @@ void free_answer_trie(ans_node_ptr current_node, int mode, int position USES_REG
   return;
 }
 
-#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+#endif /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 
 
 void free_answer_hash_chain(ans_hash_ptr hash USES_REGS) {
