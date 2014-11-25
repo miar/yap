@@ -1743,17 +1743,13 @@ void subgoal_trie_abolish_chain(sg_node_ptr current_node, sg_node_ptr *end_chain
     sg_fr_ptr sg_fr = get_subgoal_frame_for_abolish(current_node PASS_REGS);
     if (sg_fr) {
       ans_node_ptr ans_node;
-#ifndef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
-      free_answer_hash_chain(SgFr_hash_chain(sg_fr) PASS_REGS);
-#endif
       ans_node = SgFr_answer_trie(sg_fr);
       if (TrNode_child(ans_node)) {
 	free_answer_trie(TrNode_child(ans_node), TRAVERSE_MODE_NORMAL, TRAVERSE_POSITION_FIRST PASS_REGS);
       }
-      SgFr_hash_chain(sg_fr) = NULL;
       FREE_ANSWER_TRIE_NODE(ans_node);
 #if defined(THREADS_FULL_SHARING)
-	FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
+      FREE_SUBGOAL_ENTRY(SgFr_sg_ent(sg_fr));
 #endif /* THREADS_FULL_SHARING */
 #if defined(MODE_DIRECTED_TABLING)
 	if (SgFr_invalid_chain(sg_fr)) {
@@ -1766,16 +1762,6 @@ void subgoal_trie_abolish_chain(sg_node_ptr current_node, sg_node_ptr *end_chain
 	    invalid_node = next_node;
 	  }
 	}
-#if defined(THREADS_FULL_SHARING)
-	if (SgFr_old_hash_chain(sg_fr)) {
-	  struct answer_trie_hash *hash;
-	  do {	    
-	    hash = SgFr_old_hash_chain(sg_fr);
-	    SgFr_old_hash_chain(sg_fr) = Hash_next(SgFr_old_hash_chain(sg_fr));
-	    FREE_ANSWER_TRIE_HASH(hash);
-	  } while(SgFr_old_hash_chain(sg_fr));
-	}
-#endif /*THREADS_FULL_SHARING */
 #endif /* MODE_DIRECTED_TABLING */
       
 #ifdef LIMIT_TABLING
