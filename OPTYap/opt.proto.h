@@ -51,11 +51,15 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr, CELL * USES_REGS);
 void load_answer(ans_node_ptr, CELL * USES_REGS);
 CELL *exec_substitution(gt_node_ptr, CELL *);
 void update_answer_trie(sg_fr_ptr USES_REGS);
+#ifdef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+void subgoal_trie_abolish_chain(sg_node_ptr, sg_node_ptr * , int ,int USES_REGS);
+void subgoal_trie_abolish_bucket_array(sg_node_ptr *, int, int USES_REGS);
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 void free_subgoal_trie(sg_node_ptr, int, int USES_REGS);
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
-void abolish_chain(ans_node_ptr, ans_node_ptr * , int ,int USES_REGS);
-void abolish_bucket_array(ans_node_ptr *, int, int USES_REGS);
-#endif /* !ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+void answer_trie_abolish_chain(ans_node_ptr, ans_node_ptr * , int ,int USES_REGS);
+void answer_trie_abolish_bucket_array(ans_node_ptr *, int, int USES_REGS);
+#endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 void free_answer_trie(ans_node_ptr, int, int USES_REGS);
 void free_answer_hash_chain(ans_hash_ptr USES_REGS);
 void abolish_table(tab_ent_ptr USES_REGS);
