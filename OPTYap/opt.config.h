@@ -11,7 +11,7 @@
 **                                                                     **
 ************************************************************************/
 
-/* activate this code the lockFreeHashTries.i and[h] has a bug... */
+/* atomic v04 activate this code because the lockFreeHashTries.i and [.h] has a bug... */
 #define _______________________MIG_HERE_________________
 
 /****************************************************************

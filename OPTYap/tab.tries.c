@@ -767,7 +767,6 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
   return;
 }
 
-
 #ifdef EXTRA_STATISTICS
  static void traverse_answer_trie(long ans_dep, ans_node_ptr current_node, char *str, int str_index, int *arity, int var_index, int mode, int position USES_REGS) {
 #else
@@ -879,7 +878,6 @@ static void free_global_trie_branch(gt_node_ptr current_node USES_REGS) {
     }
     free(current_arity);
   }
-
   return;
 }
 
@@ -1965,7 +1963,7 @@ void free_subgoal_trie(sg_node_ptr current_node, int mode, int position USES_REG
   return;
 }
 
-#endif /* !SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
+#endif /* SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 */
 
 #ifdef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
 
