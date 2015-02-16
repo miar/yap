@@ -1464,7 +1464,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 #ifdef MODE_DIRECTED_TABLING
 
-#if defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01)
+#if !defined(THREADS) || defined(THREADS_NO_SHARING) || defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING_MODE_DIRECTED_V01)
  
 ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #define subs_arity *subs_ptr

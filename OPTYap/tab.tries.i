@@ -853,7 +853,7 @@ static inline void subgoal_trie_insert_bucket_chain(sg_node_ptr *curr_hash, sg_n
       sg_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), (n_shifts + 1), struct subgoal_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
@@ -921,7 +921,7 @@ static inline sg_node_ptr subgoal_trie_check_insert_bucket_chain(sg_node_ptr *cu
       sg_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, curr_hash, struct subgoal_trie_node);
       new_hash = (sg_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct subgoal_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), (n_shifts + 1), struct subgoal_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct subgoal_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct subgoal_trie_node);
@@ -2140,7 +2140,7 @@ static inline void answer_trie_insert_bucket_chain(ans_node_ptr *curr_hash, ans_
       ans_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), (n_shifts + 1), struct answer_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_trie_node);
@@ -2209,7 +2209,7 @@ static inline ans_node_ptr answer_trie_check_insert_bucket_chain(ans_node_ptr *c
       ans_node_ptr *bucket;
       V04_ALLOC_BUCKETS(new_hash, curr_hash, struct answer_trie_node);
       new_hash = (ans_node_ptr *) V04_TAG(new_hash);
-      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), n_shifts + 1, struct answer_trie_node);
+      V04_GET_HASH_BUCKET(bucket, new_hash, TrNode_entry(chain_node), (n_shifts + 1), struct answer_trie_node);
       V04_SET_HASH_BUCKET(bucket, chain_node, struct answer_trie_node);
       if (BOOL_CAS(&TrNode_next(chain_node), curr_hash, new_hash)) {
 	V04_GET_HASH_BUCKET(bucket, curr_hash, t, n_shifts, struct answer_trie_node);

@@ -171,7 +171,7 @@ static inline LFHT_STR_PTR LFHT_CHECK_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_has
       LFHT_STR_PTR *bucket;
       LFHT_AllocBuckets(new_hash, curr_hash, LFHT_STR);
       new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);
-      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), n_shifts + 1, LFHT_STR);
+      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), (n_shifts + 1), LFHT_STR);
       LFHT_SetBucket(bucket, chain_node, LFHT_STR);
       if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), curr_hash, new_hash)) {
 	LFHT_GetBucket(bucket, curr_hash, key, n_shifts, LFHT_STR);
@@ -236,7 +236,7 @@ static inline void LFHT_INSERT_BUCKET_CHAIN(LFHT_STR_PTR *curr_hash, LFHT_STR_PT
       LFHT_STR_PTR *bucket;
       LFHT_AllocBuckets(new_hash, curr_hash, LFHT_STR);
       new_hash = (LFHT_STR_PTR *) LFHT_TagAsHashLevel(new_hash);
-      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), n_shifts + 1, LFHT_STR);
+      LFHT_GetBucket(bucket, new_hash, LFHT_NodeKey(chain_node), (n_shifts + 1), LFHT_STR);
       LFHT_SetBucket(bucket, chain_node, LFHT_STR);
       if (LFHT_BoolCAS(&(LFHT_NodeNext(chain_node)), curr_hash, new_hash)) {
 	LFHT_GetBucket(bucket, curr_hash, key, n_shifts, LFHT_STR);
