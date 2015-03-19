@@ -210,7 +210,6 @@
 
 //#define THREADS_SUBGOAL_FRAME_SHARE_COMPLETE   1 /* no _WID Mode. share the subgoal frame on the thread 0*/
 
-
 //#define THREADS_SUBGOAL_COMPLETION_WAIT  1 /* activate MODE_DIRECTED_TABLING AND SUBGOAL_SHARING. makes no sence to use this with FULL_SHARING */
                                                                                           
 #if defined(THREADS_FULL_SHARING) && defined(MODE_DIRECTED_TABLING)
