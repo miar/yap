@@ -762,6 +762,9 @@
       Stats_consumer_cp[worker_id]++;
     else if (SgFr_state(sg_fr) == complete)
       Stats_completed_cp[worker_id]++;
+
+    printf(" arg1 = %d  arg2 = %d \n", IntOfTerm(Deref(ARG1)));
+
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
 
