@@ -54,6 +54,14 @@ int   walltime_by_thread_run;
 float  walltime_by_thread[WALLTIME_BY_THREAD_NR_RUNS][WALLTIME_BY_THREAD_MAX_THREADS];
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+#define EXTRA_STATISTICS_MAX_THREADS  66
+long Stats_choice_points[EXTRA_STATISTICS_MAX_THREADS];
+long Stats_generator_cp[EXTRA_STATISTICS_MAX_THREADS];
+long Stats_consumer_cp[EXTRA_STATISTICS_MAX_THREADS];
+long Stats_completed_cp[EXTRA_STATISTICS_MAX_THREADS];
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
 
 /**********************
 **      typedefs     **

@@ -420,6 +420,15 @@
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+    Stats_choice_points[worker_id]++;
+    if (SgFr_state(sg_fr) == ready)
+      Stats_generator_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete)
+      Stats_completed_cp[worker_id]++;
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
@@ -577,6 +586,17 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
+
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+    Stats_choice_points[worker_id]++;
+    if (SgFr_state(sg_fr) == ready)
+      Stats_generator_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete)
+      Stats_completed_cp[worker_id]++;
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
     if (SgFr_state(sg_fr) == ready) {
@@ -733,6 +753,17 @@
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
+
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+    Stats_choice_points[worker_id]++;
+    if (SgFr_state(sg_fr) == ready)
+      Stats_generator_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == evaluating)
+      Stats_consumer_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete)
+      Stats_completed_cp[worker_id]++;
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
 
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);

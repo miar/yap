@@ -1230,7 +1230,11 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
 	mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     while(sg_fr) {
-      if (SgFr_wid(sg_fr) == worker_id)
+      if (
+	  /*	  #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
+          SgFr_state(sg_fr) >= complete ||
+	  #endif   THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
+          SgFr_wid(sg_fr) == worker_id)
 	  return sg_fr;
       sg_fr = SgFr_next_wid(sg_fr);
     }

@@ -223,6 +223,13 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
       walltime_by_thread[i][k] = -1;    
   walltime_by_thread_run = -1;
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+  for (i = 0; i < EXTRA_STATISTICS_MAX_THREADS; i++) {
+    Stats_choice_points[i] = -1;
+   }
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
 #endif /* TABLING */
   return;
 }

@@ -303,6 +303,13 @@ setup_engine(int myworker_id, int init_thread)
   walltime_by_thread[walltime_by_thread_run][worker_id] = 0;
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD*/
 
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+   Stats_choice_points[worker_id] = 0;
+   Stats_generator_cp[worker_id] = 0;
+   Stats_consumer_cp[worker_id] = 0;
+   Stats_completed_cp[worker_id] = 0;
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
   //#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
   //  struct timeval tv1, tv2;
   //  gettimeofday(&tv1, NULL);

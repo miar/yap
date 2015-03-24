@@ -793,6 +793,27 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   Sfprintf(out,"Stats_query_number:   %ld \n", Stats_query_number);
   Sfprintf(out,"Stats_query_reused_tables:  %ld \n", Stats_query_reused_tables);
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+  
+#ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
+  long Extra_Stats_choice_points = 0;
+  long Extra_Stats_generator_cp = 0;
+  long Extra_Stats_consumer_cp = 0;
+  long Extra_Stats_completed_cp = 0;
+  int i;
+  for(i = 1 ; Stats_choice_points[i] != -1 ; i++) {
+    Extra_Stats_choice_points += Stats_choice_points[i];
+    Extra_Stats_generator_cp += Stats_generator_cp[i];
+    Extra_Stats_consumer_cp += Stats_consumer_cp[i];
+    Extra_Stats_completed_cp += Stats_completed_cp[i];
+  }
+
+  Sfprintf(out,"-------------------------------------\n");
+  Sfprintf(out,"Stats_choice_points:  %ld \n", Extra_Stats_choice_points);
+  Sfprintf(out,"Stats_generator_cp:   %ld \n", Extra_Stats_generator_cp);
+  Sfprintf(out,"Stats_consumer_cp:    %ld \n", Extra_Stats_consumer_cp);
+  Sfprintf(out,"Stats_completed_cp:   %ld \n", Extra_Stats_completed_cp);
+#endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
+
   PL_release_stream(out);
   return (TRUE);
 }
