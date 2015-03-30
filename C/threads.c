@@ -307,7 +307,8 @@ setup_engine(int myworker_id, int init_thread)
    Stats_choice_points[worker_id] = 0;
    Stats_generator_cp[worker_id] = 0;
    Stats_consumer_cp[worker_id] = 0;
-   Stats_completed_cp[worker_id] = 0;
+   Stats_completed_cp_private[worker_id] = 0;
+   Stats_completed_cp_shared[worker_id] = 0;
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
   //#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD

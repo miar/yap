@@ -426,8 +426,12 @@
       Stats_generator_cp[worker_id]++;
     else if (SgFr_state(sg_fr) == evaluating)
       Stats_consumer_cp[worker_id]++;
-    else if (SgFr_state(sg_fr) == complete)
-      Stats_completed_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete)  {
+      if (SgFr_wid(sg_fr) == worker_id)	
+	Stats_completed_cp_private[worker_id]++;
+      else
+	Stats_completed_cp_shared[worker_id]++;
+    }
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
     atomic_inc(&Stats_choice_points);
@@ -593,8 +597,12 @@
       Stats_generator_cp[worker_id]++;
     else if (SgFr_state(sg_fr) == evaluating)
       Stats_consumer_cp[worker_id]++;
-    else if (SgFr_state(sg_fr) == complete)
-      Stats_completed_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete)  {
+      if (SgFr_wid(sg_fr) == worker_id)	
+	Stats_completed_cp_private[worker_id]++;
+      else
+	Stats_completed_cp_shared[worker_id]++;
+    }      
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
@@ -760,10 +768,14 @@
       Stats_generator_cp[worker_id]++;
     else if (SgFr_state(sg_fr) == evaluating)
       Stats_consumer_cp[worker_id]++;
-    else if (SgFr_state(sg_fr) == complete)
-      Stats_completed_cp[worker_id]++;
+    else if (SgFr_state(sg_fr) == complete) {
+      if (SgFr_wid(sg_fr) == worker_id)	
+	Stats_completed_cp_private[worker_id]++;
+      else
+	Stats_completed_cp_shared[worker_id]++;
+    }
 
-    printf(" arg1 = %d  arg2 = %d \n", IntOfTerm(Deref(ARG1)));
+    //    printf(" arg1 = %d  arg2 = %d \n", IntOfTerm(Deref(ARG1)));
 
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 

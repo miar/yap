@@ -798,20 +798,23 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   long Extra_Stats_choice_points = 0;
   long Extra_Stats_generator_cp = 0;
   long Extra_Stats_consumer_cp = 0;
-  long Extra_Stats_completed_cp = 0;
+  long Extra_Stats_completed_cp_private = 0;
+  long Extra_Stats_completed_cp_shared = 0;
   int i;
   for(i = 1 ; Stats_choice_points[i] != -1 ; i++) {
     Extra_Stats_choice_points += Stats_choice_points[i];
     Extra_Stats_generator_cp += Stats_generator_cp[i];
     Extra_Stats_consumer_cp += Stats_consumer_cp[i];
-    Extra_Stats_completed_cp += Stats_completed_cp[i];
+    Extra_Stats_completed_cp_private += Stats_completed_cp_private[i];
+    Extra_Stats_completed_cp_shared += Stats_completed_cp_shared[i];
   }
 
   Sfprintf(out,"-------------------------------------\n");
   Sfprintf(out,"Stats_choice_points:  %ld \n", Extra_Stats_choice_points);
   Sfprintf(out,"Stats_generator_cp:   %ld \n", Extra_Stats_generator_cp);
   Sfprintf(out,"Stats_consumer_cp:    %ld \n", Extra_Stats_consumer_cp);
-  Sfprintf(out,"Stats_completed_cp:   %ld \n", Extra_Stats_completed_cp);
+  Sfprintf(out,"Stats_completed_cp_private:   %ld \n", Extra_Stats_completed_cp_private);
+  Sfprintf(out,"Stats_completed_cp_shared:   %ld \n", Extra_Stats_completed_cp_shared);
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
   PL_release_stream(out);

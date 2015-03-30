@@ -59,7 +59,8 @@ float  walltime_by_thread[WALLTIME_BY_THREAD_NR_RUNS][WALLTIME_BY_THREAD_MAX_THR
 long Stats_choice_points[EXTRA_STATISTICS_MAX_THREADS];
 long Stats_generator_cp[EXTRA_STATISTICS_MAX_THREADS];
 long Stats_consumer_cp[EXTRA_STATISTICS_MAX_THREADS];
-long Stats_completed_cp[EXTRA_STATISTICS_MAX_THREADS];
+long Stats_completed_cp_private[EXTRA_STATISTICS_MAX_THREADS];
+long Stats_completed_cp_shared[EXTRA_STATISTICS_MAX_THREADS];
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
 
