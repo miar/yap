@@ -738,6 +738,8 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   if (!(out = Yap_GetStreamHandle(AtomOfTerm(t))))
     return FALSE;
   bytes = 0;
+
+  //#ifdef NO_PRINT /* TO REMOVE */
   Sfprintf(out, "Execution data structures\n");
   stats = show_statistics_table_entries(out);
   INCREMENT_AUX_STATS(stats, bytes, total_pages);
@@ -794,6 +796,8 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   Sfprintf(out,"Stats_query_reused_tables:  %ld \n", Stats_query_reused_tables);
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
   
+  //#endif /* NO_PRINT */ /* TO REMOVE */
+
 #ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
   long Extra_Stats_choice_points = 0;
   long Extra_Stats_generator_cp = 0;
@@ -808,13 +812,27 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
     Extra_Stats_completed_cp_private += Stats_completed_cp_private[i];
     Extra_Stats_completed_cp_shared += Stats_completed_cp_shared[i];
   }
-
+  /*
   Sfprintf(out,"-------------------------------------\n");
   Sfprintf(out,"Stats_choice_points:  %ld \n", Extra_Stats_choice_points);
   Sfprintf(out,"Stats_generator_cp:   %ld \n", Extra_Stats_generator_cp);
-  Sfprintf(out,"Stats_consumer_cp:    %ld \n", Extra_Stats_consumer_cp);
+  //  Sfprintf(out,"Stats_consumer_cp:    %ld \n", Extra_Stats_consumer_cp);
   Sfprintf(out,"Stats_completed_cp_private:   %ld \n", Extra_Stats_completed_cp_private);
   Sfprintf(out,"Stats_completed_cp_shared:   %ld \n", Extra_Stats_completed_cp_shared);
+  */
+
+  Sfprintf(out,"-------------------------------------\n");
+  Sfprintf(out,"%ld \n", Extra_Stats_choice_points);
+  Sfprintf(out,"%ld \n", Extra_Stats_generator_cp);
+  Sfprintf(out,"%ld \n", Extra_Stats_completed_cp_private);
+  Sfprintf(out,"%ld \n", Extra_Stats_completed_cp_shared);
+
+
+
+
+
+
+
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
 
   PL_release_stream(out);
