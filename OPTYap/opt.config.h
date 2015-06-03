@@ -81,6 +81,9 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 #define   EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
+#define THREADS_FULL_SHARING_MATRIX 1
+
+
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
 //#define THREADS_FULL_SHARING_FTNA_3  1    /*  fast table_new_answer 3 (private leaf chaining) - use with local/batched scheduling. */
