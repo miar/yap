@@ -187,6 +187,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define MODE_DIRECTED_MAX             4
 #define MODE_DIRECTED_MIN             5
 #define MODE_DIRECTED_LAST            6
+#define MODE_DIRECTED_DIM             7
 #define MODE_DIRECTED_SET(ARG,MODE)   (((ARG) << MODE_DIRECTED_NUMBER_TAGBITS) + MODE)
 #define MODE_DIRECTED_GET_ARG(X)      ((X) >> MODE_DIRECTED_NUMBER_TAGBITS)
 #define MODE_DIRECTED_GET_MODE(X)     ((X) & MODE_DIRECTED_TAGBITS)

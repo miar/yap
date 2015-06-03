@@ -117,9 +117,12 @@ table(Pred) :-
    '$set_table'(Mod,PredFunctor,[]).
 '$do_table'(Mod,PredDeclaration) :- 
     PredDeclaration=..[PredName|PredList],
+    writeln(PredName-PredList),
+
     '$transl_to_mode_list'(PredList,PredModeList,PredArity),
     functor(PredFunctor,PredName,PredArity), !,
     '$set_table'(Mod,PredFunctor,PredModeList).
+
 '$do_table'(Mod,Pred) :-
    '$do_error'(type_error(callable,Mod:Pred),table(Mod:Pred)).
 
@@ -140,6 +143,7 @@ table(Pred) :-
 
 '$transl_to_mode_list'([],[],0) :- !.
 '$transl_to_mode_list'([TextualMode|L],[Mode|ModeList],Arity) :-
+    writeln(TextualMode),
     '$transl_to_mode_directed_tabling'(TextualMode,Mode),
     '$transl_to_mode_list'(L,ModeList,ListArity),
     Arity is ListArity + 1.
@@ -151,6 +155,8 @@ table(Pred) :-
 '$transl_to_mode_directed_tabling'(max,4).
 '$transl_to_mode_directed_tabling'(min,5).
 '$transl_to_mode_directed_tabling'(last,6).
+'$transl_to_mode_directed_tabling'(dim,7).
+
 
 
 
