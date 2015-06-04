@@ -351,7 +351,6 @@ static Int p_table( USES_REGS1 ) {
 #ifdef THREADS_FULL_SHARING_MATRIX
     printf("pos_index = %d pos_all = %d pos_last= %d \n", pos_index, pos_all, pos_last);
 #endif /* THREADS_FULL_SHARING_MATRIX */
-
     
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
