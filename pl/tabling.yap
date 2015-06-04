@@ -117,9 +117,8 @@ table(Pred) :-
    '$set_table'(Mod,PredFunctor,[]).
 '$do_table'(Mod,PredDeclaration) :- 
     PredDeclaration=..[PredName|PredList],
-    writeln(PredName-PredList),
-
     '$transl_to_mode_list'(PredList,PredModeList,PredArity),
+    writeln(PredList-PredModeList-PredArity),
     functor(PredFunctor,PredName,PredArity), !,
     '$set_table'(Mod,PredFunctor,PredModeList).
 
@@ -141,23 +140,39 @@ table(Pred) :-
    functor(PredFunctor,PredName,PredArity), 
    '$do_error'(permission_error(modify,table,Mod:PredName/PredArity),table(Mod:PredName/PredArity)).
 
+
 '$transl_to_mode_list'([],[],0) :- !.
-'$transl_to_mode_list'([TextualMode|L],[Mode|ModeList],Arity) :-
-    writeln(TextualMode),
-    '$transl_to_mode_directed_tabling'(TextualMode,Mode),
+
+'$transl_to_mode_list'([dim(Dim)|L],[7, Dim|ModeList],Arity) :- !,
+    integer(Dim),
+    '$transl_to_mode_directed_tabling'(TextualMode, Mode),
     '$transl_to_mode_list'(L,ModeList,ListArity),
     Arity is ListArity + 1.
 
+'$transl_to_mode_list'([TextualMode|L],[Mode|ModeList],Arity) :-
+    writeln(TextualMode),
+    '$transl_to_mode_directed_tabling'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+/*
+'$transl_to_mode_list'([],[],0) :- !.
+'$transl_to_mode_list'([TextualMode|L],[Mode|ModeList],Arity) :-
+    writeln(TextualMode),
+    '$transl_to_mode_directed_tabling'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+*/
+
 %% should match with code in OPTYap/tab.macros.h
-'$transl_to_mode_directed_tabling'(index,1).
-'$transl_to_mode_directed_tabling'(first,2).
-'$transl_to_mode_directed_tabling'(all,3).
-'$transl_to_mode_directed_tabling'(max,4).
-'$transl_to_mode_directed_tabling'(min,5).
-'$transl_to_mode_directed_tabling'(last,6).
-'$transl_to_mode_directed_tabling'(dim,7).
-
-
+'$transl_to_mode_directed_tabling'(index, 1).
+'$transl_to_mode_directed_tabling'(first, 2).
+'$transl_to_mode_directed_tabling'(all, 3).
+'$transl_to_mode_directed_tabling'(max, 4).
+'$transl_to_mode_directed_tabling'(min, 5).
+'$transl_to_mode_directed_tabling'(last, 6).
+%'$transl_to_mode_directed_tabling'(dim, 7).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
