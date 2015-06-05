@@ -324,6 +324,42 @@ static Int p_table( USES_REGS1 ) {
     Yap_Error(INTERNAL_COMPILER_ERROR, TermNil, "invalid tabling declaration for %s/%d (mode directed tabling not enabled)", AtomName(at), arity);
     return(FALSE);
 #else 
+
+
+#ifdef THREADS_FULL_SHARING_MATRIX
+    ALLOC_BLOCK(mode_directed, sizeof(int), int);
+    int pos_dim = 0;
+    int matrix_cols = 0;
+    int matrix_rows = 0;
+    int i;
+    int mode = IntOfTerm(HeadOfTerm(list));
+    if (mode != MODE_DIRECTED_DIM) {
+      printf("supported modes for matrix are : \n");
+      printf("table(dim(size), agregator) or table(dim(sizeA), dim(sizeB), agregator) \n");
+      printf("agregator is min or max (for now)");
+      exit(1);       
+    }
+
+    for (i = 0; i < arity; i++) {      
+      if (mode == MODE_DIRECTED_DIM) {	
+        list = TailOfTerm(list);
+	if (++pos_dim == 1)
+	  matrix_cols = IntOfTerm(HeadOfTerm(list));
+	else 
+	  matrix_rows = IntOfTerm(HeadOfTerm(list));
+        }
+      else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
+	mode_directed[0] = mode;
+      else {
+	printf("supported modes for matrix are : \n");
+        printf("table(dim(size), agregator) or table(dim(sizeA), dim(sizeB), agregator) \n");
+        printf("agregator is min or max (for now)");
+        exit(1);       
+      }
+      list = TailOfTerm(list);
+      mode = IntOfTerm(HeadOfTerm(list));
+    }
+#else /* !THREADS_FULL_SHARING_MATRIX */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
@@ -347,10 +383,6 @@ static Int p_table( USES_REGS1 ) {
       aux_mode_directed[i] = mode;
       list = TailOfTerm(list);
     }
-
-#ifdef THREADS_FULL_SHARING_MATRIX
-    printf("pos_index = %d pos_all = %d pos_last= %d \n", pos_index, pos_all, pos_last);
-#endif /* THREADS_FULL_SHARING_MATRIX */
     
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
@@ -374,6 +406,7 @@ static Int p_table( USES_REGS1 ) {
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
     free(aux_mode_directed);
+#endif /* THREADS_FULL_SHARING_MATRIX */
 #endif /* MODE_DIRECTED_TABLING */
   }
   if (pe->PredFlags & TabledPredFlag)
