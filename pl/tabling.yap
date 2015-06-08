@@ -118,7 +118,7 @@ table(Pred) :-
 '$do_table'(Mod,PredDeclaration) :- 
     PredDeclaration=..[PredName|PredList],
     '$transl_to_mode_list'(PredList,PredModeList,PredArity),
-   writeln(PredList-PredModeList-PredArity),
+%   writeln(PredList-PredModeList-PredArity),
     functor(PredFunctor,PredName,PredArity), !,
     '$set_table'(Mod,PredFunctor,PredModeList).
 

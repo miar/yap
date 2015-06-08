@@ -358,7 +358,6 @@ static Int p_table( USES_REGS1 ) {
     int  dim_total_size = 1;
     ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
     ALLOC_BLOCK(mode_directed, (arity - dim_array_size) * sizeof(int), int);
-
     for (i = 0; i < arity; i++) {
       int mode = IntOfTerm(HeadOfTerm(list));
       if (mode == MODE_DIRECTED_DIM) {
@@ -370,11 +369,7 @@ static Int p_table( USES_REGS1 ) {
 	mode_directed[0] = MODE_DIRECTED_SET(i, mode);
       list = TailOfTerm(list);
     }
-        
-    /* THREADS_FULL_SHARING_NO_TRIE - HERE */
-      
     ALLOC_BLOCK(subgoal_no_trie, dim_total_size * sizeof(long), long);
-
 #else /* !THREADS_FULL_SHARING_NO_TRIE */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
@@ -436,7 +431,7 @@ static Int p_table( USES_REGS1 ) {
 #else  /* !THREADS_FULL_SHARING_NO_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_FULL_SHARING_NO_TRIE */
-
+  /* THREADS_FULL_SHARING_NO_TRIE - HERE */
   pe->TableOfPred = tab_ent;
   return (TRUE);
 }
