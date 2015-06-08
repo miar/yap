@@ -301,6 +301,12 @@ static Int p_table( USES_REGS1 ) {
   Atom at;
   int arity;
   tab_ent_ptr tab_ent;
+
+#ifdef THREADS_FULL_SHARING_NO_TRIE
+  int* dim_array = NULL;
+  long *subgoal_no_trie = NULL;
+#endif /* THREADS_FULL_SHARING_NO_TRIE */
+
 #ifdef MODE_DIRECTED_TABLING
   int* mode_directed = NULL;
 #endif /* MODE_DIRECTED_TABLING */
@@ -325,41 +331,51 @@ static Int p_table( USES_REGS1 ) {
     return(FALSE);
 #else 
 
-
-#ifdef THREADS_FULL_SHARING_MATRIX
-    ALLOC_BLOCK(mode_directed, sizeof(int), int);
-    int pos_dim = 0;
-    int matrix_cols = 0;
-    int matrix_rows = 0;
+#ifdef THREADS_FULL_SHARING_NO_TRIE
+    Term list2 = list;
     int i;
-    int mode = IntOfTerm(HeadOfTerm(list));
-    if (mode != MODE_DIRECTED_DIM) {
-      printf("supported modes for matrix are : \n");
-      printf("table(dim(size), agregator) or table(dim(sizeA), dim(sizeB), agregator) \n");
-      printf("agregator is min or max (for now)");
-      exit(1);       
+    int dim_array_size = 0;
+    for (i = 0; i < arity; i++) {
+      int mode = IntOfTerm(HeadOfTerm(list2));
+      if (i < arity - 1) {
+	if (mode != MODE_DIRECTED_DIM) {
+	  printf("Error - The first arguments must be dim(X) \n");
+	  exit(1);
+	}
+	dim_array_size++;
+	list2 = TailOfTerm(list2); 	
+      } else {
+	mode =  IntOfTerm(HeadOfTerm(list2));
+	if (mode != MODE_DIRECTED_MIN || mode != MODE_DIRECTED_MAX) {
+	  printf("Error - The last argument must be an aggregate mode (min/max) \n");
+	  exit(1);
+	}
+      } 
+      list2 = TailOfTerm(list2);
     }
 
-    for (i = 0; i < arity; i++) {      
-      if (mode == MODE_DIRECTED_DIM) {	
-        list = TailOfTerm(list);
-	if (++pos_dim == 1)
-	  matrix_cols = IntOfTerm(HeadOfTerm(list));
-	else 
-	  matrix_rows = IntOfTerm(HeadOfTerm(list));
-        }
-      else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
-	mode_directed[0] = mode;
-      else {
-	printf("supported modes for matrix are : \n");
-        printf("table(dim(size), agregator) or table(dim(sizeA), dim(sizeB), agregator) \n");
-        printf("agregator is min or max (for now)");
-        exit(1);       
-      }
+    int  dim_i = 0;
+    int  dim_total_size = 1;
+    ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
+    ALLOC_BLOCK(mode_directed, (arity - dim_array_size) * sizeof(int), int);
+
+    for (i = 0; i < arity; i++) {
+      int mode = IntOfTerm(HeadOfTerm(list));
+      if (mode == MODE_DIRECTED_DIM) {
+	list = TailOfTerm(list);
+	int dim_size = IntOfTerm(HeadOfTerm(list));
+	dim_array[dim_i++] = dim_size; 
+	dim_total_size *= dim_size;
+      } else 
+	mode_directed[0] = MODE_DIRECTED_SET(i, mode);
       list = TailOfTerm(list);
-      mode = IntOfTerm(HeadOfTerm(list));
     }
-#else /* !THREADS_FULL_SHARING_MATRIX */
+        
+    /* THREADS_FULL_SHARING_NO_TRIE - HERE */
+      
+    ALLOC_BLOCK(subgoal_no_trie, dim_total_size * sizeof(long), long);
+
+#else /* !THREADS_FULL_SHARING_NO_TRIE */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
@@ -406,7 +422,7 @@ static Int p_table( USES_REGS1 ) {
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
     free(aux_mode_directed);
-#endif /* THREADS_FULL_SHARING_MATRIX */
+#endif /* THREADS_FULL_SHARING_NO_TRIE */
 #endif /* MODE_DIRECTED_TABLING */
   }
   if (pe->PredFlags & TabledPredFlag)
@@ -414,7 +430,13 @@ static Int p_table( USES_REGS1 ) {
   if (pe->cs.p_code.FirstClause)
     return (FALSE);  /* predicate already compiled */
   pe->PredFlags |= TabledPredFlag;
+
+#ifdef THREADS_FULL_SHARING_NO_TRIE
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, subgoal_no_trie);
+#else  /* !THREADS_FULL_SHARING_NO_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
+#endif /* THREADS_FULL_SHARING_NO_TRIE */
+
   pe->TableOfPred = tab_ent;
   return (TRUE);
 }

@@ -118,7 +118,7 @@ table(Pred) :-
 '$do_table'(Mod,PredDeclaration) :- 
     PredDeclaration=..[PredName|PredList],
     '$transl_to_mode_list'(PredList,PredModeList,PredArity),
-%    writeln(PredList-PredModeList-PredArity),
+   writeln(PredList-PredModeList-PredArity),
     functor(PredFunctor,PredName,PredArity), !,
     '$set_table'(Mod,PredFunctor,PredModeList).
 
@@ -172,7 +172,7 @@ table(Pred) :-
 '$transl_to_mode_directed_tabling'(max, 4).
 '$transl_to_mode_directed_tabling'(min, 5).
 '$transl_to_mode_directed_tabling'(last, 6).
-%'$transl_to_mode_directed_tabling'(dim, 7).
+%'$transl_to_mode_directed_tabling'(dim, 7). don't uncomment. this is just to set mode dim=7.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

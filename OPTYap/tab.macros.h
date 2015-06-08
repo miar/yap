@@ -188,6 +188,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define MODE_DIRECTED_MIN             5
 #define MODE_DIRECTED_LAST            6
 #define MODE_DIRECTED_DIM             7
+
 #define MODE_DIRECTED_SET(ARG,MODE)   (((ARG) << MODE_DIRECTED_NUMBER_TAGBITS) + MODE)
 #define MODE_DIRECTED_GET_ARG(X)      ((X) >> MODE_DIRECTED_NUMBER_TAGBITS)
 #define MODE_DIRECTED_GET_MODE(X)     ((X) & MODE_DIRECTED_TAGBITS)
@@ -631,7 +632,34 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           DepFr_last_answer(DEP_FR) = NULL
 #endif /* THREADS_FULL_SHARING */
 
+#ifdef THREADS_FULL_SHARING_NO_TRIE
 
+#define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY, DIM_ARRAY, NO_TRIE) \
+        ALLOC_TABLE_ENTRY(TAB_ENT);                                    \
+        INIT_LOCK_TAB_ENT(TAB_ENT);                                    \
+        TabEnt_pe(TAB_ENT) = PRED_ENTRY;                               \
+        TabEnt_atom(TAB_ENT) = ATOM;                                   \
+        TabEnt_arity(TAB_ENT) = ARITY;                                 \
+        TabEnt_flags(TAB_ENT) = 0;                                     \
+        SetMode_Batched(TabEnt_flags(TAB_ENT));                        \
+        SetMode_ExecAnswers(TabEnt_flags(TAB_ENT));                    \
+        SetMode_LocalTrie(TabEnt_flags(TAB_ENT));                      \
+        TabEnt_mode(TAB_ENT) = TabEnt_flags(TAB_ENT);                  \
+        if (IsMode_Local(yap_flags[TABLING_MODE_FLAG]))                \
+          SetMode_Local(TabEnt_mode(TAB_ENT));                         \
+        if (IsMode_LoadAnswers(yap_flags[TABLING_MODE_FLAG]))          \
+          SetMode_LoadAnswers(TabEnt_mode(TAB_ENT));                   \
+        if (IsMode_GlobalTrie(yap_flags[TABLING_MODE_FLAG]))           \
+          SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
+        TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
+	TabEnt_dimension_array(TAB_ENT) = DIM_ARRAY;		       \
+        TabEnt_subgoal_no_trie(TAB_ENT) = NO_TRIE;		       \
+        TabEnt_init_subgoal_trie_field(TAB_ENT);                       \
+        TabEnt_hash_chain(TAB_ENT) = NULL;                             \
+        TabEnt_next(TAB_ENT) = GLOBAL_root_tab_ent;                    \
+        GLOBAL_root_tab_ent = TAB_ENT
+
+#else  /* !THREADS_FULL_SHARING_NO_TRIE */
 
 #define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY)  \
         ALLOC_TABLE_ENTRY(TAB_ENT);                                    \
@@ -655,6 +683,10 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         TabEnt_hash_chain(TAB_ENT) = NULL;                             \
         TabEnt_next(TAB_ENT) = GLOBAL_root_tab_ent;                    \
         GLOBAL_root_tab_ent = TAB_ENT
+
+
+#endif /* THREADS_FULL_SHARING_NO_TRIE */
+
 
 
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
