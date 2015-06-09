@@ -345,8 +345,8 @@ static Int p_table( USES_REGS1 ) {
 	dim_array_size++;
 	list2 = TailOfTerm(list2); 	
       } else {
-	mode =  IntOfTerm(HeadOfTerm(list2));
-	if (mode != MODE_DIRECTED_MIN || mode != MODE_DIRECTED_MAX) {
+	//	mode =  IntOfTerm(HeadOfTerm(list2));
+	if (mode != MODE_DIRECTED_MIN && mode != MODE_DIRECTED_MAX) {
 	  printf("Error - The last argument must be an aggregate mode (min/max) \n");
 	  exit(1);
 	}
@@ -365,11 +365,15 @@ static Int p_table( USES_REGS1 ) {
 	int dim_size = IntOfTerm(HeadOfTerm(list));
 	dim_array[dim_i++] = dim_size; 
 	dim_total_size *= dim_size;
-      } else 
-	mode_directed[0] = MODE_DIRECTED_SET(i, mode);
+      } else {
+	mode_directed[0] = MODE_DIRECTED_SET(i, mode); /* check this later !! */
+      }
+
       list = TailOfTerm(list);
     }
+
     ALLOC_BLOCK(subgoal_no_trie, dim_total_size * sizeof(long), long);
+
 #else /* !THREADS_FULL_SHARING_NO_TRIE */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
