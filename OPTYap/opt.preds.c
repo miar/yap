@@ -332,47 +332,92 @@ static Int p_table( USES_REGS1 ) {
 #else 
 
 #ifdef THREADS_FULL_SHARING_NO_TRIE
+    int pos_index = 0;
+    int pos_agreg = 0;  /* min/max */
+    int pos_first = 0;
+    int pos_all = 0;
+    int pos_last = 0;
+    int pos_dim = 0;
+    int *aux_mode_directed;
+    
+    /* traverse arguments to check the size of the dim_array */
+
     Term list2 = list;
     int i;
     int dim_array_size = 0;
     for (i = 0; i < arity; i++) {
       int mode = IntOfTerm(HeadOfTerm(list2));
-      if (i < arity - 1) {
-	if (mode != MODE_DIRECTED_DIM) {
-	  printf("Error - The first arguments must be dim(X) \n");
-	  exit(1);
-	}
+      if (mode == MODE_DIRECTED_DIM) {
 	dim_array_size++;
-	list2 = TailOfTerm(list2); 	
-      } else {
-	//	mode =  IntOfTerm(HeadOfTerm(list2));
-	if (mode != MODE_DIRECTED_MIN && mode != MODE_DIRECTED_MAX) {
-	  printf("Error - The last argument must be an aggregate mode (min/max) \n");
-	  exit(1);
-	}
-      } 
+	list2 = TailOfTerm(list2);
+      }
       list2 = TailOfTerm(list2);
     }
-
-    int  dim_i = 0;
-    int  dim_total_size = 1;
     ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
-    ALLOC_BLOCK(mode_directed, (arity - dim_array_size) * sizeof(int), int);
+    int dim_i = 0;
+    aux_mode_directed = malloc(arity * sizeof(int));
+
+    /* traverse all arguments again to construct mode / dim arrays */
+
     for (i = 0; i < arity; i++) {
       int mode = IntOfTerm(HeadOfTerm(list));
-      if (mode == MODE_DIRECTED_DIM) {
+      if (mode == MODE_DIRECTED_INDEX)
+	pos_index++;
+      else if (mode == MODE_DIRECTED_ALL)
+	pos_all++;
+      else if (mode == MODE_DIRECTED_LAST)
+	pos_last++;
+      else if (mode == MODE_DIRECTED_DIM) {
 	list = TailOfTerm(list);
-	int dim_size = IntOfTerm(HeadOfTerm(list));
-	dim_array[dim_i++] = dim_size; 
-	dim_total_size *= dim_size;
-      } else {
-	mode_directed[0] = MODE_DIRECTED_SET(i, mode); /* check this later !! */
-      }
-
+	dim_array[pos_dim++] = IntOfTerm(HeadOfTerm(list));
+      } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
+	pos_agreg++;
+      aux_mode_directed[i] = mode;
       list = TailOfTerm(list);
     }
+   
+    pos_first = pos_index + pos_agreg + pos_all + pos_last;
+    pos_last = pos_index + pos_agreg + pos_all;
+    pos_all = pos_index + pos_agreg;
+    pos_agreg = pos_dim + pos_index;
+    pos_index = pos_dim;
+    pos_dim = 0;
+    ALLOC_BLOCK(mode_directed, arity * sizeof(int), int);
 
-    ALLOC_BLOCK(subgoal_no_trie, dim_total_size * sizeof(long), long);
+    for (i = 0; i < arity; i++) {
+      int aux_pos = 0;
+      if (aux_mode_directed[i] == MODE_DIRECTED_MAX)
+	aux_pos = pos_agreg++;
+      else if (aux_mode_directed[i] == MODE_DIRECTED_MIN)
+	aux_pos = pos_agreg++;	
+      else if (aux_mode_directed[i] == MODE_DIRECTED_INDEX)
+	aux_pos = pos_index++;	
+      else if(aux_mode_directed[i] == MODE_DIRECTED_FIRST)
+	aux_pos = pos_first++;
+      else if (aux_mode_directed[i] == MODE_DIRECTED_ALL)
+	aux_pos = pos_all++;		
+      else if (aux_mode_directed[i] == MODE_DIRECTED_LAST)
+	aux_pos = pos_last++;
+      else if (aux_mode_directed[i] == MODE_DIRECTED_DIM)
+	aux_pos = pos_dim++;
+      mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
+    }
+
+    /*
+    printf("---aux mode_directed--- \n");
+    for (i = 0; i < arity; i++)
+      printf("%d ", aux_mode_directed[i]);
+    printf("\n---mode_directed--- \n");
+    for (i = 0; i < arity; i++)
+      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
+    printf("\n ---dim array --- \n");
+    for (i = 0; i < dim_array_size; i++)
+      printf("%d ", dim_array[i]);
+    printf("\n");
+
+    */
+
+    free(aux_mode_directed);
 
 #else /* !THREADS_FULL_SHARING_NO_TRIE */
     int pos_index = 0;
@@ -421,6 +466,7 @@ static Int p_table( USES_REGS1 ) {
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
     free(aux_mode_directed);
+
 #endif /* THREADS_FULL_SHARING_NO_TRIE */
 #endif /* MODE_DIRECTED_TABLING */
   }
@@ -435,7 +481,6 @@ static Int p_table( USES_REGS1 ) {
 #else  /* !THREADS_FULL_SHARING_NO_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_FULL_SHARING_NO_TRIE */
-  /* THREADS_FULL_SHARING_NO_TRIE - HERE */
   pe->TableOfPred = tab_ent;
   return (TRUE);
 }
