@@ -632,7 +632,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           DepFr_last_answer(DEP_FR) = NULL
 #endif /* THREADS_FULL_SHARING */
 
-#ifdef THREADS_FULL_SHARING_NO_TRIE
+#ifdef THREADS_NO_SUBGOAL_TRIE
 
 #define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY, DIM_ARRAY, NO_TRIE) \
         ALLOC_TABLE_ENTRY(TAB_ENT);                                    \
@@ -653,13 +653,13 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
         TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
 	TabEnt_dimension_array(TAB_ENT) = DIM_ARRAY;		       \
-        TabEnt_subgoal_no_trie(TAB_ENT) = NO_TRIE;		       \
+        TabEnt_no_subgoal_trie(TAB_ENT) = NO_TRIE;		       \
         TabEnt_init_subgoal_trie_field(TAB_ENT);                       \
         TabEnt_hash_chain(TAB_ENT) = NULL;                             \
         TabEnt_next(TAB_ENT) = GLOBAL_root_tab_ent;                    \
         GLOBAL_root_tab_ent = TAB_ENT
 
-#else  /* !THREADS_FULL_SHARING_NO_TRIE */
+#else  /* !THREADS_NO_SUBGOAL_TRIE */
 
 #define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY)  \
         ALLOC_TABLE_ENTRY(TAB_ENT);                                    \
@@ -685,7 +685,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         GLOBAL_root_tab_ent = TAB_ENT
 
 
-#endif /* THREADS_FULL_SHARING_NO_TRIE */
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 
 

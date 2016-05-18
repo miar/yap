@@ -81,7 +81,7 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define   EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
-#define THREADS_FULL_SHARING_NO_TRIE 1
+#define THREADS_NO_SUBGOAL_TRIE 1
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 

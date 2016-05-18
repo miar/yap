@@ -301,10 +301,10 @@ static Int p_table( USES_REGS1 ) {
   Atom at;
   int arity;
   tab_ent_ptr tab_ent;
-#ifdef THREADS_FULL_SHARING_NO_TRIE
+#ifdef THREADS_NO_SUBGOAL_TRIE
   int  *dim_array = NULL;
-  subgoal_no_trie_pos subgoal_no_trie = NULL;
-#endif /* THREADS_FULL_SHARING_NO_TRIE */
+  no_subgoal_trie_pos no_subgoal_trie = NULL;
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #ifdef MODE_DIRECTED_TABLING
   int* mode_directed = NULL;
@@ -330,7 +330,7 @@ static Int p_table( USES_REGS1 ) {
     return(FALSE);
 #else 
 
-#ifdef THREADS_FULL_SHARING_NO_TRIE
+#ifdef THREADS_NO_SUBGOAL_TRIE
     int* dim_array = NULL;
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
@@ -355,7 +355,7 @@ static Int p_table( USES_REGS1 ) {
     }
     if (dim_array_size > 0)
       ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
-    int subgoal_no_trie_size = 1;
+    int no_subgoal_trie_size = 1;
     aux_mode_directed = malloc(arity * sizeof(int));
 
     /* traverse all arguments again to construct mode / dim arrays */
@@ -372,7 +372,7 @@ static Int p_table( USES_REGS1 ) {
 	list = TailOfTerm(list);
 	int dim_size = IntOfTerm(HeadOfTerm(list));
 	dim_array[pos_dim++] = dim_size;
-	subgoal_no_trie_size *= dim_size;
+	no_subgoal_trie_size *= dim_size;
       } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
 	pos_agreg++;
       aux_mode_directed[i] = mode;
@@ -380,9 +380,9 @@ static Int p_table( USES_REGS1 ) {
     }
     
     if (dim_array_size > 0)
-      ALLOC_BLOCK(subgoal_no_trie, 
-                  subgoal_no_trie_size * sizeof(struct subgoal_no_trie_pos), 
-                  struct subgoal_no_trie_pos);
+      ALLOC_BLOCK(no_subgoal_trie, 
+                  no_subgoal_trie_size * sizeof(struct no_subgoal_trie_pos), 
+                  struct no_subgoal_trie_pos);
          
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
@@ -427,7 +427,7 @@ static Int p_table( USES_REGS1 ) {
 
     free(aux_mode_directed);
 
-#else /* !THREADS_FULL_SHARING_NO_TRIE */
+#else /* !THREADS_NO_SUBGOAL_TRIE */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
@@ -475,7 +475,7 @@ static Int p_table( USES_REGS1 ) {
     }
     free(aux_mode_directed);
 
-#endif /* THREADS_FULL_SHARING_NO_TRIE */
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 #endif /* MODE_DIRECTED_TABLING */
   }
   if (pe->PredFlags & TabledPredFlag)
@@ -484,11 +484,11 @@ static Int p_table( USES_REGS1 ) {
     return (FALSE);  /* predicate already compiled */
   pe->PredFlags |= TabledPredFlag;
 
-#ifdef THREADS_FULL_SHARING_NO_TRIE
-  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, subgoal_no_trie);
-#else  /* !THREADS_FULL_SHARING_NO_TRIE */
+#ifdef THREADS_NO_SUBGOAL_TRIE
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, no_subgoal_trie);
+#else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
-#endif /* THREADS_FULL_SHARING_NO_TRIE */
+#endif /* THREADS_NO_SUBGOAL_TRIE */
   pe->TableOfPred = tab_ent;
   return (TRUE);
 }
