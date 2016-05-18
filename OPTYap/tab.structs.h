@@ -19,6 +19,17 @@ typedef enum {false,true} boolean;
 ************************************************************************/
 
 /**************************
+**    subgoal no trie    **
+**************************/
+#ifdef THREADS_FULL_SHARING_NO_TRIE
+typedef struct subgoal_no_trie_pos {
+  struct subgoal_frame *subgoal_frame;
+  Term entry;
+} *subgoal_no_trie_pos;
+#endif /* THREADS_FULL_SHARING_NO_TRIE */
+
+
+/**************************
 **      table_entry      **
 **************************/
 
@@ -36,7 +47,7 @@ typedef struct table_entry {
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef THREADS_FULL_SHARING_NO_TRIE
   int* dimension_array;
-  long *subgoal_no_trie;
+  subgoal_no_trie_pos subgoal_no_trie;
   //#else /* THREADS_FULL_SHARING_NO_TRIE */ TO INCLUDE LATER
 #ifdef THREADS_NO_SHARING
   struct subgoal_trie_node *subgoal_trie[THREADS_NUM_BUCKETS];

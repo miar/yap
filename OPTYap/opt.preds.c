@@ -301,10 +301,9 @@ static Int p_table( USES_REGS1 ) {
   Atom at;
   int arity;
   tab_ent_ptr tab_ent;
-
 #ifdef THREADS_FULL_SHARING_NO_TRIE
-  int* dim_array = NULL;
-  long *subgoal_no_trie = NULL;
+  int  *dim_array = NULL;
+  subgoal_no_trie_pos subgoal_no_trie = NULL;
 #endif /* THREADS_FULL_SHARING_NO_TRIE */
 
 #ifdef MODE_DIRECTED_TABLING
@@ -332,6 +331,7 @@ static Int p_table( USES_REGS1 ) {
 #else 
 
 #ifdef THREADS_FULL_SHARING_NO_TRIE
+    int* dim_array = NULL;
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
@@ -353,8 +353,9 @@ static Int p_table( USES_REGS1 ) {
       }
       list2 = TailOfTerm(list2);
     }
-    ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
-    int dim_i = 0;
+    if (dim_array_size > 0)
+      ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
+    int subgoal_no_trie_size = 1;
     aux_mode_directed = malloc(arity * sizeof(int));
 
     /* traverse all arguments again to construct mode / dim arrays */
@@ -369,13 +370,20 @@ static Int p_table( USES_REGS1 ) {
 	pos_last++;
       else if (mode == MODE_DIRECTED_DIM) {
 	list = TailOfTerm(list);
-	dim_array[pos_dim++] = IntOfTerm(HeadOfTerm(list));
+	int dim_size = IntOfTerm(HeadOfTerm(list));
+	dim_array[pos_dim++] = dim_size;
+	subgoal_no_trie_size *= dim_size;
       } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
 	pos_agreg++;
       aux_mode_directed[i] = mode;
       list = TailOfTerm(list);
     }
-   
+    
+    if (dim_array_size > 0)
+      ALLOC_BLOCK(subgoal_no_trie, 
+                  subgoal_no_trie_size * sizeof(struct subgoal_no_trie_pos), 
+                  struct subgoal_no_trie_pos);
+         
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
     pos_all = pos_index + pos_agreg;
