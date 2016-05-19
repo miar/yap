@@ -1138,6 +1138,19 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   int subs_pos = 0;
 #endif /* MODE_DIRECTED_TABLING */
 
+
+#ifdef THREADS_NO_SUBGOAL_TRIE
+    
+    /* THREADS_NO_SUBGOAL_TRIE --> HERE */
+
+    if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
+      sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
+    else
+    
+#endif /* THREADS_NO_SUBGOAL_TRIE */
+
+
+
   stack_vars = *Yaddr;
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;

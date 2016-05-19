@@ -763,6 +763,7 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE
     
     /* THREADS_NO_SUBGOAL_TRIE --> HERE */
+
     if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
       sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
     else

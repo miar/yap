@@ -28,9 +28,8 @@ typedef struct no_subgoal_trie_pos {
 } *no_subgoal_trie_pos;
 
 #define SgNoTrie_sg_fr(X)   ((X)->subgoal_frame)
-#define SgNoTrie_Ans(X)     ((X)->entry)
+#define SgNoTrie_ans(X)     ((X)->entry)
 #endif /* THREADS_NO_SUBGOAL_TRIE */
-
 
 /**************************
 **      table_entry      **
@@ -410,12 +409,14 @@ typedef struct subgoal_entry {
 ****************************/
 
 typedef struct subgoal_frame {
+#ifdef THREADS_NO_SUBGOAL_TRIE
+  struct no_subgoal_trie_pos *no_sg_pos;
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
   struct subgoal_frame *next_wid;
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
-#if defined(THREADS_FULL_SHARING)
-  struct subgoal_entry *subgoal_entry;
 #ifdef THREADS_FULL_SHARING
+  struct subgoal_entry *subgoal_entry;
 #ifdef THREADS_FULL_SHARING_FTNA 
   struct answer_trie_node *last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA */
@@ -424,7 +425,6 @@ typedef struct subgoal_frame {
   struct answer_ref_node *consumer_ref_first_answer;
   struct answer_ref_node *consumer_ref_last_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-#endif /* THREADS_FULL_SHARING */
 #else
   struct subgoal_entry subgoal_entry;
 #endif /* THREADS_FULL_SHARING */
@@ -494,6 +494,7 @@ typedef struct subgoal_frame {
 #define SgFr_comp_wait(X)               (SUBGOAL_ENTRY(X) completion_wait)
 
 /* subgoal_frame fields */
+#define SgFr_no_sg_pos(X)               ((X)->no_sg_pos)
 #define SgFr_sg_fr_array(X)             ((X)->subgoal_frame_array)
 #define SgFr_sg_ent(X)                  ((X)->subgoal_entry)
 #define SgFr_state(X)                   ((X)->state_flag)
