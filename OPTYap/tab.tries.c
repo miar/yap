@@ -1128,33 +1128,33 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 *******************************/
 
 sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
+  return;
+}
+
+
+
+sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
+
+  tab_ent_ptr tab_ent = preg->u.Otapl.te;
+#ifdef THREADS_NO_SUBGOAL_TRIE
+  /* THREADS_NO_SUBGOAL_TRIE --> HERE */
+  if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
+    return subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS);    
+#endif /* THREADS_NO_SUBGOAL_TRIE */
+
   CELL *stack_vars;
   int i, subs_arity, pred_arity;
-  tab_ent_ptr tab_ent;
   sg_fr_ptr sg_fr;
   sg_node_ptr current_sg_node;
+
 #ifdef MODE_DIRECTED_TABLING
   int *mode_directed, aux_mode_directed[MAX_TABLE_VARS];
   int subs_pos = 0;
 #endif /* MODE_DIRECTED_TABLING */
 
-
-#ifdef THREADS_NO_SUBGOAL_TRIE
-    
-    /* THREADS_NO_SUBGOAL_TRIE --> HERE */
-
-    if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
-      sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
-    else
-    
-#endif /* THREADS_NO_SUBGOAL_TRIE */
-
-
-
   stack_vars = *Yaddr;
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;
-  tab_ent = preg->u.Otapl.te;
   current_sg_node = get_insert_subgoal_trie(tab_ent PASS_REGS);
   LOCK_SUBGOAL_TRIE(tab_ent);
 

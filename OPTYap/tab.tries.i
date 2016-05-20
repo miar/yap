@@ -2728,6 +2728,8 @@ static inline sg_node_ptr subgoal_search_loop(tab_ent_ptr tab_ent, sg_node_ptr c
 	SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, t);
       }
     } else if (IsAtomOrIntTerm(t)) {
+      printf("term = %d\n", IntOfTerm(t));
+
       SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, t);
 #ifdef MODE_TERMS_LOOP
     } else {
@@ -2820,6 +2822,7 @@ static inline sg_node_ptr subgoal_search_loop(tab_ent_ptr tab_ent, sg_node_ptr c
 #endif /* MODE_GLOBAL_TRIE_LOOP */
       } else if (f == FunctorLongInt) {
 	Int li = LongIntOfTerm(t);
+
 	SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, AbsAppl((Term *)f));
 	SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, li);
 #ifdef MODE_GLOBAL_TRIE_LOOP

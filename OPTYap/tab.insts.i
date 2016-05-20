@@ -760,15 +760,6 @@
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-#ifdef THREADS_NO_SUBGOAL_TRIE
-    
-    /* THREADS_NO_SUBGOAL_TRIE --> HERE */
-
-    if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
-      sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
-    else
-    
-#endif /* THREADS_NO_SUBGOAL_TRIE */
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
