@@ -69,6 +69,7 @@ typedef struct table_entry {
 #define TabEnt_mode(X)            ((X)->execution_mode)
 #define TabEnt_mode_directed(X)   ((X)->mode_directed_array)
 #define TabEnt_dimension_array(X) ((X)->dimension_array)
+#define TabEnt_dim_array(X,i)     ((X)->dimension_array[i])
 #define TabEnt_no_subgoal_trie(X) ((X)->no_subgoal_trie)
 #define TabEnt_subgoal_trie(X)    ((X)->subgoal_trie)
 #define TabEnt_hash_chain(X)      ((X)->hash_chain)
