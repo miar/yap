@@ -1127,8 +1127,8 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 **      Global functions      **
 *******************************/
 
-sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
-  return;
+sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
+  return NULL;
 }
 
 
@@ -1139,7 +1139,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
 #ifdef THREADS_NO_SUBGOAL_TRIE
   /* THREADS_NO_SUBGOAL_TRIE --> HERE */
   if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
-    return subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS);    
+    return subgoal_search_no_trie(preg, Yaddr PASS_REGS);    
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
   CELL *stack_vars;
