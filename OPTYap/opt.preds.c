@@ -380,10 +380,12 @@ static Int p_table( USES_REGS1 ) {
     }
     
     if (dim_array_size > 0)
-      ALLOC_BLOCK(no_subgoal_trie, 
+      no_subgoal_trie = calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
+      /*ALLOC_BLOCK(no_subgoal_trie, 
                   no_subgoal_trie_size * sizeof(struct no_subgoal_trie_pos), 
                   struct no_subgoal_trie_pos);
-         
+      */
+
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
     pos_all = pos_index + pos_agreg;

@@ -1141,20 +1141,25 @@ sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;
   int old_subs_arity = subs_arity;
-  int no_subgoal_trie_pos = 0;
+  int no_st_pos = 0;
   printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
   int mode = MODE_DIRECTED_GET_ARG(mode_directed[0]);
   int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
   Term t = Deref(XREGS[j]);
-  no_subgoal_trie_pos = IntOfTerm(t);
+  no_st_pos = IntOfTerm(t);
 
   for (i = 1; i <= pred_arity; i++) {
     mode = MODE_DIRECTED_GET_ARG(mode_directed[i]);
-    int j = mode + 1;
+    j = mode + 1;
     if (mode == MODE_DIRECTED_DIM)
-      no_subgoal_trie_pos = no_subgoal_trie_pos * TabEnt_dim_array(tab_ent,i) + IntOfTerm(Deref(XREGS[j]));
+      no_st_pos = no_st_pos * TabEnt_dim_array(tab_ent, i) + 
+	IntOfTerm(Deref(XREGS[j]));
   }
-      
+  no_subgoal_trie_pos no_st_addr = & (TabEnt_no_subgoal_trie_pos((tab_ent), no_st_pos));
+  sg_fr_ptr sg_fr = SgNoTrie_sg_fr(no_st_addr);
+  
+
+
   return NULL;
 }
 
