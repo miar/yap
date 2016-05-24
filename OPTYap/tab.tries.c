@@ -1133,7 +1133,6 @@ sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
   CELL *stack_vars;
   int i, subs_arity, pred_arity;
   sg_fr_ptr sg_fr;
-  sg_node_ptr current_sg_node;
 
   int *mode_directed, aux_mode_directed[MAX_TABLE_VARS];
   int subs_pos = 0;
@@ -1141,26 +1140,53 @@ sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;
   int old_subs_arity = subs_arity;
-  int no_st_pos = 0;
+  int no_st_index = 0;
   printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
   int mode = MODE_DIRECTED_GET_ARG(mode_directed[0]);
   int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
   Term t = Deref(XREGS[j]);
-  no_st_pos = IntOfTerm(t);
+  no_st_index = IntOfTerm(t);
 
   for (i = 1; i <= pred_arity; i++) {
     mode = MODE_DIRECTED_GET_ARG(mode_directed[i]);
     j = mode + 1;
     if (mode == MODE_DIRECTED_DIM)
-      no_st_pos = no_st_pos * TabEnt_dim_array(tab_ent, i) + 
+      no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + 
 	IntOfTerm(Deref(XREGS[j]));
   }
-  no_subgoal_trie_pos no_st_addr = & (TabEnt_no_subgoal_trie_pos((tab_ent), no_st_pos));
-  sg_fr_ptr sg_fr = SgNoTrie_sg_fr(no_st_addr);
+  no_subgoal_trie_pos no_st_pos = TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index);
+  sg_fr = SgNoTrie_sg_fr(no_st_pos);
+
+  if (sg_fr) {
+    if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
+      return sg_fr;
+    mode_directed = SgFr_mode_directed(sg_fr);
+    sg_fr = SgFr_next_wid(sg_fr);
+    while(sg_fr) {
+      if (SgFr_wid(sg_fr) == worker_id)
+	return sg_fr;
+      sg_fr = SgFr_next_wid(sg_fr);
+    }
+  }
+
+  /* no sg_fr complete for now */
+  if (mode_directed == NULL && subs_pos) {
+    ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+    memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+  }
+  new_subgoal_frame(sg_fr, preg, mode_directed);
+  SgFr_wid(sg_fr) = worker_id;
+  SgFr_no_sg_pos(sg_fr) = no_st_pos;
+
+  sg_fr_ptr sg_fr_aux;
+  do {
+    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);  
+    SgFr_next_wid(sg_fr) = sg_fr_aux;
+  } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   
+  return sg_fr;
 
-
-  return NULL;
+  //return NULL;
 }
 
 

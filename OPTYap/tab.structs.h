@@ -49,7 +49,7 @@ typedef struct table_entry {
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
-  no_subgoal_trie_pos no_subgoal_trie;
+  no_subgoal_trie_pos *no_subgoal_trie;
   //#else /* THREADS_NO_SUBGOAL_TRIE */ TO INCLUDE LATER
 #ifdef THREADS_NO_SHARING
   struct subgoal_trie_node *subgoal_trie[THREADS_NUM_BUCKETS];
