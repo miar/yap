@@ -1126,34 +1126,77 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 /*******************************
 **      Global functions      **
 *******************************/
-
-sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
+ 
+#ifdef THREADS_NO_SUBGOAL_TRIE_
+ sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
   /* THREADS_NO_SUBGOAL_TRIE --> HERE */
   tab_ent_ptr tab_ent = preg->u.Otapl.te;
   CELL *stack_vars;
   int i, subs_arity, pred_arity;
   sg_fr_ptr sg_fr;
-
+  
+  printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
+  
   int *mode_directed, aux_mode_directed[MAX_TABLE_VARS];
+  mode_directed = TabEnt_mode_directed(tab_ent);
   int subs_pos = 0;
   stack_vars = *Yaddr;
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;
+  
+
+  /*
+
+
   int old_subs_arity = subs_arity;
-  int no_st_index = 0;
-  printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
+  
   int mode = MODE_DIRECTED_GET_ARG(mode_directed[0]);
   int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
   Term t = Deref(XREGS[j]);
-  no_st_index = IntOfTerm(t);
+  int no_st_index = IntOfTerm(t);
+  
+  
+  
+  for (i = 1; i <= pred_arity; i++) {
+    int j = MODE_DIRECTED_GET_ARG(mode_directed[i-1]) + 1;
+  
+  current_sg_node = subgoal_search_loop(tab_ent, current_sg_node, Deref(XREGS[j]), &subs_arity, &stack_vars PASS_REGS);
+      if (subs_arity != old_subs_arity) {
+	if (subs_pos && MODE_DIRECTED_GET_MODE(aux_mode_directed[subs_pos-1]) == MODE_DIRECTED_GET_MODE(mode_directed[i-1])) {
+	  /* same mode as before -> use the current entry in the aux_mode_directed[] array */
+	  aux_mode_directed[subs_pos-1] += MODE_DIRECTED_SET(subs_arity - old_subs_arity, 0);
+	} else {
+	  /* new mode -> init a new entry in the aux_mode_directed[] array */
+	  aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity - old_subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[i-1]));
+	  subs_pos++;
+	}
+	old_subs_arity = subs_arity;
+      }
+    }
+
+*/
+
+  int mode = MODE_DIRECTED_GET_ARG(mode_directed[0]);
+  int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
+  Term t = Deref(XREGS[j]);
+  int no_st_index = IntOfTerm(t);
 
   for (i = 1; i <= pred_arity; i++) {
+    t = Deref(XREGS[j]);
     mode = MODE_DIRECTED_GET_ARG(mode_directed[i]);
-    j = mode + 1;
-    if (mode == MODE_DIRECTED_DIM)
-      no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + 
-	IntOfTerm(Deref(XREGS[j]));
+    j = mode + 1;    
+    subs_pos++;
+    if (mode == MODE_DIRECTED_DIM) {
+      // t must be an int otherwise system must give error (to be updated)
+      no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
+    } else /* supporting mode == max || mode == min for now ...*/{
+      /* t must be a var term */
+      subs_arity = 1; 
+      aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity, 
+  			          MODE_DIRECTED_GET_MODE(mode_directed[i]));
+    }
   }
+    
   no_subgoal_trie_pos no_st_pos = TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index);
   sg_fr = SgNoTrie_sg_fr(no_st_pos);
 
@@ -1189,12 +1232,12 @@ sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
   //return NULL;
 }
 
-
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
 
   tab_ent_ptr tab_ent = preg->u.Otapl.te;
-#ifdef THREADS_NO_SUBGOAL_TRIE
+#ifdef THREADS_NO_SUBGOAL_TRIE_
   if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
      subgoal_search_no_trie(preg, Yaddr PASS_REGS);    
 #endif /* THREADS_NO_SUBGOAL_TRIE */
