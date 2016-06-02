@@ -72,9 +72,9 @@ typedef struct table_entry {
 #define TabEnt_dim_array(X, i)             ((X)->dimension_array[i])
 #define TabEnt_no_subgoal_trie(X)          ((X)->no_subgoal_trie)
 #define TabEnt_no_subgoal_trie_pos(X, pos) ((X)->no_subgoal_trie[pos])
-#define TabEnt_subgoal_trie(X)    ((X)->subgoal_trie)
-#define TabEnt_hash_chain(X)      ((X)->hash_chain)
-#define TabEnt_next(X)            ((X)->next)
+#define TabEnt_subgoal_trie(X)             ((X)->subgoal_trie)
+#define TabEnt_hash_chain(X)               ((X)->hash_chain)
+#define TabEnt_next(X)                     ((X)->next)
 
 
 /***********************************************************************

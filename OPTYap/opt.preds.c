@@ -331,7 +331,6 @@ static Int p_table( USES_REGS1 ) {
 #else 
 
 #ifdef THREADS_NO_SUBGOAL_TRIE
-    int* dim_array = NULL;
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
@@ -353,8 +352,11 @@ static Int p_table( USES_REGS1 ) {
       }
       list2 = TailOfTerm(list2);
     }
-    if (dim_array_size > 0)
+    if (dim_array_size > 0) {
+      
       ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
+    }
+
     int no_subgoal_trie_size = 1;
     aux_mode_directed = malloc(arity * sizeof(int));
 
@@ -423,9 +425,7 @@ static Int p_table( USES_REGS1 ) {
     printf("\n ---dim array --- \n");
     for (i = 0; i < dim_array_size; i++)
       printf("%d ", dim_array[i]);
-    printf("\n");
-
-    
+    printf("\n");    
 
     free(aux_mode_directed);
 
@@ -485,8 +485,9 @@ static Int p_table( USES_REGS1 ) {
   if (pe->cs.p_code.FirstClause)
     return (FALSE);  /* predicate already compiled */
   pe->PredFlags |= TabledPredFlag;
-
+  
 #ifdef THREADS_NO_SUBGOAL_TRIE
+  printf("1-dim_array = %p\n", dim_array);
   new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, no_subgoal_trie);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);

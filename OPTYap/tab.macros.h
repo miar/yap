@@ -653,6 +653,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
         TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
 	TabEnt_dimension_array(TAB_ENT) = DIM_ARRAY;		       \
+	printf("2-dim_array = %p\n", TabEnt_dimension_array(TAB_ENT)); \
         TabEnt_no_subgoal_trie(TAB_ENT) = NO_TRIE;		       \
         TabEnt_init_subgoal_trie_field(TAB_ENT);                       \
         TabEnt_hash_chain(TAB_ENT) = NULL;                             \
