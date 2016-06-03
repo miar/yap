@@ -1166,21 +1166,19 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       printf("1 - no_st_index = %d\n", no_st_index);
       no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
       printf("2 - no_st_index = %d\n", no_st_index);
+      subs_arity = 0; 
 
     } else /* supporting mode == max || mode == min for now ...*/{
       /* t must be a var term - min and max can only have a single var*/
       subs_arity = 1; /* useless - just for better code reading */
-      aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity, 
-  			          MODE_DIRECTED_GET_MODE(mode_directed[i]));
     }
+    aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity, 
+				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
+    
   }
     
-  no_subgoal_trie_pos no_st_pos = TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index);
-
-
-
-
-
+  no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
+  printf("2 - no_st_pos = %d\n", no_st_pos);
 
   sg_fr = SgNoTrie_sg_fr(no_st_pos);
 

@@ -487,7 +487,6 @@ static Int p_table( USES_REGS1 ) {
   pe->PredFlags |= TabledPredFlag;
   
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  printf("1-dim_array = %p\n", dim_array);
   new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, no_subgoal_trie);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
