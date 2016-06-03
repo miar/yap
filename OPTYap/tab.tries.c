@@ -1576,15 +1576,31 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   invalid_ans_node = NULL;
   mode_directed = SgFr_mode_directed(sg_fr);
   j = 0;
-  i = subs_arity;
+  i = subs_arity; // ERRO ESTA AQUI
+  int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
+  int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+
+#ifdef THREADS_NO_SUBGOAL_TRIE	
+  printf("i %d \n", i);
+
+
+  while(mode == MODE_DIRECTED_DIM) {
+    j++;
+    mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
+    //printf("mode dim = %d\n", mode);
+  }
+  n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+#endif /* THREADS_NO_SUBGOAL_TRIE */
+
   while (i) {
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
-    int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+    mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
+    n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
     do {
       TABLING_ERROR_CHECKING(answer_search, IsNonVarTerm(subs_ptr[i]));
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
+	printf("mode = %d\n", mode);
 	ans_node_ptr parent_ans_node = current_ans_node;
 	if (TrNode_child(current_ans_node) == NULL) {
 #ifdef THREADS_FULL_SHARING

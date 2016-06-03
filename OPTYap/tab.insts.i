@@ -1046,6 +1046,8 @@
     {
       sg_fr = GEN_CP(gcp)->cp_sg_fr;
       subs_ptr = (CELL *)(GEN_CP(gcp) + 1) + PREG->u.s.s;
+    printf("subs_ptr = %d\n", *subs_ptr);
+
     }
 #if defined(DEBUG_TABLING) && !defined(DETERMINISTIC_TABLING)
     {
