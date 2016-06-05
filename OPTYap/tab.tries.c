@@ -1170,7 +1170,10 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 
     } else /* supporting mode == max || mode == min for now ...*/{
       /* t must be a var term - min and max can only have a single var*/
-      subs_arity = 1; /* useless - just for better code reading */
+      STACK_PUSH_UP(t, stack_vars);
+      //*((CELL *)t) = GLOBAL_table_var_enumerator(subs_arity);
+      //t = MakeTableVarTerm(subs_arity);
+      subs_arity = 1; 
     }
     aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity, 
 				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
@@ -1179,6 +1182,18 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     
   no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
   printf("2 - no_st_pos = %d\n", no_st_pos);
+
+
+  STACK_PUSH_UP(subs_arity, stack_vars);
+  *Yaddr = stack_vars++;
+  // reset variables 
+  while (subs_arity--) {
+    Term t = STACK_POP_DOWN(stack_vars);
+    RESET_VARIABLE(t);
+  }
+  
+  printf("*Yaddr = %d\n", *Yaddr);
+
 
   sg_fr = SgNoTrie_sg_fr(no_st_pos);
 
@@ -1209,6 +1224,10 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     SgFr_next_wid(sg_fr) = sg_fr_aux;
   } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   
+
+
+
+
   return sg_fr;
 
   //return NULL;
@@ -1277,6 +1296,8 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
     Term t = STACK_POP_DOWN(stack_vars);
     RESET_VARIABLE(t);
   }
+
+  printf("*Yaddr = %d\n", *Yaddr);
 
 #ifdef THREADS_SUBGOAL_COMPLETION_WAIT
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node)); 
@@ -1581,18 +1602,18 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 
 #ifdef THREADS_NO_SUBGOAL_TRIE	
-  printf("i %d \n", i);
-
-
+  printf("susbs arity --> %d \n", i);
+  printf("mode dim = %d arg = %d \n", mode, MODE_DIRECTED_GET_ARG(mode_directed[j]));
   while(mode == MODE_DIRECTED_DIM) {
     j++;
     mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
-    //printf("mode dim = %d\n", mode);
+    printf("mode dim = %d arg = %d \n", mode, MODE_DIRECTED_GET_ARG(mode_directed[j]));
   }
-  n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
+  //n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
   while (i) {
+
     mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
     n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
     do {
@@ -1600,7 +1621,7 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
-	printf("mode = %d\n", mode);
+	printf(" n_subs = %d i = %d mode = %d\n", n_subs, i, mode);
 	ans_node_ptr parent_ans_node = current_ans_node;
 	if (TrNode_child(current_ans_node) == NULL) {
 #ifdef THREADS_FULL_SHARING

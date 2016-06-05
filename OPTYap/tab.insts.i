@@ -1046,8 +1046,6 @@
     {
       sg_fr = GEN_CP(gcp)->cp_sg_fr;
       subs_ptr = (CELL *)(GEN_CP(gcp) + 1) + PREG->u.s.s;
-    printf("subs_ptr = %d\n", *subs_ptr);
-
     }
 #if defined(DEBUG_TABLING) && !defined(DETERMINISTIC_TABLING)
     {
@@ -1070,8 +1068,6 @@
     }
 #endif /* DEBUG_TABLING && !DETERMINISTIC_TABLING */
     LOCK_ANSWER_TRIE(sg_fr);
-
-    //  goto fail; //--> to delete
 
 #ifdef MODE_DIRECTED_TABLING
     if (SgFr_mode_directed(sg_fr)) {
