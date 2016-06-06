@@ -1160,28 +1160,26 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     printf("2-mode = %d\n", mode);
     j = MODE_DIRECTED_GET_ARG(mode_directed[i]) + 1;    
     t = Deref(XREGS[j]);
-    subs_pos++;
     if (mode == MODE_DIRECTED_DIM) {
       // t must be an int otherwise system must give error (to be updated)
-      printf("1 - no_st_index = %d\n", no_st_index);
+      // printf("1 - no_st_index = %d\n", no_st_index);
       no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
-      printf("2 - no_st_index = %d\n", no_st_index);
-      subs_arity = 0; 
-
+      // printf("2 - no_st_index = %d\n", no_st_index);
     } else /* supporting mode == max || mode == min for now ...*/{
       /* t must be a var term - min and max can only have a single var*/
       STACK_PUSH_UP(t, stack_vars);
       //*((CELL *)t) = GLOBAL_table_var_enumerator(subs_arity);
       //t = MakeTableVarTerm(subs_arity);
-      subs_arity = 1; 
-    }
-    aux_mode_directed[subs_pos] = MODE_DIRECTED_SET(subs_arity, 
+      subs_arity++; 
+      aux_mode_directed[subs_pos++] = MODE_DIRECTED_SET(subs_arity, 
 				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
-    
+      printf("aux_mode_directed[%d] = %d\n", subs_pos - 1, 
+	     MODE_DIRECTED_GET_MODE (aux_mode_directed[subs_pos-1]));
+    }
   }
     
   no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
-  printf("2 - no_st_pos = %d\n", no_st_pos);
+  //printf("2 - no_st_pos = %d\n", no_st_pos);
 
 
   STACK_PUSH_UP(subs_arity, stack_vars);
@@ -1207,8 +1205,10 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 	return sg_fr;
       sg_fr = SgFr_next_wid(sg_fr);
     }
-  }
-
+  } else
+    mode_directed = NULL;
+  
+  
   /* no sg_fr complete for now */
   if (mode_directed == NULL && subs_pos) {
     ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
@@ -1603,13 +1603,18 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 
 #ifdef THREADS_NO_SUBGOAL_TRIE	
   printf("susbs arity --> %d \n", i);
-  printf("mode dim = %d arg = %d \n", mode, MODE_DIRECTED_GET_ARG(mode_directed[j]));
+  printf(" --> mode_directed array (begin) <-- \n");
+  int k;
+  for (k = 0; k < 3; k++)   
+    printf("mode = %d arg = %d \n", MODE_DIRECTED_GET_MODE(mode_directed[k]),
+                                    MODE_DIRECTED_GET_ARG(mode_directed[k]));
+  printf(" --> mode_directed array (end) <-- \n");
+
+
   while(mode == MODE_DIRECTED_DIM) {
     j++;
     mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
-    printf("mode dim = %d arg = %d \n", mode, MODE_DIRECTED_GET_ARG(mode_directed[j]));
   }
-  //n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
   while (i) {
