@@ -1597,7 +1597,7 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   invalid_ans_node = NULL;
   mode_directed = SgFr_mode_directed(sg_fr);
   j = 0;
-  i = subs_arity; // ERRO ESTA AQUI
+  i = subs_arity;
   int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
   int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 

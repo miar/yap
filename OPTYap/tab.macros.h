@@ -734,6 +734,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  SgFr_init_next_complete(SG_FR);    		           \
 	  SgFr_init_fs_ftna_3_fields(SG_FR);                       \
 	  SgFr_init_fs_ftna_last_answer(SG_FR);                    \
+	  SgFr_init_no_sg_trie_fields(SG_FR);			   \
         }
 
 #define init_subgoal_frame(SG_FR)				   \
@@ -756,6 +757,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
           SgFr_state(SG_FR) = ready;                               \
 	  SgFr_init_next_complete(SG_FR);    		           \
+	  SgFr_init_no_sg_trie_fields(SG_FR);			   \
 	}
 
 #define init_subgoal_frame(SG_FR)                                  \
@@ -766,7 +768,12 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	}
 #endif /* THREADS_FULL_SHARING  */
 
-
+#ifdef THREADS_NO_SUBGOAL_TRIE
+#define SgFr_init_no_sg_trie_fields(SG_FR)	\
+    SgFr_no_sg_pos(SG_FR) = NULL;
+#else /* !THREADS_NO_SUBGOAL_TRIE */
+#define SgFr_init_no_sg_trie_fields(SG_FR)
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
 #define	DepFr_init_last_term_field(DEP_FR)         \
@@ -1745,18 +1752,32 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 #else /* !THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
-  struct subgoal_trie_node *sg_leaf_node;
-  sg_leaf_node = SgFr_sg_leaf_node(sg_fr);
-  
-  sg_fr_ptr sg_fr_aux;
-  sg_fr_ptr sg_fr_aux2;
-  do {
-    sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(sg_leaf_node);  
-    sg_fr_aux2 = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
-    if (sg_fr_aux2 && SgFr_state(sg_fr_aux2) >= complete)
-      break;    
-  } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
-  
+#ifdef THREADS_NO_SUBGOAL_TRIE
+  if (SgFr_no_sg_pos(sg_fr) != NULL) {
+    no_subgoal_trie_pos sg_leaf_node;
+    sg_leaf_node = SgFr_no_sg_pos(sg_fr);
+    sg_fr_ptr sg_fr_aux;
+    sg_fr_ptr sg_fr_aux2;
+    do {
+      sg_fr_aux = (sg_fr_ptr) SgNoTrie_sg_fr(sg_leaf_node); 
+      sg_fr_aux2 = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+      if (sg_fr_aux2 && SgFr_state(sg_fr_aux2) >= complete)
+        break;    
+    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));    
+  } else 
+#endif /* THREADS_NO_SUBGOAL_TRIE */
+  {
+    struct subgoal_trie_node *sg_leaf_node;
+    sg_leaf_node = SgFr_sg_leaf_node(sg_fr);  
+    sg_fr_ptr sg_fr_aux;
+    sg_fr_ptr sg_fr_aux2;
+    do {
+      sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(sg_leaf_node);  
+      sg_fr_aux2 = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+      if (sg_fr_aux2 && SgFr_state(sg_fr_aux2) >= complete)
+        break;    
+    } while(!BOOL_CAS(&(TrNode_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))); 
+  }
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */
 
   SgFr_next_complete(sg_fr) = LOCAL_top_sg_fr_complete;
