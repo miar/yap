@@ -415,7 +415,7 @@ static Int p_table( USES_REGS1 ) {
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
 
-    
+    /*
     printf("---aux mode_directed--- \n");
     for (i = 0; i < arity; i++)
       printf("%d ", aux_mode_directed[i]);
@@ -426,7 +426,7 @@ static Int p_table( USES_REGS1 ) {
     for (i = 0; i < dim_array_size; i++)
       printf("%d ", dim_array[i]);
     printf("\n");    
-
+    */
     free(aux_mode_directed);
 
 #else /* !THREADS_NO_SUBGOAL_TRIE */

@@ -1143,43 +1143,35 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   pred_arity = preg->u.Otapl.s;
 
   int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);
-  printf("1-mode = %d\n", mode);
   int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
   Term t = Deref(XREGS[j]);
   int no_st_index = IntOfTerm(t);
 
-  printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
+  /*  printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
 	 IntOfTerm(Deref(XREGS[1])), 
 	 IntOfTerm(Deref(XREGS[2])), 
 	 IntOfTerm(Deref(XREGS[3])),
-	 j, no_st_index);
+	 j, no_st_index); */
 
 
   for (i = 1; i < pred_arity; i++) {
     mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
-    printf("2-mode = %d\n", mode);
     j = MODE_DIRECTED_GET_ARG(mode_directed[i]) + 1;    
     t = Deref(XREGS[j]);
     if (mode == MODE_DIRECTED_DIM) {
       // t must be an int otherwise system must give error (to be updated)
-      // printf("1 - no_st_index = %d\n", no_st_index);
       no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
-      // printf("2 - no_st_index = %d\n", no_st_index);
     } else /* supporting mode == max || mode == min for now ...*/{
       /* t must be a var term - min and max can only have a single var*/
       STACK_PUSH_UP(t, stack_vars);
-      //*((CELL *)t) = GLOBAL_table_var_enumerator(subs_arity);
-      //t = MakeTableVarTerm(subs_arity);
       subs_arity++; 
       aux_mode_directed[subs_pos++] = MODE_DIRECTED_SET(subs_arity, 
 				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
-      printf("aux_mode_directed[%d] = %d\n", subs_pos - 1, 
-	     MODE_DIRECTED_GET_MODE (aux_mode_directed[subs_pos-1]));
     }
   }
     
   no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
-  //printf("2 - no_st_pos = %d\n", no_st_pos);
+  //printf("2 - no_st_pos = %d\n", no_st_index);
 
 
   STACK_PUSH_UP(subs_arity, stack_vars);
@@ -1190,9 +1182,6 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     RESET_VARIABLE(t);
   }
   
-  printf("*Yaddr = %d\n", *Yaddr);
-
-
   sg_fr = SgNoTrie_sg_fr(no_st_pos);
 
   if (sg_fr) {
@@ -1223,14 +1212,9 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);  
     SgFr_next_wid(sg_fr) = sg_fr_aux;
   } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
-  
-
-
 
 
   return sg_fr;
-
-  //return NULL;
 }
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
@@ -1601,22 +1585,6 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
   int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 
-#ifdef THREADS_NO_SUBGOAL_TRIE	
-  printf("susbs arity --> %d \n", i);
-  printf(" --> mode_directed array (begin) <-- \n");
-  int k;
-  for (k = 0; k < 3; k++)   
-    printf("mode = %d arg = %d \n", MODE_DIRECTED_GET_MODE(mode_directed[k]),
-                                    MODE_DIRECTED_GET_ARG(mode_directed[k]));
-  printf(" --> mode_directed array (end) <-- \n");
-
-
-  while(mode == MODE_DIRECTED_DIM) {
-    j++;
-    mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
-  }
-#endif /* THREADS_NO_SUBGOAL_TRIE */
-
   while (i) {
 
     mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
@@ -1626,7 +1594,6 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
 	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
-	printf(" n_subs = %d i = %d mode = %d\n", n_subs, i, mode);
 	ans_node_ptr parent_ans_node = current_ans_node;
 	if (TrNode_child(current_ans_node) == NULL) {
 #ifdef THREADS_FULL_SHARING
