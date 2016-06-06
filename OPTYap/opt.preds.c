@@ -382,7 +382,27 @@ static Int p_table( USES_REGS1 ) {
     }
     
     if (dim_array_size > 0)
-      no_subgoal_trie = calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
+      no_subgoal_trie = (struct no_subgoal_trie_pos *) calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
+    
+
+
+
+    //if (TabEnt_no_subgoal_trie_pos(tab_ent, k).subgoal_frame != NULL) {
+
+    int k=0;
+    for (k = 0; k < no_subgoal_trie_size; k++) {
+      struct no_subgoal_trie_pos np = 
+	*(no_subgoal_trie + k * sizeof(struct no_subgoal_trie_pos));
+      if (np.subgoal_frame != NULL) {
+	printf("ERRRRRRRRROOOOOOO -> np.subgoal_frame = %p \n", np.subgoal_frame->wid);
+	exit(1);
+      }
+
+    }
+
+    
+
+
       /*ALLOC_BLOCK(no_subgoal_trie, 
                   no_subgoal_trie_size * sizeof(struct no_subgoal_trie_pos), 
                   struct no_subgoal_trie_pos);

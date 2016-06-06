@@ -2715,13 +2715,13 @@ static inline sg_node_ptr subgoal_search_loop(tab_ent_ptr tab_ent, sg_node_ptr c
 
   do {
     if (IsVarTerm(t)) {
-	printf("var1 = %d\n", (int) t);
+      //printf("var1 = %d\n", (int) t);
 
       if (IsTableVarTerm(t)) {
 	t = MakeTableVarTerm(VarIndexOfTerm(t));
 	SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, t);
       } else {
-	printf("var1.1 = %d\n", (int) t);
+	//printf("var1.1 = %d\n", (int) t);
 	if (subs_arity == MAX_TABLE_VARS)
 	  Yap_Error(INTERNAL_ERROR, TermNil, "subgoal_search_loop: MAX_TABLE_VARS exceeded");
 	STACK_PUSH_UP(t, stack_vars);
@@ -2731,7 +2731,7 @@ static inline sg_node_ptr subgoal_search_loop(tab_ent_ptr tab_ent, sg_node_ptr c
 	SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, t);
       }
     } else if (IsAtomOrIntTerm(t)) {
-      printf("term = %d\n", IntOfTerm(t));
+      //printf("term = %d\n", IntOfTerm(t));
 
       SUBGOAL_CHECK_INSERT_ENTRY(tab_ent, current_node, t);
 #ifdef MODE_TERMS_LOOP

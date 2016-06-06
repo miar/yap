@@ -1247,7 +1247,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   mode_directed = TabEnt_mode_directed(tab_ent);
   if (mode_directed) {
     int old_subs_arity = subs_arity;
-    printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
+    //printf("pred_arity %d subs_arity %d\n",pred_arity, subs_arity);
     for (i = 1; i <= pred_arity; i++) {
       int j = MODE_DIRECTED_GET_ARG(mode_directed[i-1]) + 1;
       current_sg_node = subgoal_search_loop(tab_ent, current_sg_node, Deref(XREGS[j]), &subs_arity, &stack_vars PASS_REGS);
@@ -1280,8 +1280,6 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
     Term t = STACK_POP_DOWN(stack_vars);
     RESET_VARIABLE(t);
   }
-
-  printf("*Yaddr = %d\n", *Yaddr);
 
 #ifdef THREADS_SUBGOAL_COMPLETION_WAIT
   sg_fr = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(TrNode_sg_fr(current_sg_node)); 
