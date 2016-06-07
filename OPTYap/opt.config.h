@@ -31,7 +31,7 @@
 /************************original - inicio ********************/
 ///#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
 
-#define THREADS_DIRECT_BUCKETS    65   //NEW_MIAR
+#define THREADS_DIRECT_BUCKETS    65
 //#define THREADS_DIRECT_BUCKETS    34  
 
 
@@ -79,7 +79,7 @@
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
 //#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* answer_search only */
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
-//#define   EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
+//#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
 #define THREADS_NO_SUBGOAL_TRIE 1
 
