@@ -386,15 +386,22 @@ static Int p_table( USES_REGS1 ) {
     
 
 
-
+    /*
     //if (TabEnt_no_subgoal_trie_pos(tab_ent, k).subgoal_frame != NULL) {
+
+    if (SgNoTrie_sg_fr(no_subgoal_trie) != NULL) {
+      printf("ERRRRRRRRROOOOOOO1 -> np.subgoal_frame = %p \n", SgNoTrie_sg_fr(no_subgoal_trie));
+      exit(1);
+    }
+
 
     int k=0;
     for (k = 0; k < no_subgoal_trie_size; k++) {
-      struct no_subgoal_trie_pos np = 
-	*(no_subgoal_trie + k * sizeof(struct no_subgoal_trie_pos));
-      if (np.subgoal_frame != NULL) {
-	printf("ERRRRRRRRROOOOOOO -> np.subgoal_frame = %p \n", np.subgoal_frame->wid);
+      struct no_subgoal_trie_pos * np;
+      
+      np = no_subgoal_trie + k;
+      if (SgNoTrie_sg_fr(np) != NULL) {
+	printf("ERRRRRRRRROOOOOOO -> np.subgoal_frame = %p k = %d \n", SgNoTrie_sg_fr(np), k);
 	exit(1);
       }
 
@@ -403,7 +410,7 @@ static Int p_table( USES_REGS1 ) {
     
 
 
-      /*ALLOC_BLOCK(no_subgoal_trie, 
+      ALLOC_BLOCK(no_subgoal_trie, 
                   no_subgoal_trie_size * sizeof(struct no_subgoal_trie_pos), 
                   struct no_subgoal_trie_pos);
       */

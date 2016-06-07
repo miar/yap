@@ -1754,16 +1754,14 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
 #ifdef THREADS_NO_SUBGOAL_TRIE
   if (SgFr_no_sg_pos(sg_fr) != NULL) {
-    no_subgoal_trie_pos sg_leaf_node;
-    sg_leaf_node = SgFr_no_sg_pos(sg_fr);
+    no_subgoal_trie_pos no_st_pos;
+    no_st_pos = SgFr_no_sg_pos(sg_fr);
     sg_fr_ptr sg_fr_aux;
-    sg_fr_ptr sg_fr_aux2;
     do {
-      sg_fr_aux = (sg_fr_ptr) SgNoTrie_sg_fr(sg_leaf_node); 
-      sg_fr_aux2 = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
-      if (sg_fr_aux2 && SgFr_state(sg_fr_aux2) >= complete)
+      sg_fr_aux = (sg_fr_ptr) SgNoTrie_sg_fr(no_st_pos); 
+      if (SgFr_state(sg_fr_aux) >= complete)
         break;    
-    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(sg_leaf_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));    
+    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));    
   } else 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
   {
