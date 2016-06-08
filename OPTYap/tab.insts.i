@@ -1071,6 +1071,14 @@
 
 #ifdef MODE_DIRECTED_TABLING
     if (SgFr_mode_directed(sg_fr)) {
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+        if (SgFr_no_sg_pos(sg_fr) != NULL) {
+          mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS);
+          goto fail; /* implementing local mode only ... for now */
+        }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+      
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr PASS_REGS);
   
       if (ans_node == NULL) {

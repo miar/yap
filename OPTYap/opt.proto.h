@@ -44,6 +44,9 @@ void finish_yapor(void);
 
 #ifdef TABLING
 sg_fr_ptr subgoal_search(yamop *, CELL ** USES_REGS);
+#ifdef THREADS_NO_SUBGOAL_TRIE
+sg_fr_ptr subgoal_search_no_trie(yamop *, CELL ** USES_REGS);
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 ans_node_ptr answer_search(sg_fr_ptr, CELL * USES_REGS);
 #ifdef MODE_DIRECTED_TABLING
 ans_node_ptr mode_directed_answer_search(sg_fr_ptr, CELL * USES_REGS);
