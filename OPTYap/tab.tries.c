@@ -1563,7 +1563,30 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
+#define subs_arity *subs_ptr
+  int *mode_directed;
+  CELL *stack_vars;
+  int i, j, vars_arity;
+  mode_directed = SgFr_mode_directed(sg_fr);
+  int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);
+  i = subs_arity;
 
+  no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+  Term term = Deref(subs_ptr[i]);
+  Float term_value = (Float) IntOfTerm(term);
+  Float no_trie_value = 0;
+  Term no_trie_term;
+  do {
+    no_trie_term = SgNoTrie_ans(no_st_pos);     
+    no_trie_value = (Float) IntOfTerm(no_trie_term);
+    
+    if ((mode == MODE_DIRECTED_MIN && term_value > no_trie_value) || 
+	(mode == MODE_DIRECTED_MAX && term_value < no_trie_value))
+      return;
+  } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+
+  printf("value = %d \n", IntOfTerm(SgNoTrie_ans(no_st_pos)));
+ 
   return;
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
