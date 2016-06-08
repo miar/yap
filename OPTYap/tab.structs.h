@@ -24,7 +24,9 @@ typedef enum {false,true} boolean;
 #ifdef THREADS_NO_SUBGOAL_TRIE
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
   Term entry;  // one answer only - for now
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos;
 
 #define SgNoTrie_sg_fr(X)   ((X)->subgoal_frame)

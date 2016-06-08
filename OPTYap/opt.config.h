@@ -82,6 +82,7 @@
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
 #define THREADS_NO_SUBGOAL_TRIE 1
+#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 /* only one min/max term. Activate THREADS_NO_SUBGOAL_TRIE. */
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
