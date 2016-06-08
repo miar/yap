@@ -1074,8 +1074,9 @@
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
         if (SgFr_no_sg_pos(sg_fr) != NULL) {
+          /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
           mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS);
-          goto fail; /* implementing local mode only ... for now */
+          // goto fail; /* implementing local mode only ... for now */
         }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       
