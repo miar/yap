@@ -1574,6 +1574,14 @@ void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
   Term term = Deref(subs_ptr[i]);
   Float term_value = (Float) IntOfTerm(term);
+  
+  if (SgNoTrie_ans(no_st_pos) == NULL)
+    /* insert the first term */
+    if (BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), NULL, term))
+      return;
+  
+  /* at least one other term is in pos */
+
   Float no_trie_value = 0;
   Term no_trie_term;
   do {
@@ -1584,10 +1592,10 @@ void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 	(mode == MODE_DIRECTED_MAX && term_value < no_trie_value))
       return;
   } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
-
+  
   /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
   printf("value = %d \n", IntOfTerm(SgNoTrie_ans(no_st_pos)));
- 
+  
   return;
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
