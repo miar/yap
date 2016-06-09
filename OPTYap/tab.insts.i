@@ -217,15 +217,12 @@
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
 	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/                \
-          /* --> load_answer(ans_node, YENV PASS_REGS); <--  */                \
+          /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */  \
           /* procceed */                                                       \
           YENV = ENV;                                                          \
           GONext();                                                            \
         }
-
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-
-
 
 #define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
         { CELL *subs_ptr;                                                      \
