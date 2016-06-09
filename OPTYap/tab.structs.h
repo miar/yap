@@ -571,6 +571,9 @@ typedef struct dependency_frame {
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
   Term last_consumed_term;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+  struct no_subgoal_trie_pos *no_sg_pos;
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
@@ -585,6 +588,7 @@ typedef struct dependency_frame {
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
 #define DepFr_last_term(X)               ((X)->last_consumed_term)
 #define DepFr_next(X)                    ((X)->next)
+#define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
 
 /*********************************************************************************************************
 

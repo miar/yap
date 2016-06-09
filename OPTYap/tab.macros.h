@@ -775,10 +775,18 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define SgFr_init_no_sg_trie_fields(SG_FR)
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)	   \
+  if(SG_FR != NULL)					   \
+    DepFr_no_sg_pos(DEP_FR) = SgFr_no_sg_pos(SG_FR)
+#else 
+#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX) */
+
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
 #define	DepFr_init_last_term_field(DEP_FR)         \
-       DepFr_last_term(DEP_FR) = (Term) NULL
-#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
+    DepFr_last_term(DEP_FR) = (Term) NULL
+#else
 #define	DepFr_init_last_term_field(DEP_FR)
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 
@@ -791,6 +799,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         DepFr_cons_cp(DEP_FR) = NORM_CP(CONS_CP);                                                            \
         DepFr_init_last_answer_field(DEP_FR, SG_FR);                                                         \
 	DepFr_init_last_term_field(DEP_FR);				                                     \
+	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR); 			                             \
         DepFr_next(DEP_FR) = NEXT
 
 #define new_suspension_frame(SUSP_FR, TOP_OR_FR_ON_STACK, TOP_DEP, TOP_SG,             \

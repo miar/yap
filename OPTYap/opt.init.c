@@ -351,7 +351,7 @@ void Yap_init_root_frames(void) {
 #ifdef YAPOR
   DepFr_cons_cp(GLOBAL_root_dep_fr) = B;  /* with YAPOR, at that point, LOCAL_top_dep_fr shouldn't be the same as GLOBAL_root_dep_fr ? */
 #else
-  new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL); 
+  new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, (sg_fr_ptr)NULL, FALSE, NULL); 
 #endif /* YAPOR */
 #endif /* TABLING */
 }

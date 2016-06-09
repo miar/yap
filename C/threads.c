@@ -279,7 +279,7 @@ setup_engine(int myworker_id, int init_thread)
   LOCAL_debug_count_buckets = 0;
 #endif  DEBUG_COUNT_ALLOC_BUCKETS */
 
-  new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
+  new_dependency_frame(LOCAL_top_dep_fr, FALSE, NULL, NULL, B, (sg_fr_ptr)NULL, FALSE, NULL);  /* same as in Yap_init_root_frames() */
 #if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC)
   LOCAL_trie_buckets_buffer = NULL;
 #endif /* ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC */
