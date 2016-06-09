@@ -1594,7 +1594,7 @@ void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   
   /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
-  printf("value = %d \n", IntOfTerm(SgNoTrie_ans(no_st_pos)));
+  //printf("value = %d \n", IntOfTerm(SgNoTrie_ans(no_st_pos)));
   
   return;
 }
