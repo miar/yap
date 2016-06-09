@@ -568,9 +568,9 @@ typedef struct dependency_frame {
 #else
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
-#if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT)
-  Term last_consumed_entry;
-#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+#if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
+  Term last_consumed_term;
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
@@ -583,7 +583,7 @@ typedef struct dependency_frame {
 #define DepFr_leader_cp(X)               ((X)->leader_choice_point)
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
-#define DepFr_last_term(X)               ((X)->last_consumed_entry)
+#define DepFr_last_term(X)               ((X)->last_consumed_term)
 #define DepFr_next(X)                    ((X)->next)
 
 /*********************************************************************************************************

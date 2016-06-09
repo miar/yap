@@ -523,6 +523,23 @@
       goto answer_resolution;
     } else {
       /* subgoal completed */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos != NULL) {
+        Term ans_term = SgNoTrie_ans(no_st_pos);
+        if (ans_term == NULL)
+	  /* no answers --> fail */
+	  goto fail;
+	else /* load answer */ {
+          PREG = (yamop *) CPREG;
+          PREFETCH_OP(PREG);	  
+	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+          //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+          GONext();
+        } 
+      }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
       if (ans_node == NULL) {
 	/* no answers --> fail */
@@ -687,6 +704,23 @@
       goto answer_resolution;
     } else {
       /* subgoal completed */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos != NULL) {
+        Term ans_term = SgNoTrie_ans(no_st_pos);
+        if (ans_term == NULL)
+	  /* no answers --> fail */
+	  goto fail;
+	else /* load answer */ {
+          PREG = (yamop *) CPREG;
+          PREFETCH_OP(PREG);	  
+	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+          //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+          GONext();
+        } 
+      }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
       if (ans_node == NULL) {
@@ -871,25 +905,23 @@
     } else {
       /* subgoal completed */
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
-
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
-      if (no_st_pos == NULL) {
-        if (SgNoTrie_ans(no_st_pos) == NULL)
+      if (no_st_pos != NULL) {
+        Term ans_term = SgNoTrie_ans(no_st_pos);
+        if (ans_term == NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
-          PREFETCH_OP(PREG);
-          load_answer(ans_node, YENV PASS_REGS);
+          PREFETCH_OP(PREG);	  
+	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+          //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
-
         } 
       }
-
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-      
+
       ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 
       //if (worker_id == 0)

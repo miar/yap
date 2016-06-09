@@ -775,7 +775,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define SgFr_init_no_sg_trie_fields(SG_FR)
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
-#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
+#if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
 #define	DepFr_init_last_term_field(DEP_FR)         \
        DepFr_last_term(DEP_FR) = (Term) NULL
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
