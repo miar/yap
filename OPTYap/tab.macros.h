@@ -1753,9 +1753,8 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  if (SgFr_no_sg_pos(sg_fr) != NULL) {
-    no_subgoal_trie_pos no_st_pos;
-    no_st_pos = SgFr_no_sg_pos(sg_fr);
+  no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+  if (no_st_pos != NULL) {
     sg_fr_ptr sg_fr_aux;
     do {
       sg_fr_aux = (sg_fr_ptr) SgNoTrie_sg_fr(no_st_pos); 
