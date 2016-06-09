@@ -194,6 +194,39 @@
   load_answer(ANSWER, SUBS_PTR PASS_REGS)
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
+#define consume_answer_and_procceed_no_trie(DEP_FR, ANSWER)                    \
+        { CELL *subs_ptr;                                                      \
+          /* restore consumer choice point */                                  \
+          H = HBREG = PROTECT_FROZEN_H(B);                                     \
+          restore_yaam_reg_cpdepth(B);                                         \
+          CPREG = B->cp_cp;                                                    \
+          ENV = B->cp_env;                                                     \
+          /* set_cut(YENV, B->cp_b); --> no effect */                          \
+          PREG = (yamop *) CPREG;                                              \
+          PREFETCH_OP(PREG);                                                   \
+          /* load answer from table to global stack */                         \
+          if (B == DepFr_leader_cp(DEP_FR)) {                                  \
+            /*  B is a generator-consumer node  */                             \
+            /* never here if batched scheduling */                             \
+            TABLING_ERROR_CHECKING(generator_consumer, IS_BATCHED_GEN_CP(B));  \
+            subs_ptr = (CELL *) (GEN_CP(B) + 1);                               \
+            subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);                       \
+	  } else {                                                             \
+            subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
+	  }                                                                    \
+	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/                \
+          /* --> load_answer(ans_node, YENV PASS_REGS); <--  */                \
+          /* procceed */                                                       \
+          YENV = ENV;                                                          \
+          GONext();                                                            \
+        }
+
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+
+
+
 #define consume_answer_and_procceed(DEP_FR, ANSWER)                            \
         { CELL *subs_ptr;                                                      \
           /* restore consumer choice point */                                  \
@@ -1535,6 +1568,24 @@
   answer_resolution:
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
+
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
+    /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
+    dep_fr = CONS_CP(B)->cp_dep_fr;
+    
+    Term last_consumed_term = DepFr_last_term(dep_fr); 
+    Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
+    if (last_consumed_term != term) {
+      /* unconsumed answer in dependency frame */
+      DepFr_last_term(dep_fr) = term;
+      consume_answer_and_procceed_no_trie(dep_fr, term);
+    }
+
+
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+
 #ifdef THREADS_FULL_SHARING_FTNA_3
     ans_ref_ptr ans_node;
 #else

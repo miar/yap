@@ -776,8 +776,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)	   \
-  if(SG_FR != NULL)					   \
+#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)	        \
+  if(SG_FR != NULL) /* avoids NULL sg_fr on top dep_fr */	\
     DepFr_no_sg_pos(DEP_FR) = SgFr_no_sg_pos(SG_FR)
 #else 
 #define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)
