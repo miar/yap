@@ -216,7 +216,7 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/                \
+	  Bind((CELL *) YENV[1], ANSWER); /* subs_arity = 1*/                  \
           /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */  \
           /* procceed */                                                       \
           YENV = ENV;                                                          \
@@ -1566,21 +1566,68 @@
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
 
-
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 
     /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
     dep_fr = CONS_CP(B)->cp_dep_fr;
     
-    Term last_consumed_term = DepFr_last_term(dep_fr); 
-    Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
-    if (last_consumed_term != term) {
-      /* unconsumed answer in dependency frame */
-      DepFr_last_term(dep_fr) = term;
-      consume_answer_and_procceed_no_trie(dep_fr, term);
+    if (DepFr_no_sg_pos(dep_fr) != NULL) {      
+      Term last_consumed_term = DepFr_last_term(dep_fr); 
+      Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
+      if (last_consumed_term != term) {
+	/* unconsumed answer in dependency frame */
+	DepFr_last_term(dep_fr) = term;
+	consume_answer_and_procceed_no_trie(dep_fr, term);
+      }
+
+      /* no unconsumed answers */
+      if (DepFr_backchain_cp(dep_fr) == NULL) {
+	/* normal backtrack */
+	B = B->cp_b;
+	goto fail;
+      } else {
+	/* chain backtrack */
+	choiceptr top_chain_cp, chain_cp;
+	/* find chain choice point to backtrack */
+	top_chain_cp = DepFr_backchain_cp(dep_fr);
+	chain_cp = DepFr_leader_cp(LOCAL_top_dep_fr);
+	if (YOUNGER_CP(top_chain_cp, chain_cp))
+	  chain_cp = top_chain_cp;
+	/* check for dependency frames with unconsumed answers */
+	dep_fr = DepFr_next(dep_fr);
+	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
+	  last_consumed_term = DepFr_last_term(dep_fr); 
+	  if (last_consumed_term != term) {
+	    /* unconsumed answer in dependency frame */
+	    DepFr_last_term(dep_fr) = term;
+	    /* restore bindings, update registers, consume answer and procceed */
+	    restore_bindings(B->cp_tr, chain_cp->cp_tr);
+	    B = chain_cp;
+	    TR = TR_FZ;
+	    TRAIL_LINK(B->cp_tr);
+	    consume_answer_and_procceed_no_trie(dep_fr, term);
+	  }
+	  dep_fr = DepFr_next(dep_fr);
+	}
+	/* no dependency frames with unconsumed answers found */
+	/* unbind variables */
+	unbind_variables(B->cp_tr, chain_cp->cp_tr);
+	if (DepFr_leader_cp(LOCAL_top_dep_fr) == chain_cp && 
+           (chain_cp->cp_ap == NULL || chain_cp->cp_ap == ANSWER_RESOLUTION)) {
+	  B = chain_cp;
+	  TR = TR_FZ;
+	  TRAIL_LINK(B->cp_tr);
+	  goto completion;
+	}
+	/* backtrack to chain choice point */
+	PREG = chain_cp->cp_ap;
+	PREFETCH_OP(PREG);
+	B = chain_cp;
+	TR = TR_FZ;
+	TRAIL_LINK(B->cp_tr);
+	GONext();	
+      }
     }
-
-
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
 #ifdef THREADS_FULL_SHARING_FTNA_3
