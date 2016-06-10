@@ -2370,25 +2370,6 @@
         goto fail;
       } else {
         /* subgoal completed */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX_OLD_TO_REMOVE
-        no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
-        if (no_st_pos != NULL) {
-          Term ans_term = SgNoTrie_ans(no_st_pos);
-          if (ans_term == NULL)
-	    /* no answers --> fail */
-  	    goto fail;
-	  else /* load answer */ {
-	    pop_generator_node(SgFr_arity(sg_fr));
-            PREG = (yamop *) CPREG;
-            PREFETCH_OP(PREG);	  
-  	    Bind((CELL *) YENV[1], ans_term); /* YENV[1] -> 1 is because subs_arity = 1 */
-            //load_answer(ans_node, YENV PASS_REGS);
-   	    YENV = ENV;
-            GONext();
-	  } 
-	}
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX_OLD_TO_REMOVE */
-
 	ans_node_ptr first_node;
 	first_node = SgFr_first_answer(sg_fr);
 

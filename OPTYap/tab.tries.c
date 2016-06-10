@@ -1150,8 +1150,8 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 	 IntOfTerm(Deref(XREGS[1])), 
 	 IntOfTerm(Deref(XREGS[2])), 
 	 IntOfTerm(Deref(XREGS[3])),
-	 j, no_st_index); */
-
+	 j, no_st_index); 
+  */
 
   for (i = 1; i < pred_arity; i++) {
     mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
@@ -1169,6 +1169,16 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     }
   }
     
+  /*  SYSTEM MUST ENSURE THAT no_st_index IS ALWAYS >= 0
+      if (no_st_index < 0) {
+     printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
+	    IntOfTerm(Deref(XREGS[1])), 
+	    IntOfTerm(Deref(XREGS[2])), 
+	    IntOfTerm(Deref(XREGS[3])),
+	    j, no_st_index);
+    }
+  */
+
   no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
   //printf("2 - no_st_pos = %d\n", no_st_index);
 
