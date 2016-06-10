@@ -1584,6 +1584,25 @@ void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 
   Float no_trie_value = 0;
   Term no_trie_term;
+
+  if (mode == MODE_DIRECTED_MIN) {
+    do {
+      no_trie_term = SgNoTrie_ans(no_st_pos);     
+      no_trie_value = (Float) IntOfTerm(no_trie_term);    
+      if (term_value > no_trie_value)
+	return;
+    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+  } else /* mode == MODE_DIRECTED_MAX */ {
+    do {
+      no_trie_term = SgNoTrie_ans(no_st_pos);     
+      no_trie_value = (Float) IntOfTerm(no_trie_term);    
+      if (term_value < no_trie_value)
+	return;
+    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+  }
+  
+
+  /*
   do {
     no_trie_term = SgNoTrie_ans(no_st_pos);     
     no_trie_value = (Float) IntOfTerm(no_trie_term);
@@ -1592,8 +1611,7 @@ void mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 	(mode == MODE_DIRECTED_MAX && term_value < no_trie_value))
       return;
   } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
-  
-  /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
+  */
   //printf("value = %d \n", IntOfTerm(SgNoTrie_ans(no_st_pos)));
   
   return;
