@@ -1565,13 +1565,10 @@
   answer_resolution:
     INIT_PREFETCH()
     dep_fr_ptr dep_fr;
+    dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-
-    /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
-    dep_fr = CONS_CP(B)->cp_dep_fr;
-    
-    if (DepFr_no_sg_pos(dep_fr) != NULL) {      
+    if (DepFr_no_sg_pos(dep_fr) != NULL) {
       Term last_consumed_term = DepFr_last_term(dep_fr); 
       Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
       if (last_consumed_term != term) {
@@ -1638,7 +1635,7 @@
 
     OPTYAP_ERROR_CHECKING(answer_resolution, SCH_top_shared_cp(B) && B->cp_or_fr->alternative != ANSWER_RESOLUTION);
     OPTYAP_ERROR_CHECKING(answer_resolution, !SCH_top_shared_cp(B) && B->cp_ap != ANSWER_RESOLUTION);
-    dep_fr = CONS_CP(B)->cp_dep_fr;
+    //dep_fr = CONS_CP(B)->cp_dep_fr;
     LOCK_DEP_FR(dep_fr);
     ans_node = DepFr_last_answer(dep_fr);
 #ifdef STUDY_TIMESTAMP_MDT
@@ -2042,6 +2039,65 @@
 
     /* check for dependency frames with unconsumed answers */
     dep_fr = LOCAL_top_dep_fr;    
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+    if (DepFr_no_sg_pos(dep_fr) != NULL) {
+      while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
+	Term last_consumed_term = DepFr_last_term(dep_fr); 
+	Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
+	if (last_consumed_term != term) {
+	  /* unconsumed answer in dependency frame */
+	  DepFr_last_term(dep_fr) = term;
+	  if (B->cp_ap)
+	    DepFr_backchain_cp(dep_fr) = B;
+	  else
+	    DepFr_backchain_cp(dep_fr) = B->cp_b;
+	  
+	  /* rebind variables, update registers, consume answer and procceed */
+	  rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
+	  B = DepFr_cons_cp(dep_fr);
+	  TR = TR_FZ;
+	  if (TR != B->cp_tr)
+	    TRAIL_LINK(B->cp_tr);
+	  consume_answer_and_procceed_no_trie(dep_fr, term);
+	}
+	dep_fr = DepFr_next(dep_fr);
+      }
+      /* no dependency frames with unconsumed answers found */
+      /* complete all */
+      sg_fr_ptr sg_fr;
+#ifdef DETERMINISTIC_TABLING
+      if (IS_DET_GEN_CP(B))
+	sg_fr = DET_GEN_CP(B)->cp_sg_fr;
+      else	 
+#endif /* DETERMINISTIC_TABLING */
+	sg_fr = GEN_CP(B)->cp_sg_fr;
+      private_completion(sg_fr PASS_REGS);
+      if (IS_BATCHED_GEN_CP(B)) {
+        /* backtrack */
+        B = B->cp_b;
+        SET_BB(PROTECT_FROZEN_B(B));
+        goto fail;
+      } else {
+        /* subgoal completed */
+        no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+	Term ans_term = SgNoTrie_ans(no_st_pos);
+	if (ans_term == NULL)
+	  /* no answers --> fail */
+	  goto fail;
+	else /* load answer */ {
+	  pop_generator_node(SgFr_arity(sg_fr));
+	  PREG = (yamop *) CPREG;
+	  PREFETCH_OP(PREG);	  
+	  Bind((CELL *) YENV[1], ans_term); /* YENV[1] -> 1 is because subs_arity = 1 */
+	  //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+	  GONext();
+	} 
+      }
+    }   
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+
     while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
       LOCK_DEP_FR(dep_fr);
       ans_node = DepFr_last_answer(dep_fr);
@@ -2314,7 +2370,7 @@
         goto fail;
       } else {
         /* subgoal completed */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX_OLD_TO_REMOVE
         no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
         if (no_st_pos != NULL) {
           Term ans_term = SgNoTrie_ans(no_st_pos);
@@ -2325,13 +2381,13 @@
 	    pop_generator_node(SgFr_arity(sg_fr));
             PREG = (yamop *) CPREG;
             PREFETCH_OP(PREG);	  
-  	    Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+  	    Bind((CELL *) YENV[1], ans_term); /* YENV[1] -> 1 is because subs_arity = 1 */
             //load_answer(ans_node, YENV PASS_REGS);
    	    YENV = ENV;
             GONext();
 	  } 
 	}
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX_OLD_TO_REMOVE */
 
 	ans_node_ptr first_node;
 	first_node = SgFr_first_answer(sg_fr);
