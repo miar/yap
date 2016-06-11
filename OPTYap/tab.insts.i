@@ -1163,9 +1163,17 @@
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
         if (SgFr_no_sg_pos(sg_fr) != NULL) {
-          /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX -> HERE 1 */
-          mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS);
-	  goto fail; /* implementing local mode only ... for now */
+          if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true && 
+	      IS_BATCHED_GEN_CP(gcp)) {
+	            /* deallocate and procceed */
+	    PREG = (yamop *) YENV[E_CP];
+	    PREFETCH_OP(PREG);
+	    CPREG = PREG;
+	    SREG = YENV;
+	    ENV = YENV = (CELL *) YENV[E_E];
+	    GONext();
+	  } else /* repeated answer or local_scheduling mode */
+	    goto fail; /* implementing local mode only ... for now */
         }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       
