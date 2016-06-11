@@ -81,8 +81,8 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
-#define THREADS_NO_SUBGOAL_TRIE 1
-#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 /* only one min/max term. Activate THREADS_NO_SUBGOAL_TRIE. scheduling mode is only local ... for now */
+#define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
+#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 /* only one min/max term. Activate THREADS_NO_SUBGOAL_TRIE.*/
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 

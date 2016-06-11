@@ -742,7 +742,31 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SgFr_next(SG_FR) = LOCAL_top_sg_fr;			   \
           LOCAL_top_sg_fr = SG_FR;                                 \
 	}
-#else
+#else /* no multithreading || THREADS_SUBGOAL_SHARING || THREADS_NO_SHARING */
+
+#ifdef THREADS_NO_SUBGOAL_TRIE 
+#define new_subgoal_frame(SG_FR, CODE, MODE_ARRAY)		   \
+     {   tab_ent_ptr tab_ent = CODE->u.Otapl.te;		   \
+	 ALLOC_SUBGOAL_FRAME(SG_FR);				   \
+         SgFr_code(SG_FR) = CODE;                                  \
+         SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
+         SgFr_state(SG_FR) = ready;                                \
+         SgFr_init_next_complete(SG_FR);    		           \
+         if (TabEnt_no_subgoal_trie(tab_ent) != NULL)              \
+	   SgFr_no_sg_pos(SG_FR) = NULL;			   \
+	 else {							   \
+	   register ans_node_ptr ans_node;			   \
+	   new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL); \
+	   INIT_LOCK_SG_FR(SG_FR);				   \
+	   INIT_LOCK_SG_FR_COMP_WAIT(SG_FR);			   \
+	   SgFr_hash_chain(SG_FR) = NULL;			   \
+	   SgFr_answer_trie(SG_FR) = ans_node;			   \
+	   SgFr_first_answer(SG_FR) = NULL;			   \
+	   SgFr_last_answer(SG_FR) = NULL;			   \
+	 }							   \
+      }
+#else /* !THREADS_NO_SUBGOAL_TRIE */
+
 #define new_subgoal_frame(SG_FR, CODE, MODE_ARRAY)		   \
         { register ans_node_ptr ans_node;                          \
           new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL);  \
@@ -757,8 +781,9 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
           SgFr_state(SG_FR) = ready;                               \
 	  SgFr_init_next_complete(SG_FR);    		           \
-	  SgFr_init_no_sg_trie_fields(SG_FR);			   \
 	}
+
+#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #define init_subgoal_frame(SG_FR)                                  \
         { SgFr_init_yapor_fields(SG_FR);                           \
@@ -767,13 +792,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           LOCAL_top_sg_fr = SG_FR;                                 \
 	}
 #endif /* THREADS_FULL_SHARING  */
-
-#ifdef THREADS_NO_SUBGOAL_TRIE
-#define SgFr_init_no_sg_trie_fields(SG_FR)	\
-    SgFr_no_sg_pos(SG_FR) = NULL;
-#else /* !THREADS_NO_SUBGOAL_TRIE */
-#define SgFr_init_no_sg_trie_fields(SG_FR)
-#endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 #define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)	        \
