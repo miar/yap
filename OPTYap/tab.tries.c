@@ -1198,30 +1198,49 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       return sg_fr;
     mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
+    //int counter = 0;
     while(sg_fr) {
-      if (SgFr_wid(sg_fr) == worker_id)
+      if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
 	return sg_fr;
+      //counter++;
       sg_fr = SgFr_next_wid(sg_fr);
     }
-  } else
-    mode_directed = NULL;
-  
-  
-  /* no sg_fr complete for now */
-  if (mode_directed == NULL && subs_pos) {
-    ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
-    memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+
+    //if (counter > 2)
+    //  printf("wid = %d counter = %d \n",  worker_id, counter);
+
+    /* no sg_fr complete for now */
+    new_subgoal_frame(sg_fr, preg, mode_directed);
+    SgFr_wid(sg_fr) = worker_id;
+    SgFr_no_sg_pos(sg_fr) = no_st_pos;
+    
+    sg_fr_ptr sg_fr_aux; 
+    do {
+      sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
+      if (SgFr_state(sg_fr_aux) >= complete)
+	return sg_fr_aux;
+      SgFr_next_wid(sg_fr) = sg_fr_aux;
+    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
+  } else {
+    /* no sg_fr complete for now */
+    if (subs_pos) {
+      ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+      memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+    }
+    new_subgoal_frame(sg_fr, preg, mode_directed);
+    SgFr_wid(sg_fr) = worker_id;
+    SgFr_no_sg_pos(sg_fr) = no_st_pos;
+    SgFr_next_wid(sg_fr) = NULL;
+    if (!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), NULL, sg_fr)) {    
+      sg_fr_ptr sg_fr_aux;     
+      do {
+	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
+	if (SgFr_state(sg_fr_aux) >= complete)
+	  return sg_fr_aux;
+	SgFr_next_wid(sg_fr) = sg_fr_aux;
+      } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));    
+    }
   }
-  new_subgoal_frame(sg_fr, preg, mode_directed);
-  SgFr_wid(sg_fr) = worker_id;
-  SgFr_no_sg_pos(sg_fr) = no_st_pos;
-
-  sg_fr_ptr sg_fr_aux;
-  do {
-    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);  
-    SgFr_next_wid(sg_fr) = sg_fr_aux;
-  } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
-
   return sg_fr;
 }
 

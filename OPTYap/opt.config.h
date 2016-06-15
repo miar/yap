@@ -170,7 +170,7 @@
 /******************************************************
 **      support incomplete tabling ? (optional)      **
 ******************************************************/
-#define INCOMPLETE_TABLING 1   /*  REMOVE IF FULL_SHARING i'm using always this simply because it is better */
+//#define INCOMPLETE_TABLING 1   /*  REMOVE IF FULL_SHARING i'm using always this simply because it is better */
 
 /******************************************************
 **      limit the table space size ? (optional)      **
@@ -434,9 +434,5 @@
 /* CHECK miguel tag on C/index.c file */
 
 
-
-#ifdef TIMESTAMP_MODE_DIRECTED_TABLING
-
-#else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
-
-#endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
+/* OBS -> YAP'S CURRENT STATE */
+// COMMENTED --> INCOMPLETE_TABLING
