@@ -448,6 +448,12 @@
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
+
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
@@ -479,6 +485,11 @@
 	atomic_inc(&Stats_query_reused_tables);
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING)
@@ -636,6 +647,10 @@
     check_trail(TR);
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
 #ifdef EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE
@@ -668,6 +683,11 @@
 	atomic_inc(&Stats_query_reused_tables);
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
     MEM2YENV;
 #ifndef THREADS_SUBGOAL_FRAME_BY_WID
 #if defined(THREADS_FULL_SHARING)
@@ -820,7 +840,7 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     struct timeval tv1, tv2;
     gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -861,7 +881,7 @@
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
     gettimeofday(&tv2, NULL);
     walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
@@ -1162,18 +1182,34 @@
     if (SgFr_mode_directed(sg_fr)) {
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      /* HERE - WALLTIME */
         if (SgFr_no_sg_pos(sg_fr) != NULL) {
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	  struct timeval tv1, tv2;
+	  gettimeofday(&tv1, NULL);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+
           if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true && 
 	      IS_BATCHED_GEN_CP(gcp)) {
-	            /* deallocate and procceed */
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	    gettimeofday(&tv2, NULL);
+	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
+	    /* deallocate and procceed */
 	    PREG = (yamop *) YENV[E_CP];
 	    PREFETCH_OP(PREG);
 	    CPREG = PREG;
 	    SREG = YENV;
 	    ENV = YENV = (CELL *) YENV[E_E];
 	    GONext();
-	  } else /* repeated answer or local_scheduling mode */
-	    goto fail; /* implementing local mode only ... for now */
+	  } else /* repeated answer or local_scheduling mode */ {
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+	    gettimeofday(&tv2, NULL);
+	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+#endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */	    
+	    goto fail; 
+	  }
+
         }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       
@@ -1188,7 +1224,7 @@
 #endif /* MODE_DIRECTED_TABLING */
      ans_node = answer_search(sg_fr, subs_ptr PASS_REGS);
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD___________________
     struct timeval tv1, tv2;
     if (worker_id == 1)
       gettimeofday(&tv1, NULL);
@@ -1383,7 +1419,7 @@
       if (BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node)) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
 	if (worker_id == 1) {
 	  gettimeofday(&tv2, NULL);
 	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1398,7 +1434,7 @@
       SgFr_last_answer(sg_fr) = last_answer = SgFr_first_answer(sg_fr);
       if (last_answer == ans_node) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD________________
 	if (worker_id == 1) {
 	  gettimeofday(&tv2, NULL);
 	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1416,7 +1452,7 @@
 	  if (last_answer == ans_node) {
 	    TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	    SgFr_last_answer(sg_fr) = last_answer;
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD__________________
 	if (worker_id == 1) {
 	  gettimeofday(&tv2, NULL);
 	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1430,7 +1466,7 @@
       if (BOOL_CAS(&(TrNode_child(last_answer)), NULL, ans_node)) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD__________________
 	if (worker_id == 1) {
 	gettimeofday(&tv2, NULL);
 	walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1490,7 +1526,7 @@
 #endif /* DEBUG_TABLING */
       UNLOCK_SG_FR(sg_fr);
 
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD______________________
 	if (worker_id == 1) {
 	  gettimeofday(&tv2, NULL);
 	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1546,7 +1582,7 @@
       Stats_repeated_answers++;
 #endif
       UNLOCK_ANSWER_TRIE(sg_fr);
-#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+#ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD____________________
       	if (worker_id == 1) {
       gettimeofday(&tv2, NULL);
       walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);

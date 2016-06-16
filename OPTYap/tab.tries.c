@@ -1129,6 +1129,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
  
 #ifdef THREADS_NO_SUBGOAL_TRIE
  sg_fr_ptr subgoal_search_no_trie(yamop *preg, CELL **Yaddr USES_REGS)  {
+
   tab_ent_ptr tab_ent = preg->u.Otapl.te;
   CELL *stack_vars;
   int i, subs_arity, pred_arity;

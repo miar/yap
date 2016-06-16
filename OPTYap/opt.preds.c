@@ -741,6 +741,8 @@ return (TRUE);
 static Int p_show_walltime_by_thread( USES_REGS1 ) {
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
   IOSTREAM *out;
+
+
   Term t = Deref(ARG1);
 
   if (IsVarTerm(t) || !IsAtomTerm(t))
@@ -754,10 +756,14 @@ static Int p_show_walltime_by_thread( USES_REGS1 ) {
     return (FALSE);
   }
 
+
+  //  printf("ola WALLTIME_BY_THREAD_MAX_THREADS = %d \n", WALLTIME_BY_THREAD_MAX_THREADS );
+
+
   int i;
   for (i = 0; i < WALLTIME_BY_THREAD_NR_RUNS ; i++) {
     int j = 1;
-    while(walltime_by_thread[i][j] != -1 && j < WALLTIME_BY_THREAD_MAX_THREADS) {
+    while(walltime_by_thread[i][j] != -1 &&  j < WALLTIME_BY_THREAD_MAX_THREADS) {
       Sfprintf(out,"walltime_by_thread[%d][%d] time = %0.0lf \n", i, j, walltime_by_thread[i][j]) ;
       j++;
     }
