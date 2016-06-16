@@ -751,10 +751,9 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
          SgFr_code(SG_FR) = CODE;                                  \
          SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
          SgFr_state(SG_FR) = ready;                                \
+	 SgFr_no_sg_pos(SG_FR) = NULL;				   \
          SgFr_init_next_complete(SG_FR);    		           \
-         if (TabEnt_no_subgoal_trie(tab_ent) != NULL)              \
-	   SgFr_no_sg_pos(SG_FR) = NULL;			   \
-	 else {							   \
+         if (TabEnt_no_subgoal_trie(tab_ent) == NULL) {		   \
 	   register ans_node_ptr ans_node;			   \
 	   new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL); \
 	   INIT_LOCK_SG_FR(SG_FR);				   \
