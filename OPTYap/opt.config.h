@@ -77,7 +77,7 @@
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1
-//#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* subgoal_search_no_trie only */
+#define EXTRA_STATISTICS_WALLTIME_BY_THREAD  1  /* subgoal_search_no_trie only */
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 

@@ -1135,9 +1135,9 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   int i, subs_arity, pred_arity;
   sg_fr_ptr sg_fr;
   
-  int *mode_directed, aux_mode_directed[MAX_TABLE_VARS];
+  int *mode_directed; //, aux_mode_directed[MAX_TABLE_VARS];
   mode_directed = TabEnt_mode_directed(tab_ent);
-  int subs_pos = 0;
+  //int subs_pos = 0;
   stack_vars = *Yaddr;
   subs_arity = 0;
   pred_arity = preg->u.Otapl.s;
@@ -1165,8 +1165,8 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       /* t must be a var term - min and max can only have a single var*/
       STACK_PUSH_UP(t, stack_vars);
       subs_arity++; 
-      aux_mode_directed[subs_pos++] = MODE_DIRECTED_SET(subs_arity, 
-				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
+      //      aux_mode_directed[subs_pos++] = MODE_DIRECTED_SET(subs_arity, 
+      //				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
     }
   }
     
@@ -1181,7 +1181,6 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   */
 
   no_subgoal_trie_pos no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
-  //printf("2 - no_st_pos = %d\n", no_st_index);
 
 
   STACK_PUSH_UP(subs_arity, stack_vars);
@@ -1197,7 +1196,8 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   if (sg_fr) {
     if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
       return sg_fr;
-    mode_directed = SgFr_mode_directed(sg_fr);
+    mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
+    // mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     //int counter = 0;
     while(sg_fr) {
@@ -1206,9 +1206,6 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       //counter++;
       sg_fr = SgFr_next_wid(sg_fr);
     }
-
-    //if (counter > 2)
-    //  printf("wid = %d counter = %d \n",  worker_id, counter);
 
     /* no sg_fr complete for now */
     new_subgoal_frame(sg_fr, preg, mode_directed);
@@ -1223,11 +1220,16 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       SgFr_next_wid(sg_fr) = sg_fr_aux;
     } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   } else {
-    /* no sg_fr complete for now */
-    if (subs_pos) {
-      ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
-      memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
-    }
+    /* no sg_fr complete for now */    
+    mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
+
+    //    if (subs_pos) {
+    //  ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
+    //  memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
+    // }
+
+
+
     new_subgoal_frame(sg_fr, preg, mode_directed);
     SgFr_wid(sg_fr) = worker_id;
     SgFr_no_sg_pos(sg_fr) = no_st_pos;

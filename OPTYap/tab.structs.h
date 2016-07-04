@@ -51,6 +51,7 @@ typedef struct table_entry {
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
+  int* sg_fr_mode_directed_array;
   struct no_subgoal_trie_pos *no_subgoal_trie;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING
@@ -62,20 +63,21 @@ typedef struct table_entry {
   struct table_entry *next;
 } *tab_ent_ptr;
 
-#define TabEnt_lock(X)                     ((X)->lock)
-#define TabEnt_pe(X)                       ((X)->pred_entry)
-#define TabEnt_atom(X)                     ((X)->pred_atom)
-#define TabEnt_arity(X)                    ((X)->pred_arity)
-#define TabEnt_flags(X)                    ((X)->pred_flags)
-#define TabEnt_mode(X)                     ((X)->execution_mode)
-#define TabEnt_mode_directed(X)            ((X)->mode_directed_array)
-#define TabEnt_dimension_array(X)          ((X)->dimension_array)
-#define TabEnt_dim_array(X, i)             ((X)->dimension_array[i])
-#define TabEnt_no_subgoal_trie(X)          ((X)->no_subgoal_trie)
-#define TabEnt_no_subgoal_trie_pos(X, pos) ((X)->no_subgoal_trie[pos])
-#define TabEnt_subgoal_trie(X)             ((X)->subgoal_trie)
-#define TabEnt_hash_chain(X)               ((X)->hash_chain)
-#define TabEnt_next(X)                     ((X)->next)
+#define TabEnt_lock(X)                         ((X)->lock)
+#define TabEnt_pe(X)                           ((X)->pred_entry)
+#define TabEnt_atom(X)                         ((X)->pred_atom)
+#define TabEnt_arity(X)                        ((X)->pred_arity)
+#define TabEnt_flags(X)                        ((X)->pred_flags)
+#define TabEnt_mode(X)                         ((X)->execution_mode)
+#define TabEnt_mode_directed(X)                ((X)->mode_directed_array)
+#define TabEnt_dimension_array(X)              ((X)->dimension_array)
+#define TabEnt_dim_array(X, i)                 ((X)->dimension_array[i])
+#define TabEnt_no_subgoal_trie(X)              ((X)->no_subgoal_trie)
+#define TabEnt_no_subgoal_trie_pos(X, pos)     ((X)->no_subgoal_trie[pos])
+#define TabEnt_subgoal_trie(X)                 ((X)->subgoal_trie)
+#define TabEnt_hash_chain(X)                   ((X)->hash_chain)
+#define TabEnt_next(X)                         ((X)->next)
+#define TabEnt_sg_fr_mode_directed(X)          ((X)->sg_fr_mode_directed_array)
 
 
 /***********************************************************************

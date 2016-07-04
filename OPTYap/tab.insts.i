@@ -449,16 +449,17 @@
     tab_ent = PREG->u.Otapl.te;
     YENV2MEM;
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
-    //struct timeval tv1, tv2;
-    //gettimeofday(&tv1, NULL);
+/*
     struct timespec start, stop;
     if(clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
       perror( "clock gettime" );
       exit( EXIT_FAILURE );
    }
+*/
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
 
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
 
     sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS);
 
@@ -492,6 +493,7 @@
     }
 #endif /* EXTRA_STATISTICS_CHOICE_POINTS */
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD
+/*
 #define BILLION  1000000000L
     if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
      perror( "clock gettime" );
@@ -501,11 +503,11 @@
     walltime_by_thread[walltime_by_thread_run][worker_id] += 
       ( stop.tv_sec - start.tv_sec ) + ( stop.tv_nsec - start.tv_nsec ) / BILLION;
 
+#undef BILLION
+*/
 
-
-
-//    gettimeofday(&tv2, NULL);
-//    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+    gettimeofday(&tv2, NULL);
+    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 
     MEM2YENV;
@@ -1200,7 +1202,6 @@
     if (SgFr_mode_directed(sg_fr)) {
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      /* HERE - WALLTIME */
         if (SgFr_no_sg_pos(sg_fr) != NULL) {
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD___
 	  struct timeval tv1, tv2;

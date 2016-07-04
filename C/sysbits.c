@@ -886,7 +886,6 @@ Yap_walltime (void)
 void Yap_walltime_interval(Int *now,Int *interval)
 {
   struct timeval   tp;
-
   gettimeofday(&tp,NULL);
   *now = (tp.tv_sec - StartOfWTimes.tv_sec) * 1000 +
     (tp.tv_usec - StartOfWTimes.tv_usec) / 1000;

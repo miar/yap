@@ -302,7 +302,8 @@ static Int p_table( USES_REGS1 ) {
   int arity;
   tab_ent_ptr tab_ent;
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  int  *dim_array = NULL;
+  int *dim_array = NULL;
+  int *sg_fr_mode_directed = NULL;
   no_subgoal_trie_pos no_subgoal_trie = NULL;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -352,8 +353,7 @@ static Int p_table( USES_REGS1 ) {
       }
       list2 = TailOfTerm(list2);
     }
-    if (dim_array_size > 0) {
-      
+    if (dim_array_size > 0) {      
       ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
     }
 
@@ -385,15 +385,17 @@ static Int p_table( USES_REGS1 ) {
       no_subgoal_trie = (struct no_subgoal_trie_pos *) 
 	calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
     
-
     pos_first = pos_index + pos_agreg + pos_all + pos_last;
     pos_last = pos_index + pos_agreg + pos_all;
     pos_all = pos_index + pos_agreg;
     pos_agreg = pos_dim + pos_index;
     pos_index = pos_dim;
     pos_dim = 0;
-    ALLOC_BLOCK(mode_directed, arity * sizeof(int), int);
 
+    ALLOC_BLOCK(mode_directed, arity * sizeof(int), int);
+    int *sg_fr_aux_mode_directed[MAX_TABLE_VARS];        
+    int subs_pos = 0;
+    int subs_arity = 0; 
     for (i = 0; i < arity; i++) {
       int aux_pos = 0;
       if (aux_mode_directed[i] == MODE_DIRECTED_MAX)
@@ -411,8 +413,24 @@ static Int p_table( USES_REGS1 ) {
       else if (aux_mode_directed[i] == MODE_DIRECTED_DIM)
 	aux_pos = pos_dim++;
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
-    }
 
+      if (aux_mode_directed[i] == MODE_DIRECTED_MAX ||
+	  aux_mode_directed[i] == MODE_DIRECTED_MIN) {
+	subs_arity++; 
+	sg_fr_aux_mode_directed[subs_pos] = 
+	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[i]));
+	subs_pos++;
+      }
+    }
+        
+    if (subs_pos) {
+      ALLOC_BLOCK(sg_fr_mode_directed, subs_pos * sizeof(int), int);
+      memcpy((void *) sg_fr_mode_directed, 
+	     (void *) sg_fr_aux_mode_directed, subs_pos * sizeof(int));
+    } 
+
+    free(aux_mode_directed);
+    
     /*
     printf("---aux mode_directed--- \n");
     for (i = 0; i < arity; i++)
@@ -425,7 +443,7 @@ static Int p_table( USES_REGS1 ) {
       printf("%d ", dim_array[i]);
     printf("\n");    
     */
-    free(aux_mode_directed);
+
 
 #else /* !THREADS_NO_SUBGOAL_TRIE */
     int pos_index = 0;
@@ -485,7 +503,7 @@ static Int p_table( USES_REGS1 ) {
   pe->PredFlags |= TabledPredFlag;
   
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, no_subgoal_trie);
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_NO_SUBGOAL_TRIE */

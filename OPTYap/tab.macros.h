@@ -634,7 +634,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #ifdef THREADS_NO_SUBGOAL_TRIE
 
-#define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY, DIM_ARRAY, NO_TRIE) \
+#define new_table_entry(TAB_ENT, PRED_ENTRY, ATOM, ARITY, MODE_ARRAY, DIM_ARRAY, SG_FR_MODE_ARRAY, NO_TRIE) \
         ALLOC_TABLE_ENTRY(TAB_ENT);                                    \
         INIT_LOCK_TAB_ENT(TAB_ENT);                                    \
         TabEnt_pe(TAB_ENT) = PRED_ENTRY;                               \
@@ -653,6 +653,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
         TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
 	TabEnt_dimension_array(TAB_ENT) = DIM_ARRAY;		       \
+	TabEnt_sg_fr_mode_directed(TAB_ENT) = SG_FR_MODE_ARRAY;	       \
         TabEnt_no_subgoal_trie(TAB_ENT) = NO_TRIE;		       \
         TabEnt_init_subgoal_trie_field(TAB_ENT);                       \
         TabEnt_hash_chain(TAB_ENT) = NULL;                             \
