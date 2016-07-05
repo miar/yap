@@ -336,7 +336,7 @@ static Int p_table( USES_REGS1 ) {
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
     int pos_all = 0;
-    int pos_last = 0;
+    int pos_sum_last = 0;
     int pos_dim = 0;
     int *aux_mode_directed;
     
@@ -368,8 +368,8 @@ static Int p_table( USES_REGS1 ) {
 	pos_index++;
       else if (mode == MODE_DIRECTED_ALL)
 	pos_all++;
-      else if (mode == MODE_DIRECTED_LAST)
-	pos_last++;
+      else if (mode == MODE_DIRECTED_LAST || mode == MODE_DIRECTED_SUM)
+	pos_sum_last++;
       else if (mode == MODE_DIRECTED_DIM) {
 	list = TailOfTerm(list);
 	int dim_size = IntOfTerm(HeadOfTerm(list));
@@ -385,8 +385,8 @@ static Int p_table( USES_REGS1 ) {
       no_subgoal_trie = (struct no_subgoal_trie_pos *) 
 	calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
     
-    pos_first = pos_dim + pos_index + pos_agreg + pos_all + pos_last;
-    pos_last = pos_dim + pos_index + pos_agreg + pos_all;
+    pos_first = pos_dim + pos_index + pos_agreg + pos_all + pos_sum_last;
+    pos_sum_last = pos_dim + pos_index + pos_agreg + pos_all;
     pos_all = pos_dim + pos_index + pos_agreg;
     pos_agreg = pos_dim + pos_index;
     pos_index = pos_dim;
@@ -409,15 +409,12 @@ static Int p_table( USES_REGS1 ) {
       else if (aux_mode_directed[i] == MODE_DIRECTED_ALL)
 	aux_pos = pos_all++;		
       else if (aux_mode_directed[i] == MODE_DIRECTED_LAST)
-	aux_pos = pos_last++;
+	aux_pos = pos_sum_last++;
       else if (aux_mode_directed[i] == MODE_DIRECTED_DIM)
 	aux_pos = pos_dim++;
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
 
       if (aux_mode_directed[i] != MODE_DIRECTED_DIM) {
-
-      /*if (aux_mode_directed[i] == MODE_DIRECTED_MAX ||
-	aux_mode_directed[i] == MODE_DIRECTED_MIN) { */
 	subs_arity++; 
 	sg_fr_aux_mode_directed[subs_pos] = (int)
 	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[i]));
@@ -459,7 +456,7 @@ static Int p_table( USES_REGS1 ) {
     int pos_agreg = 0;  /* min/max */
     int pos_first = 0;
     int pos_all = 0;
-    int pos_last = 0;
+    int pos_sum_last = 0;
     int i;
     int *aux_mode_directed;
 
@@ -472,15 +469,15 @@ static Int p_table( USES_REGS1 ) {
       else if (mode == MODE_DIRECTED_ALL)
 	pos_all++;
       else if (mode == MODE_DIRECTED_LAST)
-	pos_last++;
+	pos_sum_last++;
       else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
 	pos_agreg++;
       aux_mode_directed[i] = mode;
       list = TailOfTerm(list);
     }
     
-    pos_first = pos_index + pos_agreg + pos_all + pos_last;
-    pos_last = pos_index + pos_agreg + pos_all;
+    pos_first = pos_index + pos_agreg + pos_all + pos_sum_last;
+    pos_sum_last = pos_index + pos_agreg + pos_all;
     pos_all = pos_index + pos_agreg;
     pos_agreg = pos_index;
     pos_index = 0;
@@ -496,8 +493,9 @@ static Int p_table( USES_REGS1 ) {
 	aux_pos = pos_first++;
       else if (aux_mode_directed[i] == MODE_DIRECTED_ALL)
 	aux_pos = pos_all++;		
-      else if (aux_mode_directed[i] == MODE_DIRECTED_LAST)
-	aux_pos = pos_last++;	
+      else if (aux_mode_directed[i] == MODE_DIRECTED_LAST || 
+	       aux_mode_directed[i] == MODE_DIRECTED_SUM))
+	aux_pos = pos_sum_last++;	
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
     free(aux_mode_directed);

@@ -1644,7 +1644,7 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     Float no_trie_value_sum;
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      Float no_trie_value_sum = (Float) IntOfTerm(no_trie_term) + term_value;
+      no_trie_value_sum = (Float) IntOfTerm(no_trie_term) + term_value;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
 		      no_trie_term, MkIntTerm(no_trie_value_sum)));    
   }

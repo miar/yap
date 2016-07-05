@@ -163,6 +163,7 @@ table(Pred) :-
 */
 
 %% should match with code in OPTYap/tab.macros.h
+
 '$transl_to_mode_directed_tabling'(index, 1).
 '$transl_to_mode_directed_tabling'(first, 2).
 '$transl_to_mode_directed_tabling'(all, 3).
@@ -170,6 +171,7 @@ table(Pred) :-
 '$transl_to_mode_directed_tabling'(min, 5).
 '$transl_to_mode_directed_tabling'(last, 6).
 %'$transl_to_mode_directed_tabling'(dim, 7). don't uncomment. this is just to set mode dim=7.
+'$transl_to_mode_directed_tabling'(sum, 8).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
