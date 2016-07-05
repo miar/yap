@@ -1631,11 +1631,7 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else if (mode == MODE_DIRECTED_FIRST) {
-    do {
-      no_trie_term = SgNoTrie_ans(no_st_pos);     
-      if (no_trie_term != (Term) NULL)
 	return false;
-    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else if (mode == MODE_DIRECTED_LAST) {
     do 
       no_trie_term = SgNoTrie_ans(no_st_pos);     

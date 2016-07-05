@@ -417,7 +417,7 @@ static Int p_table( USES_REGS1 ) {
       if (aux_mode_directed[i] != MODE_DIRECTED_DIM) {
 	subs_arity++; 
 	sg_fr_aux_mode_directed[subs_pos] = (int)
-	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[i]));
+	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[aux_pos]));
 	subs_pos++;
       }
     }
