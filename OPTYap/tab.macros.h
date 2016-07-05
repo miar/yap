@@ -181,6 +181,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 /* mode directed tabling */
 #define MODE_DIRECTED_TAGBITS         0xF
 #define MODE_DIRECTED_NUMBER_TAGBITS  4
+
 #define MODE_DIRECTED_INDEX           1
 #define MODE_DIRECTED_FIRST           2
 #define MODE_DIRECTED_ALL             3

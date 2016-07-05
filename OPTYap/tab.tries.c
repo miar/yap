@@ -1147,12 +1147,12 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   Term t = Deref(XREGS[j]);
   int no_st_index = IntOfTerm(t);
 
-  /*  printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
+  printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
 	 IntOfTerm(Deref(XREGS[1])), 
 	 IntOfTerm(Deref(XREGS[2])), 
 	 IntOfTerm(Deref(XREGS[3])),
 	 j, no_st_index); 
-  */
+  
 
   for (i = 1; i < pred_arity; i++) {
     mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
@@ -1623,14 +1623,32 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
       if (term_value > no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
-  } else /* mode == MODE_DIRECTED_MAX */ {
+  } else if (mode == MODE_DIRECTED_MAX) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
       no_trie_value = (Float) IntOfTerm(no_trie_term);    
       if (term_value < no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
-  } 
+  } else if (mode == MODE_DIRECTED_FIRST) {
+    do {
+      no_trie_term = SgNoTrie_ans(no_st_pos);     
+      if (no_trie_term != (Term) NULL)
+	return false;
+    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+  } else if (mode == MODE_DIRECTED_LAST) {
+    do 
+      no_trie_term = SgNoTrie_ans(no_st_pos);     
+    while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+  } else /* mode == MODE_DIRECTED_SUM */ {
+    Float no_trie_value_sum;
+    do {
+      no_trie_term = SgNoTrie_ans(no_st_pos);     
+      Float no_trie_value_sum = (Float) IntOfTerm(no_trie_term) + term_value;
+    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
+		      no_trie_term, MkIntTerm(no_trie_value_sum)));    
+  }
+   
   return true;
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */

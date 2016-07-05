@@ -385,9 +385,9 @@ static Int p_table( USES_REGS1 ) {
       no_subgoal_trie = (struct no_subgoal_trie_pos *) 
 	calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
     
-    pos_first = pos_index + pos_agreg + pos_all + pos_last;
-    pos_last = pos_index + pos_agreg + pos_all;
-    pos_all = pos_index + pos_agreg;
+    pos_first = pos_dim + pos_index + pos_agreg + pos_all + pos_last;
+    pos_last = pos_dim + pos_index + pos_agreg + pos_all;
+    pos_all = pos_dim + pos_index + pos_agreg;
     pos_agreg = pos_dim + pos_index;
     pos_index = pos_dim;
     pos_dim = 0;
@@ -414,10 +414,12 @@ static Int p_table( USES_REGS1 ) {
 	aux_pos = pos_dim++;
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
 
-      if (aux_mode_directed[i] == MODE_DIRECTED_MAX ||
-	  aux_mode_directed[i] == MODE_DIRECTED_MIN) {
+      if (aux_mode_directed[i] != MODE_DIRECTED_DIM) {
+
+      /*if (aux_mode_directed[i] == MODE_DIRECTED_MAX ||
+	aux_mode_directed[i] == MODE_DIRECTED_MIN) { */
 	subs_arity++; 
-	sg_fr_aux_mode_directed[subs_pos] = 
+	sg_fr_aux_mode_directed[subs_pos] = (int)
 	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[i]));
 	subs_pos++;
       }
@@ -431,7 +433,7 @@ static Int p_table( USES_REGS1 ) {
 
     free(aux_mode_directed);
     
-    /*
+    
     printf("---aux mode_directed--- \n");
     for (i = 0; i < arity; i++)
       printf("%d ", aux_mode_directed[i]);
@@ -441,8 +443,15 @@ static Int p_table( USES_REGS1 ) {
     printf("\n ---dim array --- \n");
     for (i = 0; i < dim_array_size; i++)
       printf("%d ", dim_array[i]);
+    printf("\n---sg_fr mode_directed--- \n");
+    for (i = 0; i < subs_pos; i++)
+      printf("%d ", MODE_DIRECTED_GET_MODE(sg_fr_mode_directed[i]));
     printf("\n");    
-    */
+	
+
+    
+
+    
 
 
 #else /* !THREADS_NO_SUBGOAL_TRIE */
