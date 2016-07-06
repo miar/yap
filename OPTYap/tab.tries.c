@@ -1143,16 +1143,18 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   pred_arity = preg->u.Otapl.s;
 
   int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);
+
   int j = MODE_DIRECTED_GET_ARG(mode_directed[0]) + 1;
   Term t = Deref(XREGS[j]);
   int no_st_index = IntOfTerm(t);
 
-  printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
+  /*  
+      printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
 	 IntOfTerm(Deref(XREGS[1])), 
 	 IntOfTerm(Deref(XREGS[2])), 
 	 IntOfTerm(Deref(XREGS[3])),
 	 j, no_st_index); 
-  
+  */
 
   for (i = 1; i < pred_arity; i++) {
     mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
@@ -1385,6 +1387,13 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
     SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
   } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
   
+  /*
+    printf("\n---sg_fr mode_directed--- \n");
+    for (i = 0; i < subs_pos; i++)
+      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
+    printf("\n");    
+  */
+
   return sg_fr;
 
 #else /* THREADS_FULL_SHARING */

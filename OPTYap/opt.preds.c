@@ -373,8 +373,9 @@ static Int p_table( USES_REGS1 ) {
       else if (mode == MODE_DIRECTED_DIM) {
 	list = TailOfTerm(list);
 	int dim_size = IntOfTerm(HeadOfTerm(list));
-	dim_array[pos_dim++] = dim_size;
+	dim_array[pos_dim] = dim_size;
 	no_subgoal_trie_size *= dim_size;
+	pos_dim++;
       } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
 	pos_agreg++;
       aux_mode_directed[i] = mode;
@@ -408,13 +409,15 @@ static Int p_table( USES_REGS1 ) {
 	aux_pos = pos_first++;
       else if (aux_mode_directed[i] == MODE_DIRECTED_ALL)
 	aux_pos = pos_all++;		
-      else if (aux_mode_directed[i] == MODE_DIRECTED_LAST)
+      else if (aux_mode_directed[i] == MODE_DIRECTED_LAST || 
+	       aux_mode_directed[i] == MODE_DIRECTED_SUM)
 	aux_pos = pos_sum_last++;
       else if (aux_mode_directed[i] == MODE_DIRECTED_DIM)
 	aux_pos = pos_dim++;
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
 
-      if (aux_mode_directed[i] != MODE_DIRECTED_DIM) {
+      if (pos_dim != 0 && aux_mode_directed[i] != MODE_DIRECTED_DIM) {
+	/* creating the sg_fr_aux_mode_directed only when mode dim is present */
 	subs_arity++; 
 	sg_fr_aux_mode_directed[subs_pos] = (int)
 	  MODE_DIRECTED_SET(subs_arity, MODE_DIRECTED_GET_MODE(mode_directed[aux_pos]));
@@ -427,30 +430,29 @@ static Int p_table( USES_REGS1 ) {
       memcpy((void *) sg_fr_mode_directed, 
 	     (void *) sg_fr_aux_mode_directed, subs_pos * sizeof(int));
     } 
-
-    free(aux_mode_directed);
-    
-    
+    /*
     printf("---aux mode_directed--- \n");
     for (i = 0; i < arity; i++)
       printf("%d ", aux_mode_directed[i]);
     printf("\n---mode_directed--- \n");
     for (i = 0; i < arity; i++)
-      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
-    printf("\n ---dim array --- \n");
+      printf("mode = %d arg = %d\n", MODE_DIRECTED_GET_MODE(mode_directed[i]),
+	                           MODE_DIRECTED_GET_ARG(mode_directed[i]));
+    printf("---dim array --- \n");
     for (i = 0; i < dim_array_size; i++)
       printf("%d ", dim_array[i]);
-    printf("\n---sg_fr mode_directed--- \n");
-    for (i = 0; i < subs_pos; i++)
-      printf("%d ", MODE_DIRECTED_GET_MODE(sg_fr_mode_directed[i]));
-    printf("\n");    
-	
-
+    printf("\n");
+    printf("---sg_fr mode_directed--- \n");
+    if (sg_fr_mode_directed) {
+      for (i = 0; i < subs_pos; i++)
+	printf("mode = %d arg = %d\n", MODE_DIRECTED_GET_MODE(sg_fr_mode_directed[i]), 
+	       MODE_DIRECTED_GET_ARG(sg_fr_mode_directed[i]));
+    } else
+      printf("empty -> set in subgoal_search\n");
+    */
+      
+    free(aux_mode_directed);
     
-
-    
-
-
 #else /* !THREADS_NO_SUBGOAL_TRIE */
     int pos_index = 0;
     int pos_agreg = 0;  /* min/max */
@@ -494,10 +496,21 @@ static Int p_table( USES_REGS1 ) {
       else if (aux_mode_directed[i] == MODE_DIRECTED_ALL)
 	aux_pos = pos_all++;		
       else if (aux_mode_directed[i] == MODE_DIRECTED_LAST || 
-	       aux_mode_directed[i] == MODE_DIRECTED_SUM))
+	       aux_mode_directed[i] == MODE_DIRECTED_SUM)
 	aux_pos = pos_sum_last++;	
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
+
+    /*
+    printf("---aux mode_directed--- \n");
+    for (i = 0; i < arity; i++)
+      printf("%d ", aux_mode_directed[i]);
+    printf("\n---mode_directed--- \n");
+    for (i = 0; i < arity; i++)
+      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
+    printf("\n");
+    */
+
     free(aux_mode_directed);
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
