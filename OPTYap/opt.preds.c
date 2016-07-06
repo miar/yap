@@ -501,14 +501,14 @@ static Int p_table( USES_REGS1 ) {
       mode_directed[aux_pos] = MODE_DIRECTED_SET(i, aux_mode_directed[i]);
     }
 
-    /*
+    /*    
     printf("---aux mode_directed--- \n");
     for (i = 0; i < arity; i++)
       printf("%d ", aux_mode_directed[i]);
     printf("\n---mode_directed--- \n");
     for (i = 0; i < arity; i++)
-      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
-    printf("\n");
+      printf("mode = %d arg = %d \n", MODE_DIRECTED_GET_MODE(mode_directed[i]),
+	                              MODE_DIRECTED_GET_ARG(mode_directed[i]));
     */
 
     free(aux_mode_directed);

@@ -1387,11 +1387,11 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
     SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
   } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
   
-  /*
-    printf("\n---sg_fr mode_directed--- \n");
-    for (i = 0; i < subs_pos; i++)
-      printf("%d ", MODE_DIRECTED_GET_MODE(mode_directed[i]));
-    printf("\n");    
+  /*  
+  printf("\n---sg_fr mode_directed--- \n");
+  for (i = 0; i < subs_pos; i++)
+    printf("mode = %d arg = %d \n", MODE_DIRECTED_GET_MODE(mode_directed[i]),
+	   MODE_DIRECTED_GET_ARG(mode_directed[i]));
   */
 
   return sg_fr;
@@ -1649,9 +1649,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     Float no_trie_value_sum;
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value_sum = (Float) IntOfTerm(no_trie_term) + term_value;
+      no_trie_value_sum = (Float) FloatOfTerm(no_trie_term) + term_value;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
-		      no_trie_term, MkIntTerm(no_trie_value_sum)));    
+		      no_trie_term, MkFloatTerm(no_trie_value_sum)));    
   }
    
   return true;
