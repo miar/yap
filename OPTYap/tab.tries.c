@@ -1613,7 +1613,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
 
   no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
   Term term = Deref(subs_ptr[i]);
-  Float term_value = (Float) IntOfTerm(term);
+  double term_value = FloatOfTerm(term);
+
+  printf("term = %d term_value = %lf \n", term, term_value);
   
   if (SgNoTrie_ans(no_st_pos) == (Term) NULL)
     /* insert the first term */
@@ -1622,9 +1624,10 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   
   /* at least one term is in no_st_pos */
 
-  Float no_trie_value = 0;
+  Float no_trie_value = 0.0;
   Term no_trie_term;
 
+  /*   -------> HERE <------- */
   if (mode == MODE_DIRECTED_MIN) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
@@ -1646,12 +1649,15 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
       no_trie_term = SgNoTrie_ans(no_st_pos);     
     while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else /* mode == MODE_DIRECTED_SUM */ {
-    Float no_trie_value_sum;
+    Float no_trie_sum_value;
+    Term t;
     do {
-      no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value_sum = (Float) FloatOfTerm(no_trie_term) + term_value;
+      no_trie_term = SgNoTrie_ans(no_st_pos);
+      no_trie_sum_value = FloatOfTerm(no_trie_term) + term_value;
+      printf("no_trie_sum_value %f \n", no_trie_sum_value);
+      t = MkIntTerm(no_trie_sum_value); 
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
-		      no_trie_term, MkFloatTerm(no_trie_value_sum)));    
+		      no_trie_term, t));    
   }
    
   return true;
