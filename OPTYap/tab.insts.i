@@ -1165,6 +1165,7 @@
     sg_fr_ptr sg_fr;
     ans_node_ptr ans_node;
     
+    
     gcp = NORM_CP(YENV[E_B]);
 #ifdef DETERMINISTIC_TABLING
     if (IS_DET_GEN_CP(gcp)){  
@@ -1231,7 +1232,7 @@
 
         }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-      
+
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr PASS_REGS);
   
       if (ans_node == NULL) {
@@ -1819,7 +1820,6 @@
 	ans_node_ptr child_node = TrNode_child(ans_node);
 	if (child_node && (DepFr_last_term(dep_fr) != TrNode_entry(child_node))) {
 	  /* unconsumed answers */
-	  //	  printf("oooooooooooooooooooooooo1 \n");
 	  DepFr_last_term(dep_fr) = TrNode_entry(child_node);
 	  ans_node = child_node; 
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */

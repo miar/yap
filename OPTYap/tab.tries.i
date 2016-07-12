@@ -1061,7 +1061,8 @@ static inline ans_node_ptr answer_trie_check_insert_entry(sg_fr_ptr sg_fr, ans_n
 #endif /* MODE_GLOBAL_TRIE_ENTRY */
   ans_node_ptr child_node;
 
-  TABLING_ERROR_CHECKING(answer_trie_check_insert_(gt)_entry, IS_ANSWER_LEAF_NODE(parent_node));
+  if (!IsApplTerm(t)) 
+    TABLING_ERROR_CHECKING(answer_trie_check_insert_(gt)_entry, IS_ANSWER_LEAF_NODE(parent_node));
   LOCK_ANSWER_NODE(parent_node);
   child_node = TrNode_child(parent_node);
   if (child_node == NULL) {
@@ -3027,6 +3028,7 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
       STACK_PUSH_UP(Deref(aux_pair[0]), stack_terms);
 #endif /* TRIE_COMPACT_PAIRS */
     } else if (IsApplTerm(t)) {
+
       Functor f = FunctorOfTerm(t);
       if (f == FunctorDouble) {
 	union {
@@ -3034,6 +3036,7 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
 	  Float dbl;
 	} u;
 	u.dbl = FloatOfTerm(t);
+	//printf("1-----------------> u.dbl = %.12f \n", u.dbl);
 	ANSWER_CHECK_INSERT_ENTRY(sg_fr, current_node, AbsAppl((Term *)f), _trie_retry_null + in_pair);
 #if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
 	ANSWER_CHECK_INSERT_ENTRY(sg_fr, current_node, u.t_dbl[1], _trie_retry_extension);
@@ -3099,6 +3102,7 @@ static inline ans_node_ptr answer_search_loop(sg_fr_ptr sg_fr, ans_node_ptr curr
         }
 
 static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr current_node, Term t, int mode USES_REGS) {
+
   ans_node_ptr child_node, first_child_node;
   Term child_term;
   Float trie_value = 0, term_value = 0;  
@@ -3159,6 +3163,7 @@ static inline ans_node_ptr answer_search_min_max(sg_fr_ptr sg_fr, ans_node_ptr c
 	Float dbl;
       } u;
       u.dbl = FloatOfTerm(t);
+
       NEW_MODE_DIRECTED_ANS_FIRST_NODE(new_first_node, new_last_node, current_node, AbsAppl((Term *)f), _trie_retry_null);
 #if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
       NEW_MODE_DIRECTED_ANS_SECOND_NODE(new_last_node, u.t_dbl[1], _trie_retry_extension);

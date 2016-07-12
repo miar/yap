@@ -1612,17 +1612,47 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   i = subs_arity;
 
   no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
-  Term term = Deref(subs_ptr[i]);
-  double term_value = FloatOfTerm(term);
 
-  printf("term = %d term_value = %lf \n", term, term_value);
-  
+  /*
+  if (IsIntTerm(Deref(subs_ptr[i])))
+      printf("Int term --> subs_ptr[i] = %d \n", IntOfTerm(Deref(subs_ptr[i])));
+  else if (IsFloatTerm(Deref(subs_ptr[i])))
+    printf("Float term --> subs_ptr[i] = %.12lf \n", FloatOfTerm(Deref(subs_ptr[i])));
+  else
+    printf("do not know \n");
+	                                            
+  Term t = Deref(subs_ptr[i]);
+  if (IsApplTerm(t))  {
+    printf("AAAAAAAAAAAAA \n");
+    Functor f = FunctorOfTerm(t);
+    if (f == FunctorDouble) {
+      union {
+	Term t_dbl[sizeof(Float)/sizeof(Term)];
+	Float dbl;
+      } u;
+      u.dbl = FloatOfTerm(t);
+      printf("1 -->>> u.dbl = %.12f \n", u.dbl);
+    }
+
+  }
+  */
+
+  Term term = Deref(subs_ptr[i]);
+
   if (SgNoTrie_ans(no_st_pos) == (Term) NULL)
     /* insert the first term */
     if (BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), NULL, term))
       return true;
   
   /* at least one term is in no_st_pos */
+
+  Float term_value;
+  if (IsIntTerm(term))
+    term_value = (Float) IntOfTerm(term);    
+  else if (IsFloatTerm(term))
+    term_value = FloatOfTerm(term);
+  else
+    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie: invalid arithmetic value");
 
   Float no_trie_value = 0.0;
   Term no_trie_term;
@@ -1631,14 +1661,14 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   if (mode == MODE_DIRECTED_MIN) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value = (Float) IntOfTerm(no_trie_term);    
+      no_trie_value = FloatOfTerm(no_trie_term);    
       if (term_value > no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else if (mode == MODE_DIRECTED_MAX) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value = (Float) IntOfTerm(no_trie_term);    
+      no_trie_value = FloatOfTerm(no_trie_term);
       if (term_value < no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
@@ -1654,8 +1684,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);
       no_trie_sum_value = FloatOfTerm(no_trie_term) + term_value;
-      printf("no_trie_sum_value %f \n", no_trie_sum_value);
-      t = MkIntTerm(no_trie_sum_value); 
+      printf("no_trie_sum_value %.12f \n", no_trie_sum_value);
+
+      t = MkFloatTerm(no_trie_sum_value); 
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
 		      no_trie_term, t));    
   }
@@ -1776,7 +1807,6 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   mode_directed = SgFr_mode_directed(sg_fr);
   j = 0;
   i = subs_arity;
-
 
   while (i) {
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);   // mode
