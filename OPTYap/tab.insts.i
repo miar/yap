@@ -199,6 +199,7 @@
 #define consume_answer_and_procceed_no_trie(DEP_FR, ANSWER)                    \
         { CELL *subs_ptr;                                                      \
           /* restore consumer choice point */                                  \
+	  DepFr_last_term(DEP_FR) = ANSWER;				       \
           H = HBREG = PROTECT_FROZEN_H(B);                                     \
           restore_yaam_reg_cpdepth(B);                                         \
           CPREG = B->cp_cp;                                                    \
@@ -216,7 +217,10 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-	  Bind((CELL *) YENV[1], ANSWER); /* subs_arity = 1*/                  \
+	  printf("consumed answer was %d \n", IntOfTerm(ANSWER));              \
+	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	       \
+          Bind((CELL *) subs_ptr[1], ANSWER);                                  \
+          /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/   \
           /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */  \
           /* procceed */                                                       \
           YENV = ENV;                                                          \
@@ -588,7 +592,7 @@
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
         Term ans_term = SgNoTrie_ans(no_st_pos);
-        if (ans_term == NULL)
+        if (ans_term == (Term) NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -778,7 +782,7 @@
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
         Term ans_term = SgNoTrie_ans(no_st_pos);
-        if (ans_term == NULL)
+        if (ans_term == (Term) NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -953,6 +957,7 @@
     } else if (SgFr_state(sg_fr) == evaluating) {
       /* subgoal in evaluation */
       //      printf("second call in C\n");
+	//printf("consumer answer is %f \n", FloatOfTerm(SgNoTrie_ans(SgFr_no_sg_pos(sg_fr))));
       choiceptr leader_cp;
       int leader_dep_on_stack;
       find_dependency_node(sg_fr, leader_cp, leader_dep_on_stack);
@@ -978,7 +983,7 @@
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
         Term ans_term = SgNoTrie_ans(no_st_pos);
-        if (ans_term == NULL)
+        if (ans_term == (Term) NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -1632,15 +1637,19 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
+      //printf("1-DepFr_no_sg_pos(dep_fr) \n");
       Term last_consumed_term = DepFr_last_term(dep_fr); 
       Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
       if (last_consumed_term != term) {
+	//printf("2-DepFr_no_sg_pos(dep_fr) \n");
 	/* unconsumed answer in dependency frame */
-	DepFr_last_term(dep_fr) = term;
 	consume_answer_and_procceed_no_trie(dep_fr, term);
       }
-
+      printf("(SgNoTrie_ans(DepFr_no_sg_pos(dep_fr)) = %p)- last_consumed_term = %d  term = %d int_last = %f term = %f \n",  &(SgNoTrie_ans(DepFr_no_sg_pos(dep_fr))), last_consumed_term, term, IntOfTerm(last_consumed_term), IntOfTerm(term));
+	
+      
       /* no unconsumed answers */
       if (DepFr_backchain_cp(dep_fr) == NULL) {
 	/* normal backtrack */
@@ -1660,7 +1669,6 @@
 	  last_consumed_term = DepFr_last_term(dep_fr); 
 	  if (last_consumed_term != term) {
 	    /* unconsumed answer in dependency frame */
-	    DepFr_last_term(dep_fr) = term;
 	    /* restore bindings, update registers, consume answer and procceed */
 	    restore_bindings(B->cp_tr, chain_cp->cp_tr);
 	    B = chain_cp;
@@ -2108,9 +2116,10 @@
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
 	Term last_consumed_term = DepFr_last_term(dep_fr); 
 	Term term = SgNoTrie_ans(DepFr_no_sg_pos(dep_fr));
+	//printf("last_consumed_term = %f \n", FloatOfTerm(last_consumed_term));
+
 	if (last_consumed_term != term) {
 	  /* unconsumed answer in dependency frame */
-	  DepFr_last_term(dep_fr) = term;
 	  if (B->cp_ap)
 	    DepFr_backchain_cp(dep_fr) = B;
 	  else
@@ -2145,7 +2154,7 @@
         /* subgoal completed */
         no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
 	Term ans_term = SgNoTrie_ans(no_st_pos);
-	if (ans_term == NULL)
+	if (ans_term == (Term) NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {

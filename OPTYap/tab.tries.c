@@ -1646,32 +1646,33 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   
   /* at least one term is in no_st_pos */
 
-  Float term_value;
+  Int term_value = 0;
   if (IsIntTerm(term))
-    term_value = (Float) IntOfTerm(term);    
-  else if (IsFloatTerm(term))
-    term_value = FloatOfTerm(term);
+    term_value = IntOfTerm(term);
   else
     Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie: invalid arithmetic value");
-
-  Float no_trie_value = 0.0;
+  
+  Int no_trie_value = 0;
   Term no_trie_term;
 
   /*   -------> HERE <------- */
   if (mode == MODE_DIRECTED_MIN) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value = FloatOfTerm(no_trie_term);    
+      no_trie_value = IntOfTerm(no_trie_term);    
       if (term_value > no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else if (mode == MODE_DIRECTED_MAX) {
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);     
-      no_trie_value = FloatOfTerm(no_trie_term);
+      no_trie_value = IntOfTerm(no_trie_term);
       if (term_value < no_trie_value)
 	return false;
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
+    printf("(SgNoTrie_ans(no_st_pos) = %p) new answer found = %d \n", 
+	   &(SgNoTrie_ans(no_st_pos)), IntOfTerm(SgNoTrie_ans(no_st_pos)));	  
+    
   } else if (mode == MODE_DIRECTED_FIRST) {
 	return false;
   } else if (mode == MODE_DIRECTED_LAST) {
@@ -1679,14 +1680,13 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
       no_trie_term = SgNoTrie_ans(no_st_pos);     
     while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_term, term));
   } else /* mode == MODE_DIRECTED_SUM */ {
-    Float no_trie_sum_value;
+    Int no_trie_sum_value = 0;
     Term t;
     do {
       no_trie_term = SgNoTrie_ans(no_st_pos);
-      no_trie_sum_value = FloatOfTerm(no_trie_term) + term_value;
-      printf("no_trie_sum_value %.12f \n", no_trie_sum_value);
-
-      t = MkFloatTerm(no_trie_sum_value); 
+      no_trie_sum_value = IntOfTerm(no_trie_term) + term_value;
+      t = MkIntTerm(no_trie_sum_value); 
+      printf("no_trie_sum_value %d \n", no_trie_sum_value);
     } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), 
 		      no_trie_term, t));    
   }
