@@ -142,9 +142,34 @@ table(Pred) :-
 
 '$transl_to_mode_list'([],[],0) :- !.
 
+'$transl_to_mode_list'([first(TextualMode)|L],[2, Mode|ModeList],Arity) :- !,
+    '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+'$transl_to_mode_list'([max(TextualMode)|L],[4, Mode|ModeList],Arity) :- !,
+    '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+'$transl_to_mode_list'([min(TextualMode)|L],[5, Mode|ModeList],Arity) :- !,
+    '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+'$transl_to_mode_list'([last(TextualMode)|L],[6, Mode|ModeList],Arity) :- !,
+    '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
 '$transl_to_mode_list'([dim(Dim)|L],[7, Dim|ModeList],Arity) :- !,
     integer(Dim),
     '$transl_to_mode_directed_tabling'(TextualMode, Mode),
+    '$transl_to_mode_list'(L,ModeList,ListArity),
+    Arity is ListArity + 1.
+
+'$transl_to_mode_list'([sum(TextualMode)|L],[8, Mode|ModeList],Arity) :- !,
+    '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
     '$transl_to_mode_list'(L,ModeList,ListArity),
     Arity is ListArity + 1.
 
@@ -173,6 +198,8 @@ table(Pred) :-
 %'$transl_to_mode_directed_tabling'(dim, 7). don't uncomment. this is just to set mode dim=7.
 '$transl_to_mode_directed_tabling'(sum, 8).
 
+'$transl_to_mode_directed_tabling_no_trie'(integer, 9).  % mode dim -> int answers
+'$transl_to_mode_directed_tabling_no_trie'(float, 10).   % mode dim -> float answers
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             is_tabled/1                             %%
