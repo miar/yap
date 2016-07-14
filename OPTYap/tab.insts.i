@@ -217,9 +217,9 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-	  printf("consumed answer was %d \n", IntOfTerm(ANSWER));              \
+	  printf("consumed answer was %d \n", ANSWER);                         \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	       \
-          Bind((CELL *) subs_ptr[1], ANSWER);                                  \
+          Bind((CELL *) subs_ptr[1], MkIntTerm(ANSWER));		       \
           /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/   \
           /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */  \
           /* procceed */                                                       \
@@ -598,7 +598,7 @@
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -788,7 +788,7 @@
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -989,7 +989,7 @@
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], ans_term); /* subs_arity = 1*/
+	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1647,7 +1647,7 @@
 	/* unconsumed answer in dependency frame */
 	consume_answer_and_procceed_no_trie(dep_fr, term);
       }
-      printf("(SgNoTrie_ans(DepFr_no_sg_pos(dep_fr)) = %p)- last_consumed_term = %d  term = %d int_last = %f term = %f \n",  &(SgNoTrie_ans(DepFr_no_sg_pos(dep_fr))), last_consumed_term, term, IntOfTerm(last_consumed_term), IntOfTerm(term));
+      printf("last_consumed_term = %d  term = %d \n", last_consumed_term, term);
 	
       
       /* no unconsumed answers */
@@ -2161,7 +2161,7 @@
 	  pop_generator_node(SgFr_arity(sg_fr));
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], ans_term); /* YENV[1] -> 1 is because subs_arity = 1 */
+	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity=1 */
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();
