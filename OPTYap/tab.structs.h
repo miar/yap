@@ -25,12 +25,17 @@ typedef enum {false,true} boolean;
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  Term entry;  // one answer only - for now
+  union {
+    Int entry_int;  // one answer only - for now
+    Float entry_float;
+  } answer;    
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos;
 
-#define SgNoTrie_sg_fr(X)   ((X)->subgoal_frame)
-#define SgNoTrie_ans(X)     ((X)->entry)
+#define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
+#define SgNoTrie_ans_int(X)     ((X)->answer.entry_int)
+#define SgNoTrie_ans_float(X)   ((X)->answer.entry_float)
+
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
 /**************************
@@ -51,8 +56,9 @@ typedef struct table_entry {
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
-  int* sg_fr_mode_directed_array;
+  int* sg_fr_mode_directed_array; 
   struct no_subgoal_trie_pos *no_subgoal_trie;
+  short no_subgoal_trie_type;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING
   struct subgoal_trie_node *subgoal_trie[THREADS_NUM_BUCKETS];
@@ -74,6 +80,7 @@ typedef struct table_entry {
 #define TabEnt_dim_array(X, i)                 ((X)->dimension_array[i])
 #define TabEnt_no_subgoal_trie(X)              ((X)->no_subgoal_trie)
 #define TabEnt_no_subgoal_trie_pos(X, pos)     ((X)->no_subgoal_trie[pos])
+#define TabEnt_no_subgoal_trie_type(X)         ((X)->no_subgoal_trie_type)
 #define TabEnt_subgoal_trie(X)                 ((X)->subgoal_trie)
 #define TabEnt_hash_chain(X)                   ((X)->hash_chain)
 #define TabEnt_next(X)                         ((X)->next)

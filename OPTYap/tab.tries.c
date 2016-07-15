@@ -1163,15 +1163,15 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     if (mode == MODE_DIRECTED_DIM) {
       // t must be an int otherwise system must give error (to be updated)
       no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
-    } else /* supporting mode == max || mode == min for now ...*/{
-      /* t must be a var term - min and max can only have a single var*/
+    } else /* supporting modes (sm) -> first | last | min | max | sum */ {
+      /* t must be a var term - (sm) can only have a single var */
       STACK_PUSH_UP(t, stack_vars);
       subs_arity++; 
-      //      aux_mode_directed[subs_pos++] = MODE_DIRECTED_SET(subs_arity, 
-      //				    MODE_DIRECTED_GET_MODE(mode_directed[i]));
     }
   }
     
+  
+
   /*  SYSTEM MUST ENSURE THAT no_st_index IS ALWAYS >= 0
       if (no_st_index < 0) {
      printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
@@ -1201,11 +1201,9 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
     // mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
-    //int counter = 0;
     while(sg_fr) {
       if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
 	return sg_fr;
-      //counter++;
       sg_fr = SgFr_next_wid(sg_fr);
     }
 
@@ -1639,9 +1637,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
 
   Term term = Deref(subs_ptr[i]);
 
-  if (SgNoTrie_ans(no_st_pos) == (Term) NULL)
+  if (SgNoTrie_ans_int(no_st_pos) == (Int) NULL)
     /* insert the first term */
-    if (BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), NULL, (Term) IntOfTerm(term)))
+    if (BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), NULL, IntOfTerm(term)))
       return true;
   
   /* at least one term is in no_st_pos */
@@ -1657,34 +1655,32 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   /*   -------> HERE <------- */
   if (mode == MODE_DIRECTED_MIN) {
     do {
-      no_trie_value = (Int) SgNoTrie_ans(no_st_pos);
+      no_trie_value = SgNoTrie_ans_int(no_st_pos);
       if (term_value > no_trie_value)
 	return false;
-    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_value, term_value));
-    printf("(SgNoTrie_ans(no_st_pos) = %p) new answer found = %d \n", 
-	   &(SgNoTrie_ans(no_st_pos)), SgNoTrie_ans(no_st_pos));	      
-
+    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
+    printf("(SgNoTrie_ans_int(no_st_pos) = %p) new answer found = %d \n", 
+	   &(SgNoTrie_ans_int(no_st_pos)), SgNoTrie_ans_int(no_st_pos));	      
   } else if (mode == MODE_DIRECTED_MAX) {
     do {
-      no_trie_value = (Int) SgNoTrie_ans(no_st_pos);
+      no_trie_value =  SgNoTrie_ans_int(no_st_pos);
       if (term_value < no_trie_value)
 	return false;
-    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_value, term_value));
-    printf("(SgNoTrie_ans(no_st_pos) = %p) new answer found = %d \n", 
-	   &(SgNoTrie_ans(no_st_pos)), SgNoTrie_ans(no_st_pos));	      
+    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
+    printf("(SgNoTrie_ans_int(no_st_pos) = %p) new answer found = %d \n", 
+	   &(SgNoTrie_ans_int(no_st_pos)), SgNoTrie_ans_int(no_st_pos));	      
   } else if (mode == MODE_DIRECTED_FIRST) {
 	return false;
   } else if (mode == MODE_DIRECTED_LAST) {
     do 
-      no_trie_value = (Int) SgNoTrie_ans(no_st_pos);
-    while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_value, term_value));
-
+      no_trie_value = SgNoTrie_ans_int(no_st_pos);
+    while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
   } else /* mode == MODE_DIRECTED_SUM */ {
     Int no_trie_sum_value = 0;
     do {
-      no_trie_value = (Int) SgNoTrie_ans(no_st_pos);
+      no_trie_value = SgNoTrie_ans_int(no_st_pos);
       no_trie_sum_value = no_trie_value + term_value;
-    } while(!BOOL_CAS(&(SgNoTrie_ans(no_st_pos)), no_trie_value, no_trie_sum_value));
+    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, no_trie_sum_value));
     printf("no_trie_sum_value %d \n", no_trie_sum_value);
   }   
   return true;

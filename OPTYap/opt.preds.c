@@ -361,6 +361,8 @@ static Int p_table( USES_REGS1 ) {
     aux_mode_directed = malloc(arity * sizeof(int));
 
     /* traverse all arguments again to construct mode / dim arrays */
+    //    int no_subgoal_trie_type = MODE_DIRECTED_DIM_FLOAT;
+
 
     for (i = 0; i < arity; i++) {
       int mode = IntOfTerm(HeadOfTerm(list));
@@ -376,8 +378,19 @@ static Int p_table( USES_REGS1 ) {
 	dim_array[pos_dim] = dim_size;
 	no_subgoal_trie_size *= dim_size;
 	pos_dim++;
-      } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX)
+      } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
+	/*  HERE --> MIG
+	list2 = list;
+	list2 = TailOfTerm(list2);
+	printf("list2 = %d head_term = %d \n", list2, IntOfTerm(HeadOfTerm(list2)));
+
+	if (IntOfTerm(HeadOfTerm(list2)) == MODE_DIRECTED_DIM_INTEGER)
+	  no_subgoal_trie_type = MODE_DIRECTED_DIM_INTEGER;  
+	
+	*/
 	pos_agreg++;
+
+      }
       aux_mode_directed[i] = mode;
       list = TailOfTerm(list);
     }
