@@ -32,8 +32,10 @@ typedef struct no_subgoal_trie_pos {
 #define SgNoTrie_answer(X)     ((X)->entry)
 
 
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX__
+typedef struct sg_fr_modes {
 
+} 
 
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 

@@ -351,10 +351,24 @@ static Int p_table( USES_REGS1 ) {
       int mode = IntOfTerm(HeadOfTerm(list2));
       if (mode == MODE_DIRECTED_DIM) {
 	dim_array_size++;
-	list2 = TailOfTerm(list2);
+	list2 = TailOfTerm(TailOfTerm(list2)); /* moving two positions in the term */
+      } else if (mode != MODE_DIRECTED_INDEX) {
+	if (TailOfTerm(list2) != TermNil) { 
+	  /* check if user has defined the no_trie type */
+	  Term list3 = list2;
+	  list3 = TailOfTerm(list3);
+	  mode = IntOfTerm(HeadOfTerm(list3));
+	  if (mode == MODE_DIRECTED_DIM_INTEGER || mode == MODE_DIRECTED_DIM_FLOAT) {
+	    /* user has defined the no_trie type */
+	    no_subgoal_trie_term_type = mode;
+	    list2 = TailOfTerm(list3);
+	  } else
+	    /* user has not defined the no_trie type */
+	    list2 = TailOfTerm(list2);
+	}
       }
-      list2 = TailOfTerm(list2);
     }
+    
     if (dim_array_size > 0) {      
       ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
     }
@@ -381,15 +395,6 @@ static Int p_table( USES_REGS1 ) {
 	no_subgoal_trie_size *= dim_size;
 	pos_dim++;
       } else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
-	/*  HERE --> MIG
-	list2 = list;
-	list2 = TailOfTerm(list2);
-	printf("list2 = %d head_term = %d \n", list2, IntOfTerm(HeadOfTerm(list2)));
-
-	if (IntOfTerm(HeadOfTerm(list2)) == MODE_DIRECTED_DIM_INTEGER)
-	  no_subgoal_trie_type = MODE_DIRECTED_DIM_INTEGER;  
-	
-	*/
 	pos_agreg++;
 
       }

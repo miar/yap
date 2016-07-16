@@ -154,7 +154,7 @@ table(Pred) :-
 
 '$transl_to_mode_list'([min(TextualMode)|L],[5, Mode|ModeList],Arity) :- !,
     '$transl_to_mode_directed_tabling_no_trie'(TextualMode, Mode),
-    '$transl_to_mode_list'(L,ModeList,ListArity),
+    '$transl_to_mode_list'(L,ModeList,ListArity), 
     Arity is ListArity + 1.
 
 '$transl_to_mode_list'([last(TextualMode)|L],[6, Mode|ModeList],Arity) :- !,
