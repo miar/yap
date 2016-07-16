@@ -31,15 +31,6 @@ typedef struct no_subgoal_trie_pos {
 #define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
 #define SgNoTrie_answer(X)     ((X)->entry)
 
-
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX__
-typedef struct sg_fr_modes {
-
-} 
-
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-
-
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
 /**************************
@@ -522,6 +513,13 @@ typedef struct subgoal_frame {
 #define SgFr_next_on_hash(X)            ((X)->next_on_hash)
 #define SgFr_wid(X)                     ((X)->wid)
 #define SgFr_next_wid(X)                ((X)->next_wid)
+
+/*
+#define SgFr_mode_directed_term_type(X)           (SUBGOAL_ENTRY(X) mode_directed_array)
+      *(a + sizeof(a)/sizeof(int) - 1)
+*/
+
+
 
 #define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer)
 #define SgFr_cons_ref_first_ans(X)      ((X)->consumer_ref_first_answer) 

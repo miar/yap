@@ -370,7 +370,7 @@ static Int p_table( USES_REGS1 ) {
     }
     
     if (dim_array_size > 0) {      
-      ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);
+      ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);      
     }
 
     int no_subgoal_trie_size = 1;
@@ -446,9 +446,12 @@ static Int p_table( USES_REGS1 ) {
     }
         
     if (subs_pos) {
-      ALLOC_BLOCK(sg_fr_mode_directed, subs_pos * sizeof(int), int);
+      ALLOC_BLOCK(sg_fr_mode_directed, (subs_pos + 1) * sizeof(int), int);
       memcpy((void *) sg_fr_mode_directed, 
 	     (void *) sg_fr_aux_mode_directed, subs_pos * sizeof(int));
+
+      /* last position of sg_fr_mode_directed is used to store the term_type */
+      sg_fr_mode_directed[subs_pos] = no_subgoal_trie_term_type;
     } 
     /*
     printf("---aux mode_directed--- \n");
