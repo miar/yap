@@ -449,7 +449,6 @@ static Int p_table( USES_REGS1 ) {
       ALLOC_BLOCK(sg_fr_mode_directed, (subs_pos + 1) * sizeof(int), int);
       memcpy((void *) sg_fr_mode_directed, 
 	     (void *) sg_fr_aux_mode_directed, subs_pos * sizeof(int));
-
       /* last position of sg_fr_mode_directed is used to store the term_type */
       sg_fr_mode_directed[subs_pos] = no_subgoal_trie_term_type;
     } 

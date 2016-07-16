@@ -29,7 +29,7 @@ typedef struct no_subgoal_trie_pos {
 } *no_subgoal_trie_pos;
 
 #define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
-#define SgNoTrie_answer(X)     ((X)->entry)
+#define SgNoTrie_answer(X)      ((X)->entry)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -513,13 +513,7 @@ typedef struct subgoal_frame {
 #define SgFr_next_on_hash(X)            ((X)->next_on_hash)
 #define SgFr_wid(X)                     ((X)->wid)
 #define SgFr_next_wid(X)                ((X)->next_wid)
-
-/*
-#define SgFr_mode_directed_term_type(X)           (SUBGOAL_ENTRY(X) mode_directed_array)
-      *(a + sizeof(a)/sizeof(int) - 1)
-*/
-
-
+#define SgFr_mode_directed_term_type(X) (SUBGOAL_ENTRY(X) mode_directed_array[1])
 
 #define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer)
 #define SgFr_cons_ref_first_ans(X)      ((X)->consumer_ref_first_answer) 
@@ -580,7 +574,7 @@ typedef struct dependency_frame {
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
-  short last_consumed_term_type;
+  int last_consumed_term_type;
   union {
     Int term_integer;
     Float term_float;
@@ -599,11 +593,10 @@ typedef struct dependency_frame {
 #define DepFr_leader_cp(X)               ((X)->leader_choice_point)
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
+#define DepFr_last_consumed_term_type(X) ((X)->last_consumed_term_type)
 #define DepFr_last_term(X)               (DepFr_last_term_integer(X))
 #define DepFr_last_term_integer(X)       ((X)->last_consumed.term_integer)
 #define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
-
-
 #define DepFr_next(X)                    ((X)->next)
 #define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
 
