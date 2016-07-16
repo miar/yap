@@ -601,7 +601,10 @@
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    { Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/ }
+	  else
+	    { Bind((CELL *) YENV[1], MkFloatTerm(ans_term)); /* subs_arity = 1*/ }
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
