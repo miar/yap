@@ -25,16 +25,12 @@ typedef enum {false,true} boolean;
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  union {
-    Int entry_int;  // one answer only - for now
-    Float entry_float;
-  } answer;    
+  Int entry;  // one answer only - for now
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos;
 
 #define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
-#define SgNoTrie_ans_int(X)     ((X)->answer.entry_int)
-#define SgNoTrie_ans_float(X)   ((X)->answer.entry_float)
+#define SgNoTrie_answer(X)     ((X)->entry)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -578,7 +574,7 @@ typedef struct dependency_frame {
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
-  Term last_consumed_term;
+  Int last_consumed_term;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
   struct no_subgoal_trie_pos *no_sg_pos;

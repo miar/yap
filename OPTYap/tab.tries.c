@@ -1601,89 +1601,56 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #ifdef MODE_DIRECTED_TABLING
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
+#define check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)     \
+    int *mode_directed;							                   \
+    mode_directed = SgFr_mode_directed(sg_fr);				                   \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
+    no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
+    if (SgNoTrie_answer(no_st_pos) == (TERM_TYPE) 0.0)			                   \
+      /* insert the first term */					                   \
+      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), (TERM_TYPE) 0.0, term_value))            \
+	return true;						  	                   \
+    /* at least one term is in no_st_pos */			  	                   \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
+    if (mode == MODE_DIRECTED_MIN) {					                   \
+      do {								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);	   		                   \
+	if (term_value > no_trie_value)					                   \
+	  return false;							                   \
+      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));        \
+    } else if (mode == MODE_DIRECTED_MAX) {				                   \
+      do {								                   \
+	no_trie_value =  SgNoTrie_answer(no_st_pos);			                   \
+	if (term_value < no_trie_value)					                   \
+	  return false;							                   \
+      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));        \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
+      return false;							                   \
+    } else if (mode == MODE_DIRECTED_LAST) {				                   \
+      do								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+      while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));          \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
+      do {								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+	no_trie_sum_value = no_trie_value + term_value;			                   \
+      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, no_trie_sum_value)); \
+    }									                   \
+    return true
+
 boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #define subs_arity *subs_ptr
-  int *mode_directed;
-  int i;
-  mode_directed = SgFr_mode_directed(sg_fr);
-  int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);
-  i = subs_arity;
-
-  no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
-
-  /*
-  if (IsIntTerm(Deref(subs_ptr[i])))
-      printf("Int term --> subs_ptr[i] = %d \n", IntOfTerm(Deref(subs_ptr[i])));
-  else if (IsFloatTerm(Deref(subs_ptr[i])))
-    printf("Float term --> subs_ptr[i] = %.12lf \n", FloatOfTerm(Deref(subs_ptr[i])));
-  else
-    printf("do not know \n");
-	                                            
-  Term t = Deref(subs_ptr[i]);
-  if (IsApplTerm(t))  {
-    printf("AAAAAAAAAAAAA \n");
-    Functor f = FunctorOfTerm(t);
-    if (f == FunctorDouble) {
-      union {
-	Term t_dbl[sizeof(Float)/sizeof(Term)];
-	Float dbl;
-      } u;
-      u.dbl = FloatOfTerm(t);
-      printf("1 -->>> u.dbl = %.12f \n", u.dbl);
-    }
-
-  }
-  */
-
+  int i = subs_arity;
   Term term = Deref(subs_ptr[i]);
-
-  if (SgNoTrie_ans_int(no_st_pos) == (Int) NULL)
-    /* insert the first term */
-    if (BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), NULL, IntOfTerm(term)))
-      return true;
-  
-  /* at least one term is in no_st_pos */
-
-  Int term_value = 0;
-  if (IsIntTerm(term))
-    term_value = IntOfTerm(term);
-  else
-    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie: invalid arithmetic value");
-  
-  Int no_trie_value = 0;
-
-  /*   -------> HERE <------- */
-  if (mode == MODE_DIRECTED_MIN) {
-    do {
-      no_trie_value = SgNoTrie_ans_int(no_st_pos);
-      if (term_value > no_trie_value)
-	return false;
-    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
-    printf("(SgNoTrie_ans_int(no_st_pos) = %p) new answer found = %d \n", 
-	   &(SgNoTrie_ans_int(no_st_pos)), SgNoTrie_ans_int(no_st_pos));	      
-  } else if (mode == MODE_DIRECTED_MAX) {
-    do {
-      no_trie_value =  SgNoTrie_ans_int(no_st_pos);
-      if (term_value < no_trie_value)
-	return false;
-    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
-    printf("(SgNoTrie_ans_int(no_st_pos) = %p) new answer found = %d \n", 
-	   &(SgNoTrie_ans_int(no_st_pos)), SgNoTrie_ans_int(no_st_pos));	      
-  } else if (mode == MODE_DIRECTED_FIRST) {
-	return false;
-  } else if (mode == MODE_DIRECTED_LAST) {
-    do 
-      no_trie_value = SgNoTrie_ans_int(no_st_pos);
-    while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, term_value));
-  } else /* mode == MODE_DIRECTED_SUM */ {
-    Int no_trie_sum_value = 0;
-    do {
-      no_trie_value = SgNoTrie_ans_int(no_st_pos);
-      no_trie_sum_value = no_trie_value + term_value;
-    } while(!BOOL_CAS(&(SgNoTrie_ans_int(no_st_pos)), no_trie_value, no_trie_sum_value));
-    printf("no_trie_sum_value %d \n", no_trie_sum_value);
-  }   
-  return true;
+  if (IsIntTerm(term)) {
+    check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
+  } else if (IsFloatTerm(term)) {
+    check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
+  } else
+    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie"); 
+#undef subs_arity
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
