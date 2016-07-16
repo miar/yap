@@ -13,7 +13,6 @@
 
 typedef enum {false,true} boolean;
 
-
 /************************************************************************
 **                     Table Space Data Structures                     **
 ************************************************************************/
@@ -31,6 +30,13 @@ typedef struct no_subgoal_trie_pos {
 
 #define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
 #define SgNoTrie_answer(X)     ((X)->entry)
+
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
+
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -54,7 +60,7 @@ typedef struct table_entry {
   int* dimension_array;
   int* sg_fr_mode_directed_array; 
   struct no_subgoal_trie_pos *no_subgoal_trie;
-  short no_subgoal_trie_type;
+  short no_subgoal_trie_term_type;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING
   struct subgoal_trie_node *subgoal_trie[THREADS_NUM_BUCKETS];
@@ -76,7 +82,7 @@ typedef struct table_entry {
 #define TabEnt_dim_array(X, i)                 ((X)->dimension_array[i])
 #define TabEnt_no_subgoal_trie(X)              ((X)->no_subgoal_trie)
 #define TabEnt_no_subgoal_trie_pos(X, pos)     ((X)->no_subgoal_trie[pos])
-#define TabEnt_no_subgoal_trie_type(X)         ((X)->no_subgoal_trie_type)
+#define TabEnt_no_subgoal_trie_term_type(X)    ((X)->no_subgoal_trie_term_type)
 #define TabEnt_subgoal_trie(X)                 ((X)->subgoal_trie)
 #define TabEnt_hash_chain(X)                   ((X)->hash_chain)
 #define TabEnt_next(X)                         ((X)->next)
@@ -574,11 +580,13 @@ typedef struct dependency_frame {
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
-  Int last_consumed_term;
-#endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+  short last_consumed_term_type;
+  union {
+    Int term_integer;
+    Float term_float;
+  } last_consumed;    
   struct no_subgoal_trie_pos *no_sg_pos;
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+#endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
@@ -591,7 +599,11 @@ typedef struct dependency_frame {
 #define DepFr_leader_cp(X)               ((X)->leader_choice_point)
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
-#define DepFr_last_term(X)               ((X)->last_consumed_term)
+#define DepFr_last_term(X)               (DepFr_last_term_integer(X))
+#define DepFr_last_term_integer(X)       ((X)->last_consumed.term_integer)
+#define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
+
+
 #define DepFr_next(X)                    ((X)->next)
 #define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
 

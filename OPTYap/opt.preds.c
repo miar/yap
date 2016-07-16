@@ -305,6 +305,8 @@ static Int p_table( USES_REGS1 ) {
   int *dim_array = NULL;
   int *sg_fr_mode_directed = NULL;
   no_subgoal_trie_pos no_subgoal_trie = NULL;
+  short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_INTEGER;  /* HERE --> MIG */
+
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
 #ifdef MODE_DIRECTED_TABLING
@@ -338,8 +340,8 @@ static Int p_table( USES_REGS1 ) {
     int pos_all = 0;
     int pos_sum_last = 0;
     int pos_dim = 0;
-    int *aux_mode_directed;
-    
+    int *aux_mode_directed;    
+
     /* traverse arguments to check the size of the dim_array */
 
     Term list2 = list;
@@ -536,7 +538,7 @@ static Int p_table( USES_REGS1 ) {
   pe->PredFlags |= TabledPredFlag;
   
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie);
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie, no_subgoal_trie_term_type);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_NO_SUBGOAL_TRIE */

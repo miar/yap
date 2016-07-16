@@ -1644,12 +1644,21 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
 #define subs_arity *subs_ptr
   int i = subs_arity;
   Term term = Deref(subs_ptr[i]);
+
+/* due to performance we will not check if type of term is equal to the type in no_trie 
+   TabEnt_no_subgoal_trie_term_type(tab_ent) == MODE_DIRECTED_DIM_INTEGER
+   tab_ent is also not accessible at this point --> DO THIS LATER
+ */
+
   if (IsIntTerm(term)) {
     check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
   } else if (IsFloatTerm(term)) {
     check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
-  } else
-    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie"); 
+  } else {
+    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie");
+    return false; /* avoids compiler(gcc) warning */
+  }
+
 #undef subs_arity
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */

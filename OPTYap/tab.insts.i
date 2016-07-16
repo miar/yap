@@ -217,7 +217,7 @@
 	  } else {                                                             \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                              \
 	  }                                                                    \
-	  printf("consumed answer was %d sizeof(Int) %lu sizeof(Float) %lu sizeof(double) %lu \n", ANSWER, sizeof(Int), sizeof(Float), sizeof(double)); \
+	  printf("consumed answer was %d \n", ANSWER);                         \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	       \
           Bind((CELL *) subs_ptr[1], MkIntTerm(ANSWER));		       \
           /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/   \
@@ -1213,9 +1213,8 @@
 	  struct timeval tv1, tv2;
 	  gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-
-          if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true && 
-	      IS_BATCHED_GEN_CP(gcp)) {
+          if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true 
+              && IS_BATCHED_GEN_CP(gcp)) {
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD___
 	    gettimeofday(&tv2, NULL);
 	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
