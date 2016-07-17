@@ -220,9 +220,9 @@
 	  printf("consumed answer was %d \n", ANSWER);                            \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	          \
 	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) \
-	    { Bind((CELL *) subs_ptr[1], MkIntTerm(ANSWER));}		          \
+	    { Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));}	  \
 	  else	/* MODE_DIRECTED_DIM_FLOAT */ 			                  \
-	    { Bind((CELL *) subs_ptr[1], MkFloatTerm(ANSWER));}		          \
+	    { Bind((CELL *) subs_ptr[1], NoTrie_LoadFloatTerm(ANSWER));}          \
           /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/      \
           /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */     \
           /* procceed */                                                          \
@@ -594,17 +594,17 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        Int ans_term = SgNoTrie_answer(no_st_pos);
-        if (ans_term == (Int) NULL)
+        if (SgNoTrie_answer(no_st_pos) == NULL &&
+	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    { Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/ }
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer(no_st_pos))));}
 	  else
-	    { Bind((CELL *) YENV[1], MkFloatTerm(ans_term)); /* subs_arity = 1*/ }
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -787,14 +787,17 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        Int ans_term = SgNoTrie_answer(no_st_pos);
-        if (ans_term == (Int) NULL)
+        if (SgNoTrie_answer(no_st_pos) == NULL &&
+	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -988,14 +991,17 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        Int ans_term = SgNoTrie_answer(no_st_pos);
-        if (ans_term == (Int) NULL)
+        if (SgNoTrie_answer(no_st_pos) ==  NULL &&
+	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0) {
 	  /* no answers --> fail */
 	  goto fail;
-	else /* load answer */ {
+	} else /* load answer */ {
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity = 1*/
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1642,17 +1648,19 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+    printf("2-last_consumed_term = %d  term = %d \n", DepFr_last_term(dep_fr), 
+	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
-      //printf("1-DepFr_no_sg_pos(dep_fr) \n");
-      Int last_consumed_term = DepFr_last_term(dep_fr); 
-      Int term = SgNoTrie_answer(DepFr_no_sg_pos(dep_fr));
-      if (last_consumed_term != term) {
-	//printf("2-DepFr_no_sg_pos(dep_fr) \n");
+      if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||	  
+	  (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
 	/* unconsumed answer in dependency frame */
-	consume_answer_and_procceed_no_trie(dep_fr, term);
+	if (DepFr_last_term(dep_fr) == NULL)
+	  DepFr_consumed_zero(dep_fr) = true;	
+	consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
       }
-      printf("last_consumed_term = %d  term = %d \n", last_consumed_term, term);
+      printf("1-last_consumed_term = %d  term = %d \n", DepFr_last_term(dep_fr), 
+	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	
       
       /* no unconsumed answers */
@@ -1671,15 +1679,17 @@
 	/* check for dependency frames with unconsumed answers */
 	dep_fr = DepFr_next(dep_fr);
 	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
-	  last_consumed_term = DepFr_last_term(dep_fr); 
-	  if (last_consumed_term != term) {
+	  if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
+	      (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
 	    /* unconsumed answer in dependency frame */
+	    if (DepFr_last_term(dep_fr) == NULL)
+	      DepFr_consumed_zero(dep_fr) = true;
 	    /* restore bindings, update registers, consume answer and procceed */
 	    restore_bindings(B->cp_tr, chain_cp->cp_tr);
 	    B = chain_cp;
 	    TR = TR_FZ;
 	    TRAIL_LINK(B->cp_tr);
-	    consume_answer_and_procceed_no_trie(dep_fr, term);
+	    consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	  }
 	  dep_fr = DepFr_next(dep_fr);
 	}
@@ -2119,12 +2129,11 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
-	Int last_consumed_term = DepFr_last_term(dep_fr); 
-	Int term = SgNoTrie_answer(DepFr_no_sg_pos(dep_fr));
-	//printf("last_consumed_term = %f \n", FloatOfTerm(last_consumed_term));
-
-	if (last_consumed_term != term) {
+	if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
+	    (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
 	  /* unconsumed answer in dependency frame */
+	  if (DepFr_last_term(dep_fr) == NULL)
+	    DepFr_consumed_zero(dep_fr) = true;	
 	  if (B->cp_ap)
 	    DepFr_backchain_cp(dep_fr) = B;
 	  else
@@ -2136,7 +2145,7 @@
 	  TR = TR_FZ;
 	  if (TR != B->cp_tr)
 	    TRAIL_LINK(B->cp_tr);
-	  consume_answer_and_procceed_no_trie(dep_fr, term);
+	  consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	}
 	dep_fr = DepFr_next(dep_fr);
       }
@@ -2157,16 +2166,19 @@
         goto fail;
       } else {
         /* subgoal completed */
-        no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
-	Int ans_term = SgNoTrie_answer(no_st_pos);
-	if (ans_term == (Int) NULL)
+        no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);	
+	if (SgNoTrie_answer(no_st_pos) == NULL &&
+	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
 	  pop_generator_node(SgFr_arity(sg_fr));
 	  PREG = (yamop *) CPREG;
-	  PREFETCH_OP(PREG);	  
-	  Bind((CELL *) YENV[1], MkIntTerm(ans_term)); /* subs_arity=1 */
+	  PREFETCH_OP(PREG); 
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();

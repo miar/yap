@@ -28,8 +28,8 @@ typedef struct no_subgoal_trie_pos {
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos;
 
-#define SgNoTrie_sg_fr(X)       ((X)->subgoal_frame)
-#define SgNoTrie_answer(X)      ((X)->entry)
+#define SgNoTrie_sg_fr(X)  ((X)->subgoal_frame)
+#define SgNoTrie_answer(X) ((X)->entry)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -574,6 +574,7 @@ typedef struct dependency_frame {
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
+  boolean consumed_zero;
   int last_consumed_term_type;
   union {
     Int term_integer;
@@ -599,6 +600,7 @@ typedef struct dependency_frame {
 #define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
 #define DepFr_next(X)                    ((X)->next)
 #define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
+#define DepFr_consumed_zero(X)           ((X)->consumed_zero)
 
 /*********************************************************************************************************
 
