@@ -304,7 +304,7 @@ static Int p_table( USES_REGS1 ) {
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int *dim_array = NULL;
   int *sg_fr_mode_directed = NULL;
-  no_subgoal_trie_pos no_subgoal_trie = NULL;
+  no_subgoal_trie_pos_ptr no_subgoal_trie = NULL;
   short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_INTEGER;  /* HERE --> MIG */
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
@@ -377,8 +377,6 @@ static Int p_table( USES_REGS1 ) {
     aux_mode_directed = malloc(arity * sizeof(int));
 
     /* traverse all arguments again to construct mode / dim arrays */
-    //    int no_subgoal_trie_type = MODE_DIRECTED_DIM_FLOAT;
-
 
     for (i = 0; i < arity; i++) {
       int mode = IntOfTerm(HeadOfTerm(list));

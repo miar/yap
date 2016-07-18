@@ -1792,7 +1792,7 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
 #ifdef THREADS_NO_SUBGOAL_TRIE
   long with_answer = 0;
-  no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+  no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
   if (no_st_pos != NULL) {
     sg_fr_ptr sg_fr_aux;
     do {

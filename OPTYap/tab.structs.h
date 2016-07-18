@@ -26,7 +26,7 @@ typedef struct no_subgoal_trie_pos {
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
   Int entry;  // one answer only - for now
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-} *no_subgoal_trie_pos;
+} *no_subgoal_trie_pos_ptr;
 
 #define SgNoTrie_sg_fr(X)  ((X)->subgoal_frame)
 #define SgNoTrie_answer(X) ((X)->entry)

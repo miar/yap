@@ -592,10 +592,9 @@
     } else {
       /* subgoal completed */
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (SgNoTrie_answer(no_st_pos) == NULL &&
-	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -785,10 +784,9 @@
     } else {
       /* subgoal completed */
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (SgNoTrie_answer(no_st_pos) == NULL &&
-	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -989,10 +987,9 @@
     } else {
       /* subgoal completed */
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (SgNoTrie_answer(no_st_pos) ==  NULL &&
-	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0) {
+        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0) {
 	  /* no answers --> fail */
 	  goto fail;
 	} else /* load answer */ {
@@ -1657,7 +1654,8 @@
 	/* unconsumed answer in dependency frame */
 	if (DepFr_last_term(dep_fr) == NULL)
 	  DepFr_consumed_zero(dep_fr) = true;	
-	consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
+	consume_answer_and_procceed_no_trie(dep_fr, 
+					    SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
       }
       printf("1-last_consumed_term = %d  term = %d \n", DepFr_last_term(dep_fr), 
 	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
@@ -2166,9 +2164,8 @@
         goto fail;
       } else {
         /* subgoal completed */
-        no_subgoal_trie_pos no_st_pos = SgFr_no_sg_pos(sg_fr);	
-	if (SgNoTrie_answer(no_st_pos) == NULL &&
-	    ((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+        no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);	
+	if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
