@@ -1645,8 +1645,8 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
           } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,                       \
 			    ((long) sg_fr_aux | (long)0x1)));		                   \
       }									                   \
-      printf("term = %lf SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value,                     \
-                                                               SgNoTrie_sg_fr(no_st_pos)); \
+      /* printf("term = %lf SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value, */              \
+      /*  SgNoTrie_sg_fr(no_st_pos));			*/        		           \
       return true;							                   \
     }									                   \
 					                                                   \
@@ -1698,7 +1698,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
   	      break;                                                                       \
           } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,                       \
 			    ((long) sg_fr_aux | (long)0x1)));		                   \
-      printf("term = %d SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value,                     \
+	  printf("term = %d SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value, \
                                                                SgNoTrie_sg_fr(no_st_pos)); \
       return true;							                   \
     }									                   \
@@ -1789,9 +1789,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
    tab_ent is also not accessible at this point --> DO THIS LATER
  */
   /* BOOL_CAS does not support floats.... */
-  /*  if (IsIntTerm(term)) {
+  if (IsIntTerm(term)) {
     INT_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
-    } else */if (IsFloatTerm(term)) {
+  } else if (IsFloatTerm(term)) {
     FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
   } else {
     Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie");

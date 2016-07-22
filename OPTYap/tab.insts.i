@@ -217,7 +217,7 @@
 	  } else {                                                                \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                                 \
 	  }                                                                       \
-	  printf("consumed answer was %lf \n", ANSWER);                           \
+	  /* printf("consumed answer was %lf \n", ANSWER); */		          \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	          \
 	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) \
 	    { Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));}	  \
@@ -1645,8 +1645,8 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-    printf("2-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
-	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
+    //printf("2-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
+    //	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||	  
@@ -1657,8 +1657,8 @@
 	consume_answer_and_procceed_no_trie(dep_fr, 
 					    SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
       }
-      printf("1-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
-	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
+      //printf("1-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
+	//     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	
       
       /* no unconsumed answers */
