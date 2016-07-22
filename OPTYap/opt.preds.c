@@ -400,9 +400,11 @@ static Int p_table( USES_REGS1 ) {
       list = TailOfTerm(list);
     }
     
-    if (dim_array_size > 0)
+    if (dim_array_size > 0) {
       no_subgoal_trie = (struct no_subgoal_trie_pos *) 
 	calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
+
+    }
     
     pos_first = pos_dim + pos_index + pos_agreg + pos_all + pos_sum_last;
     pos_sum_last = pos_dim + pos_index + pos_agreg + pos_all;

@@ -24,7 +24,7 @@ typedef enum {false,true} boolean;
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  Int entry;  // one answer only - for now
+  Float entry;  // one answer only - for now
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos_ptr;
 
@@ -595,7 +595,7 @@ typedef struct dependency_frame {
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
 #define DepFr_last_consumed_term_type(X) ((X)->last_consumed_term_type)
-#define DepFr_last_term(X)               (DepFr_last_term_integer(X))
+#define DepFr_last_term(X)               (DepFr_last_term_float(X))
 #define DepFr_last_term_integer(X)       ((X)->last_consumed.term_integer)
 #define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
 #define DepFr_next(X)                    ((X)->next)

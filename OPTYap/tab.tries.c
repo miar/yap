@@ -1609,7 +1609,79 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 
-#define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)  \
+#define BOOL_CAS_FLOAT(PTR, OLD, NEW)   CAS64_DOUBLE((PTR), (OLD), (NEW))
+
+ static int CAS64_DOUBLE(double *ptr, double oldVal, double newVal)
+ {
+   unsigned char ret;
+   __asm__ __volatile__ (
+            "  lock\n"
+            "  cmpxchgq %2,%1\n"
+            "  sete %0\n"
+            : "=q" (ret), "=m" (*ptr)
+            : "r" (newVal), "m" (*ptr), "a" (oldVal)
+            : "memory");
+
+   return (int) ret; // returns 0 or 1 
+ }
+
+
+
+#define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
+    int *mode_directed;							                   \
+    mode_directed = SgFr_mode_directed(sg_fr);				                   \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
+    sg_fr_ptr sg_fr_aux;						                   \
+    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
+    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
+      /* no answer-> insert the first answer */				                   \
+      if (BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {    \
+  	  sg_fr_ptr sg_fr_aux;						                   \
+	  do {								                   \
+	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \
+	    if (((long) sg_fr_aux & (long) 0x1) == (long) 0x1)		                   \
+  	      break;                                                                       \
+          } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,                       \
+			    ((long) sg_fr_aux | (long)0x1)));		                   \
+      }									                   \
+      printf("term = %lf SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value,                     \
+                                                               SgNoTrie_sg_fr(no_st_pos)); \
+      return true;							                   \
+    }									                   \
+					                                                   \
+    /* at least one term is in no_st_pos */			  	                   \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
+    if (mode == MODE_DIRECTED_MIN) {					                   \
+      do {								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);	   		                   \
+	if (term_value > no_trie_value)					                   \
+	  return false;							                   \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));  \
+    } else if (mode == MODE_DIRECTED_MAX) {				                   \
+      do {								                   \
+	no_trie_value =  SgNoTrie_answer(no_st_pos);			                   \
+	if (term_value < no_trie_value)					                   \
+	  return false;							                   \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));  \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
+      return false;							                   \
+    } else if (mode == MODE_DIRECTED_LAST) {				                   \
+      do								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+      while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));    \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
+      do {								                   \
+	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+	no_trie_sum_value = no_trie_value + term_value;	                                   \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
+    }									                   \
+    return true
+
+
+
+#define NON_CONCURRENT___FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)  \
     int *mode_directed;							                   \
     mode_directed = SgFr_mode_directed(sg_fr);				                   \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
@@ -1717,9 +1789,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
    tab_ent is also not accessible at this point --> DO THIS LATER
  */
   /* BOOL_CAS does not support floats.... */
-  if (IsIntTerm(term)) {
+  /*  if (IsIntTerm(term)) {
     INT_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
-  } else if (IsFloatTerm(term)) {
+    } else */if (IsFloatTerm(term)) {
     FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
   } else {
     Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie");

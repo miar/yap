@@ -217,7 +217,7 @@
 	  } else {                                                                \
             subs_ptr = (CELL *) (CONS_CP(B) + 1);                                 \
 	  }                                                                       \
-	  printf("consumed answer was %d \n", ANSWER);                            \
+	  printf("consumed answer was %lf \n", ANSWER);                           \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	          \
 	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) \
 	    { Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));}	  \
@@ -603,7 +603,7 @@
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer(no_st_pos))));}
 	  else
-	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer(no_st_pos))));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1645,19 +1645,19 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-    printf("2-last_consumed_term = %d  term = %d \n", DepFr_last_term(dep_fr), 
+    printf("2-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
 	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||	  
-	  (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
+	  (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
 	/* unconsumed answer in dependency frame */
-	if (DepFr_last_term(dep_fr) == NULL)
+	if (DepFr_last_term(dep_fr) == 0.0)
 	  DepFr_consumed_zero(dep_fr) = true;	
 	consume_answer_and_procceed_no_trie(dep_fr, 
 					    SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
       }
-      printf("1-last_consumed_term = %d  term = %d \n", DepFr_last_term(dep_fr), 
+      printf("1-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
 	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	
       
@@ -1678,9 +1678,9 @@
 	dep_fr = DepFr_next(dep_fr);
 	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
 	  if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
-	      (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
+	      (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
 	    /* unconsumed answer in dependency frame */
-	    if (DepFr_last_term(dep_fr) == NULL)
+	    if (DepFr_last_term(dep_fr) == 0.0)
 	      DepFr_consumed_zero(dep_fr) = true;
 	    /* restore bindings, update registers, consume answer and procceed */
 	    restore_bindings(B->cp_tr, chain_cp->cp_tr);
@@ -2128,9 +2128,9 @@
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
 	if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
-	    (DepFr_last_term(dep_fr) == NULL && DepFr_consumed_zero(dep_fr) == false)) {
+	    (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
 	  /* unconsumed answer in dependency frame */
-	  if (DepFr_last_term(dep_fr) == NULL)
+	  if (DepFr_last_term(dep_fr) == 0.0)
 	    DepFr_consumed_zero(dep_fr) = true;	
 	  if (B->cp_ap)
 	    DepFr_backchain_cp(dep_fr) = B;
