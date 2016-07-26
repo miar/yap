@@ -21,23 +21,27 @@ typedef enum {false,true} boolean;
 **    subgoal no trie    **
 **************************/
 #ifdef THREADS_NO_SUBGOAL_TRIE
+
+
+typedef union {
+  Int term_integer;
+  Float term_float; // Yap's Float is double
+} entry_type;
+
+#define EntryType_integer(X)  ((X).term_integer)
+#define EntryType_float(X)    ((X).term_float)
+
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  Float entry;  // one answer only - for now
+  entry_type entry;  // one answer only - for now
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos_ptr;
 
-typedef struct no_subgoal_trie_pos_int {
-  struct subgoal_frame *subgoal_frame;
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  Int entry;  // one answer only - for now
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
-} *no_subgoal_trie_pos_int_ptr;
-
-
-#define SgNoTrie_sg_fr(X)  ((X)->subgoal_frame)
-#define SgNoTrie_answer(X) ((X)->entry)
+#define SgNoTrie_sg_fr(X)           ((X)->subgoal_frame)
+#define SgNoTrie_answer(X)          ((X)->entry)
+#define SgNoTrie_answer_integer(X)  ((X)->entry.term_integer)
+#define SgNoTrie_answer_float(X)    ((X)->entry.term_float)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -60,7 +64,7 @@ typedef struct table_entry {
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
   int* sg_fr_mode_directed_array; 
-  struct no_subgoal_trie_pos *no_subgoal_trie;
+  void *no_subgoal_trie;
   short no_subgoal_trie_term_type;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING
@@ -584,10 +588,12 @@ typedef struct dependency_frame {
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
   boolean consumed_zero;
   int last_consumed_term_type;
-  union {
+  entry_type last_consumed;
+
+/*  union {
     Int term_integer;
     Float term_float;
-  } last_consumed;    
+    } last_consumed;    */
   struct no_subgoal_trie_pos *no_sg_pos;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
   struct dependency_frame *next;

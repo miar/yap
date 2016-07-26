@@ -601,9 +601,9 @@
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer(no_st_pos))));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else
-	    { Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer(no_st_pos))));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -793,9 +793,9 @@
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
 	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -996,9 +996,9 @@
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
 	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1649,14 +1649,38 @@
     //	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
+      if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) {
+	if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)) 
+	                                     ||	  
+	    (DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
+	  /* unconsumed answer in dependency frame */
+	  if (DepFr_last_term_integer(dep_fr) == 0)
+	    DepFr_consumed_zero(dep_fr) = true;	
+	  consume_answer_and_procceed_no_trie(dep_fr, 
+	       SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	}
+      } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)) 
+	                                    || 
+	    (DepFr_last_term_float(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
+	  /* unconsumed answer in dependency frame */
+	  if (DepFr_last_term_float(dep_fr) == 0.0)
+	    DepFr_consumed_zero(dep_fr) = true;	
+	  consume_answer_and_procceed_no_trie(dep_fr, 
+	       SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	}
+      }
+	
+      /*
       if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||	  
 	  (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
-	/* unconsumed answer in dependency frame */
+	  // unconsumed answer in dependency frame 
 	if (DepFr_last_term(dep_fr) == 0.0)
 	  DepFr_consumed_zero(dep_fr) = true;	
 	consume_answer_and_procceed_no_trie(dep_fr, 
 					    SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
       }
+      */
       //printf("1-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
 	//     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	
@@ -2173,9 +2197,9 @@
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG); 
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
 	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer(no_st_pos)));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();
