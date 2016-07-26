@@ -1649,7 +1649,7 @@
     //	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
-      if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) {
+      if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
 	if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)) 
 	                                     ||	  
 	    (DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
@@ -1701,11 +1701,52 @@
 	/* check for dependency frames with unconsumed answers */
 	dep_fr = DepFr_next(dep_fr);
 	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
+	  if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
+	    if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)) 
+	                                     ||	  
+		(DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
+	      /* unconsumed answer in dependency frame */
+	      if (DepFr_last_term_integer(dep_fr) == 0)
+		DepFr_consumed_zero(dep_fr) = true;
+	      /* restore bindings, update registers, consume answer and procceed */
+	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
+	      B = chain_cp;
+	      TR = TR_FZ;
+	      TRAIL_LINK(B->cp_tr);      
+	      
+	      consume_answer_and_procceed_no_trie(dep_fr, 
+		  SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	    }
+	  } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)) 
+		                            || 
+		(DepFr_last_term_float(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
+	      /* unconsumed answer in dependency frame */
+	      if (DepFr_last_term_float(dep_fr) == 0.0)
+		DepFr_consumed_zero(dep_fr) = true;
+	      /* restore bindings, update registers, consume answer and procceed */
+	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
+	      B = chain_cp;
+	      TR = TR_FZ;
+	      TRAIL_LINK(B->cp_tr);
+	      
+	      consume_answer_and_procceed_no_trie(dep_fr, 
+		  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	    }
+	  }
+
+
+
+
+	  /*
 	  if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
 	      (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
-	    /* unconsumed answer in dependency frame */
+	    // unconsumed answer in dependency frame
 	    if (DepFr_last_term(dep_fr) == 0.0)
-	      DepFr_consumed_zero(dep_fr) = true;
+	    DepFr_consumed_zero(dep_fr) = true;
+	    
+	  */
+
 	    /* restore bindings, update registers, consume answer and procceed */
 	    restore_bindings(B->cp_tr, chain_cp->cp_tr);
 	    B = chain_cp;
@@ -1714,7 +1755,7 @@
 	    consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
 	  }
 	  dep_fr = DepFr_next(dep_fr);
-	}
+        }
 	/* no dependency frames with unconsumed answers found */
 	/* unbind variables */
 	unbind_variables(B->cp_tr, chain_cp->cp_tr);
