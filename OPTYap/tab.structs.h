@@ -39,7 +39,7 @@ typedef struct no_subgoal_trie_pos {
 } *no_subgoal_trie_pos_ptr;
 
 #define SgNoTrie_sg_fr(X)           ((X)->subgoal_frame)
-#define SgNoTrie_answer(X)          ((X)->entry)
+//#define SgNoTrie_answer(X)          ((X)->entry)
 #define SgNoTrie_answer_integer(X)  ((X)->entry.term_integer)
 #define SgNoTrie_answer_float(X)    ((X)->entry.term_float)
 
@@ -609,7 +609,7 @@ typedef struct dependency_frame {
 #define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
 #define DepFr_last_answer(X)             ((X)->last_consumed_answer)
 #define DepFr_last_consumed_term_type(X) ((X)->last_consumed_term_type)
-#define DepFr_last_term(X)               (DepFr_last_term_float(X))
+//#define DepFr_last_term(X)               (DepFr_last_term_float(X))
 #define DepFr_last_term_integer(X)       ((X)->last_consumed.term_integer)
 #define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
 #define DepFr_next(X)                    ((X)->next)

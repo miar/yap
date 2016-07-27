@@ -801,20 +801,20 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #endif /* THREADS_FULL_SHARING  */
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)	                         \
-  if(SG_FR != NULL) /* avoids NULL sg_fr on top dep_fr */ {	                 \
-    DepFr_no_sg_pos(DEP_FR) = SgFr_no_sg_pos(SG_FR);	                      	 \
-    DepFr_last_consumed_term_type(DEP_FR) = SgFr_mode_directed_term_type(SG_FR); \
-    DepFr_consumed_zero(DEP_FR) = false;				\
+#define	DepFr_init_sg_trie_min_max_fields(DEP_FR, SG_FR)	                   \
+  if(SG_FR != NULL) /* avoids NULL sg_fr on top dep_fr */ {	                   \
+    DepFr_no_sg_pos(DEP_FR) = SgFr_no_sg_pos(SG_FR);	                      	   \
+    DepFr_last_consumed_term_type(DEP_FR) = SgFr_mode_directed_term_type(SG_FR);   \
+    DepFr_consumed_zero(DEP_FR) = false;				           \
+    DepFr_last_term_float(DEP_FR) = 0.0; /* checked that float = 0.0 -> int = 0 */ \
   }
 
 #else 
 #define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX) */
 
-#if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
-#define	DepFr_init_last_term_field(DEP_FR)         \
-    DepFr_last_term(DEP_FR) = 0.0
+#if defined(TIMESTAMP_MODE_DIRECTED_TABLING)
+#define	DepFr_init_last_term_field(DEP_FR)   (DepFr_last_term(DEP_FR) = 0.0)
 #else
 #define	DepFr_init_last_term_field(DEP_FR)
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
@@ -828,7 +828,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         DepFr_cons_cp(DEP_FR) = NORM_CP(CONS_CP);                                                            \
         DepFr_init_last_answer_field(DEP_FR, SG_FR);                                                         \
 	DepFr_init_last_term_field(DEP_FR);				                                     \
-	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR); 			                             \
+	DepFr_init_sg_trie_min_max_fields(DEP_FR, SG_FR); 			                             \
         DepFr_next(DEP_FR) = NEXT
 
 #define new_suspension_frame(SUSP_FR, TOP_OR_FR_ON_STACK, TOP_DEP, TOP_SG,             \
