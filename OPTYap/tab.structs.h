@@ -64,7 +64,7 @@ typedef struct table_entry {
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
   int* sg_fr_mode_directed_array; 
-  void *no_subgoal_trie;
+  struct no_subgoal_trie_pos *no_subgoal_trie;
   short no_subgoal_trie_term_type;
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING

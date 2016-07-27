@@ -304,7 +304,7 @@ static Int p_table( USES_REGS1 ) {
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int *dim_array = NULL;
   int *sg_fr_mode_directed = NULL;
-  struct no_subgoal_trie_int_pos *no_subgoal_trie = NULL;
+  struct no_subgoal_trie_pos *no_subgoal_trie = NULL;
   short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_INTEGER;
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
@@ -544,7 +544,7 @@ static Int p_table( USES_REGS1 ) {
   pe->PredFlags |= TabledPredFlag;
   
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, (struct no_subgoal_trie_pos *), no_subgoal_trie_term_type);
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie, no_subgoal_trie_term_type);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_NO_SUBGOAL_TRIE */

@@ -1625,8 +1625,6 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
    return (int) ret; // returns 0 or 1 
  }
 
-
-
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
     int *mode_directed;							                   \
     mode_directed = SgFr_mode_directed(sg_fr);				                   \
@@ -1636,7 +1634,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
     if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
       /* no answer-> insert the first answer */				                   \
-      if (BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {    \
+      if (BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {  \
   	  sg_fr_ptr sg_fr_aux;						                   \
 	  do {								                   \
 	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \
@@ -1654,29 +1652,29 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
     if (mode == MODE_DIRECTED_MIN) {					                   \
       do {								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);	   		                   \
+	no_trie_value = SgNoTrie_answer_float(no_st_pos);	   		           \
 	if (term_value > no_trie_value)					                   \
 	  return false;							                   \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));  \
-    } else if (mode == MODE_DIRECTED_MAX) {				                   \
-      do {								                   \
-	no_trie_value =  SgNoTrie_answer(no_st_pos);			                   \
-	if (term_value < no_trie_value)					                   \
-	  return false;							                   \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));  \
-    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
-      return false;							                   \
-    } else if (mode == MODE_DIRECTED_LAST) {				                   \
-      do								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
-      while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));    \
-    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
-      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
-      do {								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
-	no_trie_sum_value = no_trie_value + term_value;	                                   \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
-    }									                   \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));        \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+      do {								                               \
+	no_trie_value =  SgNoTrie_answer_float(no_st_pos);			                       \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));        \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      do								                               \
+	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
+      while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));          \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+      do {								                               \
+	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value,no_trie_sum_value));  \
+    }									                               \
     return true
 
 
@@ -1736,7 +1734,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
     if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
       /* no answer-> insert the first answer */				                   \
-      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {          \
+      if (BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {  \
   	  sg_fr_ptr sg_fr_aux;						                   \
 	  do {								                   \
 	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \
@@ -1754,28 +1752,28 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
     if (mode == MODE_DIRECTED_MIN) {					                   \
       do {								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);	   		                   \
+	no_trie_value = SgNoTrie_answer_integer(no_st_pos);	   		           \
 	if (term_value > no_trie_value)					                   \
 	  return false;							                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));        \
+      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));\
     } else if (mode == MODE_DIRECTED_MAX) {				                   \
       do {								                   \
-	no_trie_value =  SgNoTrie_answer(no_st_pos);			                   \
+	no_trie_value =  SgNoTrie_answer_integer(no_st_pos);			           \
 	if (term_value < no_trie_value)					                   \
 	  return false;							                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));        \
+      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));\
     } else if (mode == MODE_DIRECTED_FIRST) {				                   \
       return false;							                   \
     } else if (mode == MODE_DIRECTED_LAST) {				                   \
       do								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
-      while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value, term_value));          \
+	no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
+      while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));  \
     } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
-      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0;		                           \
       do {								                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+	no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
 	no_trie_sum_value = no_trie_value + term_value;	                                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
+      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
     }									                   \
     return true
 
@@ -1791,9 +1789,9 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   /* BOOL_CAS does not support floats.... */
   if (IsIntTerm(term)) {
     INT_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
-  } else if (IsFloatTerm(term)) {
-    FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
-  } else {
+  }  else  if (IsFloatTerm(term)) {
+    FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float); 
+  }  else {
     Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie");
     return false; /* avoids compiler(gcc) warning */
   }
