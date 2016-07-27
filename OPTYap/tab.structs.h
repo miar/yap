@@ -28,9 +28,6 @@ typedef union {
   Float term_float; // Yap's Float is double
 } entry_type;
 
-#define EntryType_integer(X)  ((X).term_integer)
-#define EntryType_float(X)    ((X).term_float)
-
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
