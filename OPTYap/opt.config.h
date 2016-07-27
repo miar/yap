@@ -443,3 +443,6 @@
 
 /* OBS -> YAP'S CURRENT STATE */
 // COMMENTED --> INCOMPLETE_TABLING
+// #if THREADS_ on C/write.c
+
+

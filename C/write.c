@@ -297,6 +297,7 @@ wrputf(Float f, struct write_globs *wglb)	/* writes a float	 */
   int sgn;
   int ob;
 
+  //printf("writing a float -> %.16lf\n", f);
 
 #if HAVE_ISNAN || defined(__WIN32)
   if (isnan(f)) {
@@ -318,7 +319,7 @@ wrputf(Float f, struct write_globs *wglb)	/* writes a float	 */
   }
 #endif
   ob = protect_open_number(wglb, last_minus, sgn);
-#if THREADS
+#if THREADS_
   /* old style writing */
   int found_dot = FALSE, found_exp = FALSE;
   char            *pt = s;
@@ -358,16 +359,19 @@ wrputf(Float f, struct write_globs *wglb)	/* writes a float	 */
     wrputs(".0", stream);    
   }
 #else
+  //printf("1-writing a float -> %.16lf\n", f);
   char *format_float(double f, char *buf);
   char *buf;
 
   if (lastw == symbol || lastw == alphanum) {
     wrputc(' ', stream);
   }
-  /* use SWI's format_float */
+  // use SWI's format_float
   buf = format_float(f, s);
+
   if (!buf) return;
   wrputs(buf, stream);
+
 #endif
   protect_close_number(wglb, ob);
 }

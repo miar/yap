@@ -605,7 +605,7 @@
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else
-	    { Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -2288,6 +2288,14 @@
 	  pop_generator_node(SgFr_arity(sg_fr));
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG); 
+
+	  //printf("3-FloatOfTerm(term) = %.16lf \n", SgNoTrie_answer_float(no_st_pos));
+	  //Term ttt = MkFloatTerm(SgNoTrie_answer_float(no_st_pos));
+	  //printf("4-FloatOfTerm(term) = %.15lf \n", FloatOfTerm(ttt));
+
+
+
+
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
 	  else

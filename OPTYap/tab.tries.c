@@ -1673,13 +1673,13 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
       do {								                               \
 	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
 	no_trie_sum_value = no_trie_value + term_value;	                                               \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value,no_trie_sum_value));  \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, no_trie_sum_value));  \
     }									                               \
     return true
 
 
 
-#define NON_CONCURRENT___FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)\
+#define __FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
     int *mode_directed;							                   \
     mode_directed = SgFr_mode_directed(sg_fr);				                   \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
@@ -1688,7 +1688,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
     if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
       /* no answer-> insert the first answer */				                   \
-	SgNoTrie_answer(no_st_pos) = term_value;			                   \
+	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
   	  sg_fr_ptr sg_fr_aux;						                   \
 	  do {								                   \
 	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \
@@ -1704,24 +1704,24 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     /* at least one term is in no_st_pos */			  	                   \
     TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
     if (mode == MODE_DIRECTED_MIN) {					                   \
-	no_trie_value = SgNoTrie_answer(no_st_pos);	   		                   \
+	no_trie_value = SgNoTrie_answer_float(no_st_pos);	   		           \
 	if (term_value > no_trie_value)					                   \
 	  return false;							                   \
-	SgNoTrie_answer(no_st_pos) = term_value;			                   \
+	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
     } else if (mode == MODE_DIRECTED_MAX) {				                   \
-	no_trie_value =  SgNoTrie_answer(no_st_pos);			                   \
+	no_trie_value =  SgNoTrie_answer_float(no_st_pos);			           \
 	if (term_value < no_trie_value)					                   \
 	  return false;							                   \
-	SgNoTrie_answer(no_st_pos) = term_value;			                   \
+	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
     } else if (mode == MODE_DIRECTED_FIRST) {				                   \
       return false;							                   \
     } else if (mode == MODE_DIRECTED_LAST) {				                   \
-	SgNoTrie_answer(no_st_pos) = term_value;			                   \
+	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
     } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
       TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
-      no_trie_value = SgNoTrie_answer(no_st_pos);			                   \
+      no_trie_value = SgNoTrie_answer_float(no_st_pos);			                   \
       no_trie_sum_value = no_trie_value + term_value;			                   \
-      SgNoTrie_answer(no_st_pos) = term_value;				                   \
+      SgNoTrie_answer_float(no_st_pos) = no_trie_sum_value;			           \
     }									                   \
     return true
 
@@ -1749,7 +1749,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     }									                   \
 					                                                   \
     /* at least one term is in no_st_pos */			  	                   \
-    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0;						   \
     if (mode == MODE_DIRECTED_MIN) {					                   \
       do {								                   \
 	no_trie_value = SgNoTrie_answer_integer(no_st_pos);	   		           \
