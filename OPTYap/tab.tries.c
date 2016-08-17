@@ -1625,7 +1625,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
    return (int) ret; // returns 0 or 1 
  }
 
-#define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
+#define __FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
@@ -1679,7 +1679,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 
-#define __FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
+#define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
     int *mode_directed;							                   \
     mode_directed = SgFr_mode_directed(sg_fr);				                   \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
@@ -1734,7 +1734,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
     if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
       /* no answer-> insert the first answer */				                   \
-      if (BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), (TERM_TYPE) 0.0, term_value)) {  \
+      if (BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), (TERM_TYPE) 0, term_value)) {  \
   	  sg_fr_ptr sg_fr_aux;						                   \
 	  do {								                   \
 	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \

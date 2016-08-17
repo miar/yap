@@ -305,7 +305,7 @@ static Int p_table( USES_REGS1 ) {
   int *dim_array = NULL;
   int *sg_fr_mode_directed = NULL;
   struct no_subgoal_trie_pos *no_subgoal_trie = NULL;
-  short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_INTEGER;
+  short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_FLOAT;
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
