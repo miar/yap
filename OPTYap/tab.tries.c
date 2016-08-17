@@ -62,6 +62,7 @@ static inline CELL *load_answer_loop(ans_node_ptr USES_REGS);
 static inline CELL *load_substitution_loop(gt_node_ptr, int *, CELL * USES_REGS);
 static inline CELL *exec_substitution_loop(gt_node_ptr, CELL **, CELL * USES_REGS);
 #ifdef MODE_DIRECTED_TABLING
+static inline ans_node_ptr answer_search_sum(sg_fr_ptr, ans_node_ptr, Term USES_REGS);
 #ifdef THREADS_FULL_SHARING_MODE_DIRECTED_V02
 static inline ans_node_ptr answer_search_min_max(sg_fr_ptr, ans_node_ptr, Term, int USES_REGS);
 #else
@@ -1625,7 +1626,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
    return (int) ret; // returns 0 or 1 
  }
 
-#define __FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
+#define __FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)         \
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
@@ -1673,7 +1674,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
       do {								                               \
 	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
 	no_trie_sum_value = no_trie_value + term_value;	                                               \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, no_trie_sum_value));  \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, no_trie_sum_value)); \
     }									                               \
     return true
 
@@ -1822,13 +1823,13 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
   int n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
 
   while (i) {
-
     mode = MODE_DIRECTED_GET_MODE(mode_directed[j]);
     n_subs = MODE_DIRECTED_GET_ARG(mode_directed[j]);
     do {
       TABLING_ERROR_CHECKING(answer_search, IsNonVarTerm(subs_ptr[i]));
       if (mode == MODE_DIRECTED_INDEX || mode == MODE_DIRECTED_ALL) {
-	current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	current_ans_node = answer_search_loop(sg_fr, current_ans_node, 
+					      Deref(subs_ptr[i]), &vars_arity PASS_REGS);
       } else {
 	ans_node_ptr parent_ans_node = current_ans_node;
 	if (TrNode_child(current_ans_node) == NULL) {
@@ -1837,41 +1838,52 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 	  AnsNode_init_lock_field(&virtual_ans_node);
 	  TrNode_parent(&virtual_ans_node) = NULL;
 	  TrNode_child(&virtual_ans_node) = NULL;	  
-	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, 
+						Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
 	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node;
 #else
-	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, 
+						Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 	  //	  printf("current_ans_node - 1 => ans_node = %p\n",current_ans_node);
 #endif /* THREADS_FULL_SHARING */
 	} else if (mode == MODE_DIRECTED_MIN || mode == MODE_DIRECTED_MAX) {
 #ifdef TIMESTAMP_MODE_DIRECTED_TABLING
-	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), 
+						   mode PASS_REGS);
 	  //	  printf("current_ans_node - 2 => ans_node = %p\n",current_ans_node);
 #else /* !TIMESTAMP_MODE_DIRECTED_TABLING */
 	  invalid_ans_node = TrNode_child(parent_ans_node);  /* by default, assume a better answer */
-	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), mode PASS_REGS);
+	  current_ans_node = answer_search_min_max(current_ans_node, Deref(subs_ptr[i]), 
+						   mode PASS_REGS);
 	  if (invalid_ans_node == TrNode_child(parent_ans_node))  /* worse or equal answer */
 	    invalid_ans_node = NULL;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING */
 	} else if (mode == MODE_DIRECTED_FIRST) {
 	  current_ans_node = NULL;
-	} else {  /* mode == MODE_DIRECTED_LAST */
+	} else if (mode == MODE_DIRECTED_LAST) {
 #ifdef THREADS_FULL_SHARING
 	  struct answer_trie_node virtual_ans_node;
 	  invalid_ans_node = TrNode_child(parent_ans_node);
 	  AnsNode_init_lock_field(&virtual_ans_node);
 	  TrNode_parent(&virtual_ans_node) = NULL;
 	  TrNode_child(&virtual_ans_node) = NULL;
-	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  current_ans_node = answer_search_loop(sg_fr, &virtual_ans_node, 
+						Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 	  TrNode_child(parent_ans_node) = TrNode_child(&virtual_ans_node);
 	  TrNode_parent(TrNode_child(&virtual_ans_node)) = parent_ans_node; 
 #else
 	  invalid_ans_node = TrNode_child(current_ans_node);
 	  TrNode_child(current_ans_node) = NULL;	 
-	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, Deref(subs_ptr[i]), &vars_arity PASS_REGS);
+	  current_ans_node = answer_search_loop(sg_fr, current_ans_node, 
+						Deref(subs_ptr[i]), &vars_arity PASS_REGS);
 #endif /* THREADS_FULL_SHARING */
-	}
+	} else if (mode == MODE_DIRECTED_SUM) { /* NOT SUPPORTED THREADS_FULL_SHARING */
+	  invalid_ans_node = TrNode_child(current_ans_node);
+	  current_ans_node = answer_search_sum(sg_fr, current_ans_node, 
+					       Deref(subs_ptr[i]) PASS_REGS);
+	} else
+	  Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search: unknown mode");
       }
       n_subs--;
       i--;
