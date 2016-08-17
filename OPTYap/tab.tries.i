@@ -3346,6 +3346,75 @@ static inline ans_node_ptr answer_search_min_max(ans_node_ptr current_node, Term
 #endif /* INCLUDE_ANSWER_SEARCH_MODE_DIRECTED */
 
 
+/**********************************************************
+**                   answer_search_sum                   **
+**********************************************************/
+
+#ifdef INCLUDE_ANSWER_SEARCH_MODE_DIRECTED
+static inline ans_node_ptr answer_search_sum(sg_fr_ptr sg_fr, ans_node_ptr current_node, Term t USES_REGS) {
+  ans_node_ptr child_node;
+  Term child_term;
+  Float trie_value = 0, term_value = 0, sum_value = 0;
+  int sum_value_as_int;
+
+  /* start by computing the current value on the trie (trie_value) */
+  child_node = TrNode_child(current_node);
+  child_term = TrNode_entry(child_node);
+  if (IsIntTerm(child_term)) {
+    trie_value = (Float) IntOfTerm(child_term);
+  } else if (IsApplTerm(child_term)) {
+    Functor f = (Functor) RepAppl(child_term);
+    child_node = TrNode_child(child_node);
+    if (f == FunctorLongInt) {
+      trie_value = (Float) TrNode_entry(child_node);
+    } else if (f == FunctorDouble) {
+      union {
+	Term t_dbl[sizeof(Float)/sizeof(Term)];
+	Float dbl;
+      } u;
+      u.t_dbl[0] = TrNode_entry(child_node);
+#if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
+      child_node = TrNode_child(child_node);
+      u.t_dbl[1] = TrNode_entry(child_node);
+#endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
+      trie_value = u.dbl;
+    } else
+      Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_sum: invalid arithmetic value");
+    child_node = TrNode_child(child_node);
+  }
+
+  /* then compute the value for the new term (term_value) */
+  if (IsAtomOrIntTerm(t))
+    term_value = (Float) IntOfTerm(t);
+  else if (IsApplTerm(t)) {
+    Functor f = FunctorOfTerm(t);
+    if (f == FunctorLongInt)
+      term_value = (Float) LongIntOfTerm(t);
+    else if (f == FunctorDouble)
+      term_value = FloatOfTerm(t);
+    else
+      Yap_Error(INTERNAL_ERROR, TermNil, "answer_search_sum: invalid arithmetic value");
+  }
+  sum_value = trie_value + term_value;
+  sum_value_as_int = (int) sum_value;
+  if (sum_value == (float) sum_value_as_int && IntInBnd(sum_value_as_int)) {
+    ANSWER_SAFE_INSERT_ENTRY(current_node, MkIntegerTerm(sum_value_as_int), _trie_retry_atom);
+  } else {
+    union {
+      Term t_dbl[sizeof(Float)/sizeof(Term)];
+      Float dbl;
+    } u;
+    u.dbl = sum_value;
+    ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)FunctorDouble), _trie_retry_null);
+#if SIZEOF_DOUBLE == 2 * SIZEOF_INT_P
+    ANSWER_SAFE_INSERT_ENTRY(current_node, u.t_dbl[1], _trie_retry_extension);
+#endif /* SIZEOF_DOUBLE x SIZEOF_INT_P */
+    ANSWER_SAFE_INSERT_ENTRY(current_node, u.t_dbl[0], _trie_retry_extension);
+    ANSWER_SAFE_INSERT_ENTRY(current_node, AbsAppl((Term *)FunctorDouble), _trie_retry_double);
+  }  
+  return current_node;
+}
+#endif /* INCLUDE_ANSWER_SEARCH_MODE_DIRECTED */
 
 /***************************************************************
 **                   invalidate_answer_trie                   **
