@@ -1196,6 +1196,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   sg_fr = (sg_fr_ptr) (((long)SgNoTrie_sg_fr(no_st_pos) >> 1) << 1);
   long with_answer = 0;
 
+#ifdef THREADS
   if (sg_fr) {
     if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
       return sg_fr;
@@ -1254,6 +1255,18 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     }
   }
   return sg_fr;
+
+#else /* !THREADS */
+  if (sg_fr == NULL) {
+   mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
+   new_subgoal_frame(sg_fr, preg, mode_directed);
+   SgFr_no_sg_pos(sg_fr) = no_st_pos;
+   SgNoTrie_sg_fr(no_st_pos) = sg_fr;
+ }
+  return sg_fr;
+
+#endif /*THREADS */
+
 }
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
@@ -1627,6 +1640,9 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
    return (int) ret; // returns 0 or 1 
  }
 
+
+#ifdef THREADS
+
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
  /* GIVING bus error on MkFloatTerm --> check this */			                               \
     int *mode_directed;							                               \
@@ -1772,6 +1788,56 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
       } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
     }									                   \
     return true
+
+#else /* THREADS */
+
+#define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
+ /* GIVING bus error on MkFloatTerm --> check this */			                               \
+   printf ("IMPLEMENT THIS \n");					                               \
+   exit(1);								                               \
+    return true
+
+
+#define INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
+    int *mode_directed;							                   \
+    mode_directed = SgFr_mode_directed(sg_fr);				                   \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
+    sg_fr_ptr sg_fr_aux;						                   \
+    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
+    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
+      /* no answers-> insert the first answer */				           \
+      SgNoTrie_sg_fr(no_st_pos) =  ((long) sg_fr_aux | (long)0x1);     	                   \
+      SgNoTrie_answer_integer(no_st_pos) = term_value;    			           \
+      return true;							                   \
+    }									                   \
+					                                                   \
+    /* at least one term is in no_st_pos */			  	                   \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0;						   \
+    if (mode == MODE_DIRECTED_MIN) {					                   \
+	no_trie_value = SgNoTrie_answer_integer(no_st_pos);	   		           \
+	if (term_value > no_trie_value)					                   \
+	  return false;							                   \
+	SgNoTrie_answer_integer(no_st_pos) = term_value;		                   \
+    } else if (mode == MODE_DIRECTED_MAX) {				                   \
+	no_trie_value =  SgNoTrie_answer_integer(no_st_pos);			           \
+	if (term_value < no_trie_value)					                   \
+	  return false;							                   \
+	SgNoTrie_answer_integer(no_st_pos) = term_value;		                   \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
+      return false;							                   \
+    } else if (mode == MODE_DIRECTED_LAST) {				                   \
+      SgNoTrie_answer_integer(no_st_pos) = term_value;                                     \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0;		                           \
+      no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
+      no_trie_sum_value = no_trie_value + term_value;	                                   \
+      SgNoTrie_answer_integer(no_st_pos) = no_trie_sum_value;                              \
+    }									                   \
+    return true
+
+#endif /* THREADS */
+
 
 
 boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
