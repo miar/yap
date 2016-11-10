@@ -1658,8 +1658,7 @@
 	    (DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
 	  /* unconsumed answer in dependency frame */
 	  if (DepFr_last_term_integer(dep_fr) == 0)
-	    DepFr_consumed_zero(dep_fr) = true;	
-	  //printf (" oooooo -> %ld \n", DepFr_no_sg_pos(dep_fr));
+	    DepFr_consumed_zero(dep_fr) = true;		  
 	  consume_answer_and_procceed_no_trie(dep_fr, 
 	       SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	}

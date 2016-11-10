@@ -1642,7 +1642,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 	if (((long) sg_fr_aux & (long) 0x1) == (long) 0x1)		                               \
 	  break;							                               \
       }									                               \
-      if (BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), (TERM_TYPE) 0.0, term_value))                \
+      if (BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), (TERM_TYPE) 0.0, term_value))            \
         return true;							                               \
     }									                               \
 								                                       \
