@@ -436,7 +436,7 @@ p_setval( USES_REGS1 )
 
 static Int 
 p_value( USES_REGS1 )
-{				/* '$get_value'(+Atom,?Val) */
+{				/* '$get_value'(+Atom,?Val) */  
   Term t1 = Deref(ARG1);
   if (IsVarTerm(t1)) {
     Yap_Error(INSTANTIATION_ERROR,t1,"get_value/2");

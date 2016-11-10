@@ -219,6 +219,7 @@
 	  /* printf("consumed answer was %lf \n", ANSWER); */		            \
 	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	            \
 	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) { \
+	    /* printf (" oooooo2 -> %ld \n", ANSWER); */		\
 	    DepFr_last_term_integer(DEP_FR) = ANSWER;		  	            \
             Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));	            \
 	  } else  /* MODE_DIRECTED_DIM_FLOAT */ {			            \
@@ -1658,6 +1659,7 @@
 	  /* unconsumed answer in dependency frame */
 	  if (DepFr_last_term_integer(dep_fr) == 0)
 	    DepFr_consumed_zero(dep_fr) = true;	
+	  //printf (" oooooo -> %ld \n", DepFr_no_sg_pos(dep_fr));
 	  consume_answer_and_procceed_no_trie(dep_fr, 
 	       SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	}
