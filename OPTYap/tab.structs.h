@@ -22,23 +22,25 @@ typedef enum {false,true} boolean;
 **************************/
 #ifdef THREADS_NO_SUBGOAL_TRIE
 
-
 typedef union {
   Int term_integer;
   Float term_float; // Yap's Float is double
 } entry_type;
 
+#define SgNoTrie_entry_integer(X) ((X)->term_integer)  // X is entry_type
+#define SgNoTrie_entry_float(X)   ((X)->term_float)
+
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-  entry_type entry;  // one answer only - for now
+  entry_type *entry; 
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos_ptr;
 
 #define SgNoTrie_sg_fr(X)           ((X)->subgoal_frame)
-//#define SgNoTrie_answer(X)          ((X)->entry)
-#define SgNoTrie_answer_integer(X)  ((X)->entry.term_integer)
-#define SgNoTrie_answer_float(X)    ((X)->entry.term_float)
+#define SgNoTrie_answer(X)          ((X)->entry)
+#define SgNoTrie_answer_integer(X)  (((X)->entry)->term_integer)
+#define SgNoTrie_answer_float(X)    (((X)->entry)->term_float)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -583,14 +585,8 @@ typedef struct dependency_frame {
   struct answer_trie_node *last_consumed_answer;
 #endif /* THREADS_FULL_SHARING_FTNA_3 */
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING) || defined(STUDY_TIMESTAMP_MDT) || defined (THREADS_NO_SUBGOAL_TRIE_MIN_MAX)
-  boolean consumed_zero;
   int last_consumed_term_type;
   entry_type last_consumed;
-
-/*  union {
-    Int term_integer;
-    Float term_float;
-    } last_consumed;    */
   struct no_subgoal_trie_pos *no_sg_pos;
 #endif /* TIMESTAMP_MODE_DIRECTED_TABLING || STUDY_TIMESTAMP_MDT || THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
   struct dependency_frame *next;
@@ -611,7 +607,7 @@ typedef struct dependency_frame {
 #define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
 #define DepFr_next(X)                    ((X)->next)
 #define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
-#define DepFr_consumed_zero(X)           ((X)->consumed_zero)
+
 
 /*********************************************************************************************************
 

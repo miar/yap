@@ -805,7 +805,6 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
   if(SG_FR != NULL) /* avoids NULL sg_fr on top dep_fr */ {	                   \
     DepFr_no_sg_pos(DEP_FR) = SgFr_no_sg_pos(SG_FR);	                      	   \
     DepFr_last_consumed_term_type(DEP_FR) = SgFr_mode_directed_term_type(SG_FR);   \
-    DepFr_consumed_zero(DEP_FR) = false;				           \
     DepFr_last_term_float(DEP_FR) = 0.0; /* checked that float = 0.0 -> int = 0 */ \
   }
 
@@ -1791,20 +1790,15 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID
 #ifdef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  long with_answer = 0;
   no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
   if (no_st_pos != NULL) {
     sg_fr_ptr sg_fr_aux;
     do {
       sg_fr_aux = (sg_fr_ptr) SgNoTrie_sg_fr(no_st_pos); 
 
-      with_answer = ((long)sg_fr_aux & (long)0x1);
-      sg_fr_aux = (sg_fr_ptr) (((long)sg_fr_aux >> 1) << 1);
-
       if (SgFr_state(sg_fr_aux) >= complete)
         break;    
-    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), ((long)sg_fr_aux | with_answer), 
-		      ((long) sg_fr | with_answer)));
+    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   } else 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
   {

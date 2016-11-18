@@ -1193,8 +1193,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     RESET_VARIABLE(t);
   }
   
-  sg_fr = (sg_fr_ptr) (((long)SgNoTrie_sg_fr(no_st_pos) >> 1) << 1);
-  long with_answer = 0;
+  sg_fr = SgNoTrie_sg_fr(no_st_pos);
 
 #ifdef THREADS
   if (sg_fr) {
@@ -1202,7 +1201,6 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       return sg_fr;
 
     mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
-    // mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     while(sg_fr) {
       if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
@@ -1218,18 +1216,13 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     sg_fr_ptr sg_fr_aux; 
     do {
       sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
-
-      with_answer = ((long)sg_fr_aux & (long)0x1);
-      sg_fr_aux = (sg_fr_ptr) (((long)sg_fr_aux >> 1) << 1);
-
       if (SgFr_state(sg_fr_aux) >= complete)
 	return sg_fr_aux;
       SgFr_next_wid(sg_fr) = sg_fr_aux;
 
-    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), ((long)sg_fr_aux | with_answer), 
-		      ((long) sg_fr | with_answer)));
+    } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   } else {
-    /* no sg_fr complete for now */    
+    /* no sg_fr complete for now */ 
     mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
 
     new_subgoal_frame(sg_fr, preg, mode_directed);
@@ -1237,21 +1230,15 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     SgFr_no_sg_pos(sg_fr) = no_st_pos;
     SgFr_next_wid(sg_fr) = NULL;
     if (!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), NULL, sg_fr)) { 
-      /* 0x1 is to distinguish between answer 0 and no answers NULL
-	 Sure that on first time a subgoal is allocated, there is no answer */
       sg_fr_ptr sg_fr_aux;     
       do {
 	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
-
-	with_answer = ((long)sg_fr_aux & (long)0x1);
-	sg_fr_aux = (sg_fr_ptr) (((long)sg_fr_aux >> 1) << 1);
 
 	if (SgFr_state(sg_fr_aux) >= complete)
 	  return sg_fr_aux;
 	SgFr_next_wid(sg_fr) = sg_fr_aux;	
 
-      } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), ((long)sg_fr_aux | with_answer), 
-		      ((long) sg_fr | with_answer)));
+      } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
     }
   }
   return sg_fr;
@@ -1649,195 +1636,204 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
     no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
-    sg_fr_ptr sg_fr_aux;						                               \
-    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                               \
-    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                                       \
-      /* no answers-> insert the first answer */				                       \
-      while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,		                               \
-		      ((long) sg_fr_aux | (long)0x1))){                       		               \
-	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                               \
-	if (((long) sg_fr_aux & (long) 0x1) == (long) 0x1)		                               \
-	  break;							                               \
-      }									                               \
-      if (BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), (TERM_TYPE) 0.0, term_value))            \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_float(et) = term_value;				                               \
+      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
         return true;							                               \
+      free(et);							 	                               \
     }									                               \
-								                                       \
+							                                               \
     /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
     TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
     if (mode == MODE_DIRECTED_MIN) {					                               \
       do {								                               \
-	no_trie_value = SgNoTrie_answer_float(no_st_pos);	   		                       \
+	no_trie_value = SgNoTrie_entry_float(et);	   		                               \
 	if (term_value > no_trie_value)					                               \
 	  return false;							                               \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));        \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_entry_float(et)), no_trie_value, term_value));                \
     } else if (mode == MODE_DIRECTED_MAX) {				                               \
       do {								                               \
-	no_trie_value =  SgNoTrie_answer_float(no_st_pos);			                       \
+	no_trie_value =  SgNoTrie_entry_float(et);			                               \
 	if (term_value < no_trie_value)					                               \
 	  return false;							                               \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));        \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_entry_float(et)), no_trie_value, term_value));                \
     } else if (mode == MODE_DIRECTED_FIRST) {				                               \
       return false;							                               \
     } else if (mode == MODE_DIRECTED_LAST) {				                               \
       do								                               \
-	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
-      while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, term_value));          \
+	no_trie_value = SgNoTrie_entry_float(et);			                               \
+      while(!BOOL_CAS_FLOAT(&(SgNoTrie_entry_float(et)), no_trie_value, term_value));                  \
     } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
       TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
       do {								                               \
-	no_trie_value = SgNoTrie_answer_float(no_st_pos);			                       \
+	no_trie_value = SgNoTrie_entry_float(et);			                               \
 	no_trie_sum_value = no_trie_value + term_value;	                                               \
-      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_answer_float(no_st_pos)), no_trie_value, no_trie_sum_value)); \
+      } while(!BOOL_CAS_FLOAT(&(SgNoTrie_entry_float(et)), no_trie_value, no_trie_sum_value));         \
+    }									                               \
+    return true
+
+#define FLOAT_SINGLE_THREAD_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
+ /* GIVING bus error on MkFloatTerm --> check this */			                               \
+    int *mode_directed;							                               \
+    mode_directed = SgFr_mode_directed(sg_fr);				                               \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_float(et) = term_value;				                               \
+      SgNoTrie_answer(no_st_pos)) = et;					                               \
+      return true;							                               \
+    }									                               \
+							                                               \
+    /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
+    if (mode == MODE_DIRECTED_MIN) {					                               \
+	no_trie_value = SgNoTrie_entry_float(et);	   		                               \
+	if (term_value > no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_float(et) = term_value;				                               \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+	no_trie_value =  SgNoTrie_entry_float(et);			                               \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_float(et) = term_value;		                                               \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      SgNoTrie_entry_float(et) = term_value;                                                           \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+	no_trie_value = SgNoTrie_entry_float(et);			                               \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+        SgNoTrie_entry_float(et) = no_trie_sum_value;                                                  \
+    }									                               \
+    return true
+
+#define INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)         \
+    int *mode_directed;							                               \
+    mode_directed = SgFr_mode_directed(sg_fr);				                               \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_integer(et) = term_value;				                               \
+      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
+        return true;							                               \
+      free(et);							 	                               \
+    }									                               \
+							                                               \
+    /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
+    if (mode == MODE_DIRECTED_MIN) {					                               \
+      do {								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);	   		                               \
+	if (term_value > no_trie_value)					                               \
+	  return false;							                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                    \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+      do {								                               \
+	no_trie_value =  SgNoTrie_entry_integer(et);			                               \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                    \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      do								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);			                               \
+      while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                      \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+      do {								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);			                               \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, no_trie_sum_value));             \
     }									                               \
     return true
 
 
-
-#define FLOAT_SINGLE_THREAD_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
-    int *mode_directed;							                   \
-    mode_directed = SgFr_mode_directed(sg_fr);				                   \
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
-    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
-    sg_fr_ptr sg_fr_aux;						                   \
-    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
-    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
-      /* no answer-> insert the first answer */				                   \
-	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
-  	  sg_fr_ptr sg_fr_aux;						                   \
-	  do {								                   \
-	    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);                                         \
-	    if (((long) sg_fr_aux & (long) 0x1) == (long) 0x1)		                   \
-  	      break;                                                                       \
-          } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,                       \
-			    ((long) sg_fr_aux | (long)0x1)));		                   \
-	  /*printf("term = %d SgNoTrie_sg_fr(no_st_pos) = %p\n", term_value, */            \
-	  /*  SgNoTrie_sg_fr(no_st_pos));*/				                   \
-      return true;							                   \
-    }									                   \
-					                                                   \
-    /* at least one term is in no_st_pos */			  	                   \
-    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						   \
-    if (mode == MODE_DIRECTED_MIN) {					                   \
-	no_trie_value = SgNoTrie_answer_float(no_st_pos);	   		           \
-	if (term_value > no_trie_value)					                   \
-	  return false;							                   \
-	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
-    } else if (mode == MODE_DIRECTED_MAX) {				                   \
-	no_trie_value =  SgNoTrie_answer_float(no_st_pos);			           \
-	if (term_value < no_trie_value)					                   \
-	  return false;							                   \
-	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
-    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
-      return false;							                   \
-    } else if (mode == MODE_DIRECTED_LAST) {				                   \
-	SgNoTrie_answer_float(no_st_pos) = term_value;			                   \
-    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
-      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                           \
-      no_trie_value = SgNoTrie_answer_float(no_st_pos);			                   \
-      no_trie_sum_value = no_trie_value + term_value;			                   \
-      SgNoTrie_answer_float(no_st_pos) = no_trie_sum_value;			           \
-    }									                   \
-    return true
-
-
-#define INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
-    int *mode_directed;							                   \
-    mode_directed = SgFr_mode_directed(sg_fr);				                   \
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
-    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
-    sg_fr_ptr sg_fr_aux;						                   \
-    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
-    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
-      /* no answers-> insert the first answer */				           \
-      while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux,		                   \
-		      ((long) sg_fr_aux | (long)0x1))){                       		   \
-	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
-	if (((long) sg_fr_aux & (long) 0x1) == (long) 0x1)		                   \
-	  break;							                   \
-      }									                   \
-      if (BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), (TERM_TYPE) 0, term_value))      \
-        return true;							                   \
-    }									                   \
-					                                                   \
-    /* at least one term is in no_st_pos */			  	                   \
-    TERM_TYPE no_trie_value = (TERM_TYPE) 0;						   \
-    if (mode == MODE_DIRECTED_MIN) {					                   \
-      do {								                   \
-	no_trie_value = SgNoTrie_answer_integer(no_st_pos);	   		           \
-	if (term_value > no_trie_value)					                   \
-	  return false;							                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));\
-    } else if (mode == MODE_DIRECTED_MAX) {				                   \
-      do {								                   \
-	no_trie_value =  SgNoTrie_answer_integer(no_st_pos);			           \
-	if (term_value < no_trie_value)					                   \
-	  return false;							                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));\
-    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
-      return false;							                   \
-    } else if (mode == MODE_DIRECTED_LAST) {				                   \
-      do								                   \
-	no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
-      while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value, term_value));  \
-    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
-      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0;		                           \
-      do {								                   \
-	no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
-	no_trie_sum_value = no_trie_value + term_value;	                                   \
-      } while(!BOOL_CAS(&(SgNoTrie_answer_integer(no_st_pos)), no_trie_value,no_trie_sum_value));  \
-    }									                   \
-    return true
-
-#else /* THREADS */
+#else /* !THREADS */
 
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
  /* GIVING bus error on MkFloatTerm --> check this */			                               \
-   printf ("IMPLEMENT THIS \n");					                               \
-   exit(1);								                               \
+    int *mode_directed;							                               \
+    mode_directed = SgFr_mode_directed(sg_fr);				                               \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_float(et) = term_value;				                               \
+      SgNoTrie_answer(no_st_pos)) = et;					                               \
+      return true;							                               \
+    }									                               \
+							                                               \
+    /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
+    if (mode == MODE_DIRECTED_MIN) {					                               \
+	no_trie_value = SgNoTrie_entry_float(et);	   		                               \
+	if (term_value > no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_float(et) = term_value;				                               \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+	no_trie_value =  SgNoTrie_entry_float(et);			                               \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_float(et) = term_value;		                                               \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      SgNoTrie_entry_float(et) = term_value;                                                           \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+	no_trie_value = SgNoTrie_entry_float(et);			                               \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+        SgNoTrie_entry_float(et) = no_trie_sum_value;                                                  \
+    }									                               \
     return true
 
-
 #define INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE) \
-    int *mode_directed;							                   \
-    mode_directed = SgFr_mode_directed(sg_fr);				                   \
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
-    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
-    sg_fr_ptr sg_fr_aux;						                   \
-    sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);				                   \
-    if (((long) sg_fr_aux & (long) 0x1) != (long) 0x1)  {	                           \
-      /* no answers-> insert the first answer */				           \
-      SgNoTrie_sg_fr(no_st_pos) =  ((long) sg_fr_aux | (long)0x1);     	                   \
-      SgNoTrie_answer_integer(no_st_pos) = term_value;    			           \
-      return true;							                   \
-    }									                   \
-					                                                   \
-    /* at least one term is in no_st_pos */			  	                   \
-    TERM_TYPE no_trie_value = (TERM_TYPE) 0;						   \
-    if (mode == MODE_DIRECTED_MIN) {					                   \
-	no_trie_value = SgNoTrie_answer_integer(no_st_pos);	   		           \
-	if (term_value > no_trie_value)					                   \
-	  return false;							                   \
-	SgNoTrie_answer_integer(no_st_pos) = term_value;		                   \
-    } else if (mode == MODE_DIRECTED_MAX) {				                   \
-	no_trie_value =  SgNoTrie_answer_integer(no_st_pos);			           \
-	if (term_value < no_trie_value)					                   \
-	  return false;							                   \
-	SgNoTrie_answer_integer(no_st_pos) = term_value;		                   \
-    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
-      return false;							                   \
-    } else if (mode == MODE_DIRECTED_LAST) {				                   \
-      SgNoTrie_answer_integer(no_st_pos) = term_value;                                     \
-    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
-      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0;		                           \
-      no_trie_value = SgNoTrie_answer_integer(no_st_pos);			           \
-      no_trie_sum_value = no_trie_value + term_value;	                                   \
-      SgNoTrie_answer_integer(no_st_pos) = no_trie_sum_value;                              \
-    }									                   \
+    int *mode_directed;							                               \
+    mode_directed = SgFr_mode_directed(sg_fr);				                               \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_integer(et) = term_value;				                               \
+      SgNoTrie_answer(no_st_pos)) = et;					                               \
+      return true;							                               \
+    }									                               \
+							                                               \
+    /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
+    if (mode == MODE_DIRECTED_MIN) {					                               \
+	no_trie_value = SgNoTrie_entry_integer(et);	   		                               \
+	if (term_value > no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_integer(et) = term_value;				                       \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+	no_trie_value =  SgNoTrie_entry_integer(et);			                               \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+	SgNoTrie_entry_integer(et) = term_value;		                                       \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      SgNoTrie_entry_integer(et) = term_value;                                                         \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+	no_trie_value = SgNoTrie_entry_integer(et);			                               \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+        SgNoTrie_entry_integer(et) = no_trie_sum_value;                                                \
+    }									                               \
     return true
 
 #endif /* THREADS */
-
 
 
 boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {

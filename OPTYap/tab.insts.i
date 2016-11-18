@@ -1648,45 +1648,24 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-    //printf("2-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
-    //	     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
+
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)) 
-	                                     ||	  
-	    (DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
+	printf("2-dep_fr = %p %p\n", dep_fr, DepFr_no_sg_pos(dep_fr));
+
+	if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
 	  /* unconsumed answer in dependency frame */
-	  if (DepFr_last_term_integer(dep_fr) == 0)
-	    DepFr_consumed_zero(dep_fr) = true;		  
 	  consume_answer_and_procceed_no_trie(dep_fr, 
-	       SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+					      SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	}
       } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
-	if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)) 
-	                                    || 
-	    (DepFr_last_term_float(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
+	if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	  /* unconsumed answer in dependency frame */
-	  if (DepFr_last_term_float(dep_fr) == 0.0)
-	    DepFr_consumed_zero(dep_fr) = true;	
 	  consume_answer_and_procceed_no_trie(dep_fr, 
-	       SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+					      SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	}
       }
-	
-      /*
-      if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||	  
-	  (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
-	  // unconsumed answer in dependency frame 
-	if (DepFr_last_term(dep_fr) == 0.0)
-	  DepFr_consumed_zero(dep_fr) = true;	
-	consume_answer_and_procceed_no_trie(dep_fr, 
-					    SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
-      }
-      */
-      //printf("1-last_consumed_term = %lf  term = %lf \n", DepFr_last_term(dep_fr), 
-	//     SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
-	
       
       /* no unconsumed answers */
       if (DepFr_backchain_cp(dep_fr) == NULL) {
@@ -1705,12 +1684,8 @@
 	dep_fr = DepFr_next(dep_fr);
 	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
 	  if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	    if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)) 
-	                                     ||	  
-		(DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
+	    if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
 	      /* unconsumed answer in dependency frame */
-	      if (DepFr_last_term_integer(dep_fr) == 0)
-		DepFr_consumed_zero(dep_fr) = true;
 	      /* restore bindings, update registers, consume answer and procceed */
 	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
 	      B = chain_cp;
@@ -1718,15 +1693,11 @@
 	      TRAIL_LINK(B->cp_tr);      
 	      
 	      consume_answer_and_procceed_no_trie(dep_fr, 
-		  SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+						  SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	    }
 	  } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
-	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)) 
-		                            || 
-		(DepFr_last_term_float(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
+	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	      /* unconsumed answer in dependency frame */
-	      if (DepFr_last_term_float(dep_fr) == 0.0)
-		DepFr_consumed_zero(dep_fr) = true;
 	      /* restore bindings, update registers, consume answer and procceed */
 	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
 	      B = chain_cp;
@@ -1734,29 +1705,9 @@
 	      TRAIL_LINK(B->cp_tr);
 	      
 	      consume_answer_and_procceed_no_trie(dep_fr, 
-		  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+						  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	    }
-	  }
-	  
-	  /* HERE */
-
-
-	  /*
-	  if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
-	      (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
-	    // unconsumed answer in dependency frame
-	    if (DepFr_last_term(dep_fr) == 0.0)
-	    DepFr_consumed_zero(dep_fr) = true;
-	    
-	  */
-
-	  // restore bindings, update registers, consume answer and procceed
-	  /*restore_bindings(B->cp_tr, chain_cp->cp_tr);
-	    B = chain_cp;
-	    TR = TR_FZ;
-	    TRAIL_LINK(B->cp_tr);
-	    consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr))); 
-	    } */
+	  }	  
 	  dep_fr = DepFr_next(dep_fr);
         }
 	/* no dependency frames with unconsumed answers found */
@@ -2196,11 +2147,8 @@
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
 	if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	  if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))                              ||	  
-      (DepFr_last_term_integer(dep_fr) == 0 && DepFr_consumed_zero(dep_fr) == false)) {
+	  if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
 	    // unconsumed answer in dependency frame 
-	    if (DepFr_last_term_integer(dep_fr) == 0)
-	      DepFr_consumed_zero(dep_fr) = true;
 	    if (B->cp_ap)
 	      DepFr_backchain_cp(dep_fr) = B;
 	    else
@@ -2215,12 +2163,8 @@
 	    consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	  }
 	} else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
-	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)) 
-		                            || 
-		(DepFr_last_term_float(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
+	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	      /* unconsumed answer in dependency frame */
-	      if (DepFr_last_term_float(dep_fr) == 0.0)
-		DepFr_consumed_zero(dep_fr) = true;
 
 	      if (B->cp_ap)
 		DepFr_backchain_cp(dep_fr) = B;
@@ -2237,30 +2181,6 @@
 
 	    }	  
 	}
-
-
-	/*
-	if (DepFr_last_term(dep_fr) != SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) ||
-	    (DepFr_last_term(dep_fr) == 0.0 && DepFr_consumed_zero(dep_fr) == false)) {
-	  // unconsumed answer in dependency frame 
-	  if (DepFr_last_term(dep_fr) == 0.0)
-	    DepFr_consumed_zero(dep_fr) = true;	
-	  if (B->cp_ap)
-	    DepFr_backchain_cp(dep_fr) = B;
-	  else
-	    DepFr_backchain_cp(dep_fr) = B->cp_b;
-	  
-	  // rebind variables, update registers, consume answer and procceed
-	  rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
-	  B = DepFr_cons_cp(dep_fr);
-	  TR = TR_FZ;
-	  if (TR != B->cp_tr)
-	    TRAIL_LINK(B->cp_tr);
-	  consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)));
-	} */
-
-
-
 
 	dep_fr = DepFr_next(dep_fr);
       }
