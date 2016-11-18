@@ -597,7 +597,7 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+	if (SgNoTrie_answer(no_st_pos) == NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -789,7 +789,7 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+	if (SgNoTrie_answer(no_st_pos) == NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {
@@ -992,7 +992,7 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
       no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
       if (no_st_pos != NULL) {
-        if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0) {
+	if (SgNoTrie_answer(no_st_pos) == NULL) {
 	  /* no answers --> fail */
 	  goto fail;
 	} else /* load answer */ {
@@ -1651,22 +1651,26 @@
 
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
-      if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	printf("2-dep_fr = %p %p\n", dep_fr, DepFr_no_sg_pos(dep_fr));
+      if (SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) != NULL) {
+	/* if the subgoal call has at least one answer */
+	if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
+	  //printf("2-dep_fr = %p %p\n", dep_fr, DepFr_no_sg_pos(dep_fr));
 
-	if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
-	  /* unconsumed answer in dependency frame */
-	  consume_answer_and_procceed_no_trie(dep_fr, 
-					      SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
-	}
-      } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
-	if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
-	  /* unconsumed answer in dependency frame */
-	  consume_answer_and_procceed_no_trie(dep_fr, 
-					      SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	  if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
+	    //printf("passed here -1\n");
+	    /* unconsumed answer in dependency frame */
+	    consume_answer_and_procceed_no_trie(dep_fr, 
+						SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	  }
+	} else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	  if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
+	    /* unconsumed answer in dependency frame */
+	    consume_answer_and_procceed_no_trie(dep_fr, 
+						SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	  }
 	}
       }
-      
+      //printf("passed here -2\n");
       /* no unconsumed answers */
       if (DepFr_backchain_cp(dep_fr) == NULL) {
 	/* normal backtrack */
@@ -1683,32 +1687,36 @@
 	/* check for dependency frames with unconsumed answers */
 	dep_fr = DepFr_next(dep_fr);
 	while (YOUNGER_CP(DepFr_cons_cp(dep_fr), chain_cp)) {
-	  if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	    if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
-	      /* unconsumed answer in dependency frame */
-	      /* restore bindings, update registers, consume answer and procceed */
-	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
-	      B = chain_cp;
-	      TR = TR_FZ;
-	      TRAIL_LINK(B->cp_tr);      
-	      
-	      consume_answer_and_procceed_no_trie(dep_fr, 
-						  SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	  if (SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) != NULL) {
+	    /* if the subgoal call has at least one answer */
+	    
+	    if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
+	      if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
+		/* unconsumed answer in dependency frame */
+		/* restore bindings, update registers, consume answer and procceed */
+		restore_bindings(B->cp_tr, chain_cp->cp_tr);
+		B = chain_cp;
+		TR = TR_FZ;
+		TRAIL_LINK(B->cp_tr);      
+		
+		consume_answer_and_procceed_no_trie(dep_fr, 
+						    SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	      }
+	    } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	      if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
+		/* unconsumed answer in dependency frame */
+		/* restore bindings, update registers, consume answer and procceed */
+		restore_bindings(B->cp_tr, chain_cp->cp_tr);
+		B = chain_cp;
+		TR = TR_FZ;
+		TRAIL_LINK(B->cp_tr);
+		
+		consume_answer_and_procceed_no_trie(dep_fr, 
+						    SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	      }
 	    }
-	  } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
-	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
-	      /* unconsumed answer in dependency frame */
-	      /* restore bindings, update registers, consume answer and procceed */
-	      restore_bindings(B->cp_tr, chain_cp->cp_tr);
-	      B = chain_cp;
-	      TR = TR_FZ;
-	      TRAIL_LINK(B->cp_tr);
-	      
-	      consume_answer_and_procceed_no_trie(dep_fr, 
-						  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
-	    }
-	  }	  
-	  dep_fr = DepFr_next(dep_fr);
+	  }
+	    dep_fr = DepFr_next(dep_fr);
         }
 	/* no dependency frames with unconsumed answers found */
 	/* unbind variables */
@@ -2146,26 +2154,29 @@
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       while (YOUNGER_CP(DepFr_cons_cp(dep_fr), B)) {
-	if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
-	  if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
-	    // unconsumed answer in dependency frame 
-	    if (B->cp_ap)
-	      DepFr_backchain_cp(dep_fr) = B;
-	    else
-	      DepFr_backchain_cp(dep_fr) = B->cp_b;
-	    
-	    // rebind variables, update registers, consume answer and procceed
-	    rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
-	    B = DepFr_cons_cp(dep_fr);
-	    TR = TR_FZ;
-	    if (TR != B->cp_tr)
-	      TRAIL_LINK(B->cp_tr);
-	    consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
-	  }
-	} else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	if (SgNoTrie_answer(DepFr_no_sg_pos(dep_fr))) {
+	  /* if the subgoal call has at least one answer */
+	  
+	  if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
+	    if (DepFr_last_term_integer(dep_fr) != SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr))) {
+	      // unconsumed answer in dependency frame 
+	      if (B->cp_ap)
+		DepFr_backchain_cp(dep_fr) = B;
+	      else
+		DepFr_backchain_cp(dep_fr) = B->cp_b;
+	      
+	      // rebind variables, update registers, consume answer and procceed
+	      rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
+	      B = DepFr_cons_cp(dep_fr);
+	      TR = TR_FZ;
+	      if (TR != B->cp_tr)
+		TRAIL_LINK(B->cp_tr);
+	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	    }
+	  } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
 	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	      /* unconsumed answer in dependency frame */
-
+	      
 	      if (B->cp_ap)
 		DepFr_backchain_cp(dep_fr) = B;
 	      else
@@ -2178,10 +2189,10 @@
 	      if (TR != B->cp_tr)
 		TRAIL_LINK(B->cp_tr);
 	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
-
+	      
 	    }	  
+	  }
 	}
-
 	dep_fr = DepFr_next(dep_fr);
       }
       /* no dependency frames with unconsumed answers found */
@@ -2202,7 +2213,7 @@
       } else {
         /* subgoal completed */
         no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);	
-	if (((long) SgNoTrie_sg_fr(no_st_pos) & (long) 0x1) == (long) 0x0)
+	if (SgNoTrie_answer(no_st_pos) == NULL)
 	  /* no answers --> fail */
 	  goto fail;
 	else /* load answer */ {

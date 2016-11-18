@@ -1721,7 +1721,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
       entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
       SgNoTrie_entry_integer(et) = term_value;				                               \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
-        return true;							                               \
+        {return true;}			\
       free(et);							 	                               \
     }									                               \
 							                                               \
