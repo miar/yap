@@ -1,0 +1,111 @@
+Threads-Time:-1-15703
+Result-22501
+walltime_by_thread[0][1] time = 5074 
+Threads-Time:-1-15398
+Result-22501
+walltime_by_thread[0][1] time = 5068 
+Threads-Time:-1-15559
+Result-22501
+walltime_by_thread[0][1] time = 5073 
+Threads-Time:-32-990
+Result-22501
+walltime_by_thread[0][1] time = 326 
+walltime_by_thread[0][2] time = 334 
+walltime_by_thread[0][3] time = 328 
+walltime_by_thread[0][4] time = 280 
+walltime_by_thread[0][5] time = 285 
+walltime_by_thread[0][6] time = 287 
+walltime_by_thread[0][7] time = 303 
+walltime_by_thread[0][8] time = 301 
+walltime_by_thread[0][9] time = 304 
+walltime_by_thread[0][10] time = 281 
+walltime_by_thread[0][11] time = 305 
+walltime_by_thread[0][12] time = 300 
+walltime_by_thread[0][13] time = 294 
+walltime_by_thread[0][14] time = 297 
+walltime_by_thread[0][15] time = 299 
+walltime_by_thread[0][16] time = 299 
+walltime_by_thread[0][17] time = 299 
+walltime_by_thread[0][18] time = 291 
+walltime_by_thread[0][19] time = 292 
+walltime_by_thread[0][20] time = 302 
+walltime_by_thread[0][21] time = 302 
+walltime_by_thread[0][22] time = 292 
+walltime_by_thread[0][23] time = 300 
+walltime_by_thread[0][24] time = 296 
+walltime_by_thread[0][25] time = 305 
+walltime_by_thread[0][26] time = 307 
+walltime_by_thread[0][27] time = 284 
+walltime_by_thread[0][28] time = 295 
+walltime_by_thread[0][29] time = 312 
+walltime_by_thread[0][30] time = 312 
+walltime_by_thread[0][31] time = 307 
+walltime_by_thread[0][32] time = 314 
+Threads-Time:-32-1009
+Result-22501
+walltime_by_thread[0][1] time = 325 
+walltime_by_thread[0][2] time = 325 
+walltime_by_thread[0][3] time = 331 
+walltime_by_thread[0][4] time = 294 
+walltime_by_thread[0][5] time = 301 
+walltime_by_thread[0][6] time = 292 
+walltime_by_thread[0][7] time = 297 
+walltime_by_thread[0][8] time = 299 
+walltime_by_thread[0][9] time = 272 
+walltime_by_thread[0][10] time = 287 
+walltime_by_thread[0][11] time = 271 
+walltime_by_thread[0][12] time = 282 
+walltime_by_thread[0][13] time = 280 
+walltime_by_thread[0][14] time = 267 
+walltime_by_thread[0][15] time = 285 
+walltime_by_thread[0][16] time = 289 
+walltime_by_thread[0][17] time = 290 
+walltime_by_thread[0][18] time = 271 
+walltime_by_thread[0][19] time = 275 
+walltime_by_thread[0][20] time = 312 
+walltime_by_thread[0][21] time = 310 
+walltime_by_thread[0][22] time = 298 
+walltime_by_thread[0][23] time = 315 
+walltime_by_thread[0][24] time = 299 
+walltime_by_thread[0][25] time = 310 
+walltime_by_thread[0][26] time = 311 
+walltime_by_thread[0][27] time = 293 
+walltime_by_thread[0][28] time = 317 
+walltime_by_thread[0][29] time = 324 
+walltime_by_thread[0][30] time = 323 
+walltime_by_thread[0][31] time = 304 
+walltime_by_thread[0][32] time = 324 
+Threads-Time:-32-966
+Result-22501
+walltime_by_thread[0][1] time = 318 
+walltime_by_thread[0][2] time = 323 
+walltime_by_thread[0][3] time = 327 
+walltime_by_thread[0][4] time = 287 
+walltime_by_thread[0][5] time = 300 
+walltime_by_thread[0][6] time = 291 
+walltime_by_thread[0][7] time = 298 
+walltime_by_thread[0][8] time = 282 
+walltime_by_thread[0][9] time = 297 
+walltime_by_thread[0][10] time = 286 
+walltime_by_thread[0][11] time = 297 
+walltime_by_thread[0][12] time = 287 
+walltime_by_thread[0][13] time = 290 
+walltime_by_thread[0][14] time = 287 
+walltime_by_thread[0][15] time = 274 
+walltime_by_thread[0][16] time = 265 
+walltime_by_thread[0][17] time = 268 
+walltime_by_thread[0][18] time = 290 
+walltime_by_thread[0][19] time = 271 
+walltime_by_thread[0][20] time = 293 
+walltime_by_thread[0][21] time = 292 
+walltime_by_thread[0][22] time = 294 
+walltime_by_thread[0][23] time = 306 
+walltime_by_thread[0][24] time = 293 
+walltime_by_thread[0][25] time = 306 
+walltime_by_thread[0][26] time = 305 
+walltime_by_thread[0][27] time = 308 
+walltime_by_thread[0][28] time = 303 
+walltime_by_thread[0][29] time = 313 
+walltime_by_thread[0][30] time = 313 
+walltime_by_thread[0][31] time = 307 
+walltime_by_thread[0][32] time = 312 
