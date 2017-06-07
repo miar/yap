@@ -370,7 +370,7 @@ static Int p_table( USES_REGS1 ) {
     }
     
     if (dim_array_size > 0) {      
-      ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int);      
+      ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int); 
     }
 
     int no_subgoal_trie_size = 1;
@@ -404,7 +404,10 @@ static Int p_table( USES_REGS1 ) {
       no_subgoal_trie = (struct no_subgoal_trie_pos *) 
 	calloc(no_subgoal_trie_size, sizeof(struct no_subgoal_trie_pos));
     
-    
+    /* printf("sizeof(no_subgoal_trie) = %ld malloc_usable_size(no_subgoal_trie) = %ld \n", 
+	   no_subgoal_trie_size * sizeof(struct no_subgoal_trie_pos),
+	   malloc_usable_size(no_subgoal_trie)); */
+
     pos_first = pos_dim + pos_index + pos_agreg + pos_all + pos_sum_last;
     pos_sum_last = pos_dim + pos_index + pos_agreg + pos_all;
     pos_all = pos_dim + pos_index + pos_agreg;
@@ -1003,11 +1006,6 @@ static Int p_show_statistics_tabling( USES_REGS1 ) {
   Sfprintf(out,"%ld \n", Extra_Stats_generator_cp);
   Sfprintf(out,"%ld \n", Extra_Stats_completed_cp_private);
   Sfprintf(out,"%ld \n", Extra_Stats_completed_cp_shared);
-
-
-
-
-
 
 
 #endif /* EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE */
