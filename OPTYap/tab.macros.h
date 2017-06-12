@@ -658,6 +658,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         SetMode_Batched(TabEnt_flags(TAB_ENT));                        \
         SetMode_ExecAnswers(TabEnt_flags(TAB_ENT));                    \
         SetMode_LocalTrie(TabEnt_flags(TAB_ENT));                      \
+        SetMode_Suspension(TabEnt_flags(TAB_ENT));                     \
         TabEnt_mode(TAB_ENT) = TabEnt_flags(TAB_ENT);                  \
         if (IsMode_Local(yap_flags[TABLING_MODE_FLAG]))                \
           SetMode_Local(TabEnt_mode(TAB_ENT));                         \
@@ -665,6 +666,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
           SetMode_LoadAnswers(TabEnt_mode(TAB_ENT));                   \
         if (IsMode_GlobalTrie(yap_flags[TABLING_MODE_FLAG]))           \
           SetMode_GlobalTrie(TabEnt_mode(TAB_ENT));                    \
+        if (IsMode_Linear(yap_flags[TABLING_MODE_FLAG]))               \
+          SetMode_Linear(TabEnt_mode(TAB_ENT));                        \
         TabEnt_init_mode_directed_field(TAB_ENT, MODE_ARRAY);          \
 	TabEnt_dimension_array(TAB_ENT) = DIM_ARRAY;		       \
 	TabEnt_sg_fr_mode_directed(TAB_ENT) = SG_FR_MODE_ARRAY;	       \

@@ -582,7 +582,11 @@ static Int p_tabling_mode( USES_REGS1 ) {
     if (IsMode_Batched(TabEnt_flags(tab_ent)))
       t = MkPairTerm(MkAtomTerm(AtomBatched), t);
     else if (IsMode_Local(TabEnt_flags(tab_ent)))
-      t = MkPairTerm(MkAtomTerm(AtomLocal), t);
+      t = MkPairTerm(MkAtomTerm(AtomLocal), t);    
+    if (IsMode_Suspension(TabEnt_mode(tab_ent)))
+      t = MkPairTerm(MkAtomTerm(AtomSuspension), t);
+    else if (IsMode_Linear(TabEnt_mode(tab_ent)))
+      t = MkPairTerm(MkAtomTerm(AtomLinear), t);
     t = MkPairTerm(MkAtomTerm(AtomDefault), t);
     t = MkPairTerm(t, TermNil);
     if (IsMode_LocalTrie(TabEnt_mode(tab_ent)))
@@ -605,7 +609,6 @@ static Int p_tabling_mode( USES_REGS1 ) {
     return(TRUE);
   } else if (IsIntTerm(tvalue)) {
     Int value = IntOfTerm(tvalue);
-    printf("\n value = %d\n", value);
     if (value == 1) {  /* batched */
       SetMode_Batched(TabEnt_flags(tab_ent));
       if (! IsMode_Local(yap_flags[TABLING_MODE_FLAG])) {
