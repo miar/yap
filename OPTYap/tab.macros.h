@@ -130,29 +130,37 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 **      Tabling mode flags      **
 *********************************/
 
-#define Flag_Batched            0x001
-#define Flag_Local              0x002
+#define Flag_Batched            0x0001
+#define Flag_Local              0x0002
 #define Flags_SchedulingMode    (Flag_Batched | Flag_Local)
-#define Flag_ExecAnswers        0x010
-#define Flag_LoadAnswers        0x020
+#define Flag_ExecAnswers        0x0010
+#define Flag_LoadAnswers        0x0020
 #define Flags_AnswersMode       (Flag_ExecAnswers | Flag_LoadAnswers)
-#define Flag_LocalTrie          0x100
-#define Flag_GlobalTrie         0x200
+#define Flag_LocalTrie          0x0100
+#define Flag_GlobalTrie         0x0200
 #define Flags_TrieMode          (Flag_LocalTrie | Flag_GlobalTrie)
 
-#define SetMode_Batched(X)      (X) = ((X) & ~Flags_SchedulingMode) | Flag_Batched
-#define SetMode_Local(X)        (X) = ((X) & ~Flags_SchedulingMode) | Flag_Local
-#define SetMode_ExecAnswers(X)  (X) = ((X) & ~Flags_AnswersMode) | Flag_ExecAnswers
-#define SetMode_LoadAnswers(X)  (X) = ((X) & ~Flags_AnswersMode) | Flag_LoadAnswers
-#define SetMode_LocalTrie(X)    (X) = ((X) & ~Flags_TrieMode) | Flag_LocalTrie
-#define SetMode_GlobalTrie(X)   (X) = ((X) & ~Flags_TrieMode) | Flag_GlobalTrie
+#define Flag_Suspension         0x1000
+#define Flag_Linear             0x2000
+#define Flags_TablingMode       (Flag_Suspension | Flag_Linear)
+
+#define SetMode_Batched(X)        (X) = ((X) & ~Flags_SchedulingMode) | Flag_Batched
+#define SetMode_Local(X)          (X) = ((X) & ~Flags_SchedulingMode) | Flag_Local
+#define SetMode_ExecAnswers(X)    (X) = ((X) & ~Flags_AnswersMode) | Flag_ExecAnswers
+#define SetMode_LoadAnswers(X)    (X) = ((X) & ~Flags_AnswersMode) | Flag_LoadAnswers
+#define SetMode_LocalTrie(X)      (X) = ((X) & ~Flags_TrieMode) | Flag_LocalTrie
+#define SetMode_GlobalTrie(X)     (X) = ((X) & ~Flags_TrieMode) | Flag_GlobalTrie
+#define SetMode_Suspension(X)     (X) = ((X) & ~Flags_TablingMode) | Flag_Suspension
+#define SetMode_Linear(X)         (X) = ((X) & ~Flags_TablingMode) | Flag_Linear
+
 #define IsMode_Batched(X)       ((X) & Flag_Batched)
 #define IsMode_Local(X)         ((X) & Flag_Local)
 #define IsMode_ExecAnswers(X)   ((X) & Flag_ExecAnswers)
 #define IsMode_LoadAnswers(X)   ((X) & Flag_LoadAnswers)
 #define IsMode_LocalTrie(X)     ((X) & Flag_LocalTrie)
 #define IsMode_GlobalTrie(X)    ((X) & Flag_GlobalTrie)
-
+#define IsMode_Suspension(X)    ((X) & Flag_Suspension)
+#define IsMode_Linear(X)        ((X) & Flag_Linear)
 
 
 /******************************

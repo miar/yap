@@ -289,7 +289,8 @@ tabling_mode(Pred,Options) :-
 '$transl_to_pred_flag_tabling_mode'(4,load_answers).
 '$transl_to_pred_flag_tabling_mode'(5,local_trie).
 '$transl_to_pred_flag_tabling_mode'(6,global_trie).
-
+'$transl_to_pred_flag_tabling_mode'(7,suspension).
+'$transl_to_pred_flag_tabling_mode'(8,linear).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

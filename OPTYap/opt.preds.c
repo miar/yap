@@ -601,6 +601,7 @@ static Int p_tabling_mode( USES_REGS1 ) {
     return(TRUE);
   } else if (IsIntTerm(tvalue)) {
     Int value = IntOfTerm(tvalue);
+    printf("\n value = %d\n", value);
     if (value == 1) {  /* batched */
       SetMode_Batched(TabEnt_flags(tab_ent));
       if (! IsMode_Local(yap_flags[TABLING_MODE_FLAG])) {
@@ -637,7 +638,19 @@ static Int p_tabling_mode( USES_REGS1 ) {
 	SetMode_GlobalTrie(TabEnt_mode(tab_ent));
 	return(TRUE);
       }
-    }    
+    } else if (value == 7) {  /* suspension based tabling */
+      SetMode_Suspension(TabEnt_flags(tab_ent));
+      if (! IsMode_Linear(yap_flags[TABLING_MODE_FLAG])) {
+	SetMode_Suspension(TabEnt_mode(tab_ent));
+	return(TRUE);
+      }
+    } else if (value == 8) {  /* linear based tabling */
+      SetMode_Linear(TabEnt_flags(tab_ent));
+      if (! IsMode_Suspension(yap_flags[TABLING_MODE_FLAG])) {
+	SetMode_Linear(TabEnt_mode(tab_ent));
+	return(TRUE);
+      }
+    }   
   }
   return (FALSE);
 }
