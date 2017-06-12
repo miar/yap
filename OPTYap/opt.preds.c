@@ -596,19 +596,11 @@ static Int p_tabling_mode( USES_REGS1 ) {
     if (IsMode_Batched(TabEnt_mode(tab_ent)))
       t = MkPairTerm(MkAtomTerm(AtomBatched), t);
     else if (IsMode_Local(TabEnt_mode(tab_ent)))
-      t = MkPairTerm(MkAtomTerm(AtomLocal), t);
-
-
-    /*
+      t = MkPairTerm(MkAtomTerm(AtomLocal), t);    
     if (IsMode_Suspension(TabEnt_mode(tab_ent)))
       t = MkPairTerm(MkAtomTerm(AtomSuspension), t);
     else if (IsMode_Linear(TabEnt_mode(tab_ent)))
       t = MkPairTerm(MkAtomTerm(AtomLinear), t);
-
-    */
-
-
-
     Bind((CELL *) tvalue, t);
     return(TRUE);
   } else if (IsIntTerm(tvalue)) {

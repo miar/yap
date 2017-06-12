@@ -300,8 +300,8 @@
 #define AtomLeash Yap_heap_regs->AtomLeash_
   Atom AtomLength_;
 #define AtomLength Yap_heap_regs->AtomLength_
-  Atom AtomLinear  _;
-#define AtomLinear   Yap_heap_regs->AtomLinear  _
+  Atom AtomLinear_;
+#define AtomLinear Yap_heap_regs->AtomLinear_
   Atom AtomList_;
 #define AtomList Yap_heap_regs->AtomList_
   Atom AtomLive_;
