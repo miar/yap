@@ -151,6 +151,7 @@
   AtomLastExecuteWithin = AtomAdjust(AtomLastExecuteWithin);
   AtomLeash = AtomAdjust(AtomLeash);
   AtomLength = AtomAdjust(AtomLength);
+  AtomLinear   = AtomAdjust(AtomLinear  );
   AtomList = AtomAdjust(AtomList);
   AtomLive = AtomAdjust(AtomLive);
   AtomLoadAnswers = AtomAdjust(AtomLoadAnswers);
@@ -279,6 +280,7 @@
   AtomStreamPos = AtomAdjust(AtomStreamPos);
   AtomStreamPosition = AtomAdjust(AtomStreamPosition);
   AtomString = AtomAdjust(AtomString);
+  AtomSuspension = AtomAdjust(AtomSuspension);
   AtomSwi = AtomAdjust(AtomSwi);
   AtomSyntaxError = AtomAdjust(AtomSyntaxError);
   AtomSyntaxErrorHandler = AtomAdjust(AtomSyntaxErrorHandler);

@@ -817,7 +817,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
   }
 
 #else 
-#define	DepFr_init_sg_trie_min_max_field(DEP_FR, SG_FR)
+#define	DepFr_init_sg_trie_min_max_fields(DEP_FR, SG_FR)
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX) */
 
 #if defined(TIMESTAMP_MODE_DIRECTED_TABLING)

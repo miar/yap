@@ -151,6 +151,7 @@
   AtomLastExecuteWithin = Yap_FullLookupAtom("$last_execute_within");
   AtomLeash = Yap_FullLookupAtom("$leash");
   AtomLength = Yap_FullLookupAtom("length");
+  AtomLinear   = Yap_LookupAtom("linear");
   AtomList = Yap_LookupAtom("list");
   AtomLive = Yap_FullLookupAtom("$live");
   AtomLoadAnswers = Yap_LookupAtom("load_answers");
@@ -279,6 +280,7 @@
   AtomStreamPos = Yap_FullLookupAtom("$stream_position");
   AtomStreamPosition = Yap_LookupAtom("stream_position");
   AtomString = Yap_LookupAtom("string");
+  AtomSuspension = Yap_LookupAtom("suspension");
   AtomSwi = Yap_LookupAtom("swi");
   AtomSyntaxError = Yap_LookupAtom("syntax_error");
   AtomSyntaxErrorHandler = Yap_LookupAtom("syntax_error_handler");

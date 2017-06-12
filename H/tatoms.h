@@ -300,6 +300,8 @@
 #define AtomLeash Yap_heap_regs->AtomLeash_
   Atom AtomLength_;
 #define AtomLength Yap_heap_regs->AtomLength_
+  Atom AtomLinear  _;
+#define AtomLinear   Yap_heap_regs->AtomLinear  _
   Atom AtomList_;
 #define AtomList Yap_heap_regs->AtomList_
   Atom AtomLive_;
@@ -556,6 +558,8 @@
 #define AtomStreamPosition Yap_heap_regs->AtomStreamPosition_
   Atom AtomString_;
 #define AtomString Yap_heap_regs->AtomString_
+  Atom AtomSuspension_;
+#define AtomSuspension Yap_heap_regs->AtomSuspension_
   Atom AtomSwi_;
 #define AtomSwi Yap_heap_regs->AtomSwi_
   Atom AtomSyntaxError_;

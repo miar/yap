@@ -72,7 +72,7 @@
 **      multithreading design for tabling (mandatory, define one)      **
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
-#define THREADS_SUBGOAL_SHARING 1
+//////////#define THREADS_SUBGOAL_SHARING 1
 //#define THREADS_FULL_SHARING 1
 
 //#define EXTRA_STATISTICS   1
@@ -81,15 +81,11 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
-#define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
-#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 /* only one min/max
-					     int/float term. Do not
-					     try with more terms. more
-					     terms would give error in
-					     DepFr_init_sg_trie_min_max_field
-					     macro for
-					     example. Activate
-					     THREADS_NO_SUBGOAL_TRIE.*/
+//#define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
+//#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 
+/* only one min/max  int/float term. Do not try with more terms. more terms would 
+give error in DepFr_init_sg_trie_min_max_field macro for example. 
+Activate THREADS_NO_SUBGOAL_TRIE.*/
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
@@ -115,15 +111,15 @@
 *************************************************************************/
 //#define SUBGOAL_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define SUBGOAL_TRIE_LOCK_AT_NODE_LEVEL  1
-//#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
+#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL 1 
 //#define SUBGOAL_TRIE_LOCK_AT_WRITE_LEVEL_USING_TRY_LOCKS 1  
 /* #define SUBGOAL_TRIE_ALLOC_BEFORE_CHECK  1 */
 
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
+//////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL 1          /* always define this for atomic level versions - remove the write_level flag */
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V01 1
 //#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V03 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
-#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
+///////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04 1
+////////#define SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04_BUFFER_ALLOC  1  /* hash buckets only */
 
 //#define ANSWER_TRIE_LOCK_AT_ENTRY_LEVEL 1
 //#define ANSWER_TRIE_LOCK_AT_NODE_LEVEL  1
@@ -214,8 +210,8 @@
 /* #define OUTPUT_THREADS_TABLING 1 */
 
 //#define THREADS_LOCAL_SG_FR_HASH_BUCKETS  1 /* enable SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_SUBGOAL_FRAME_BY_WID */
-#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
-#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
+////#define THREADS_SUBGOAL_FRAME_BY_WID  1       /* enable SUBGOAL_SHARING/FULL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS */
+///#define THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE  1  /* enable THREADS_SUBGOAL_FRAME_BY_WID and SUBGOAL_SHARING and MODE_DIRECTED flags disable THREADS_LOCAL_SG_FR_HASH_BUCKETS ->*/
 /* -> missing to implement with THREADS_SUBGOAL_SHARING only*/
 
 //#define THREADS_SUBGOAL_FRAME_SHARE_COMPLETE   1 /* no _WID Mode. share the subgoal frame on the thread 0*/
