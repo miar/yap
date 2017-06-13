@@ -27,7 +27,6 @@
 #define MAX_TABLE_VARS     1000
 #define TRIE_LOCK_BUCKETS  512
 
-
 /************************original - inicio ********************/
 ///#define THREADS_DIRECT_BUCKETS    32  - good  (27 - bad) (50 -bad) 
 
@@ -437,6 +436,48 @@
 #endif /* THREADS_FULL_SHARING */
           
 
+/***************************** LINEAR TABLING *****************************/
+
+/* ----------------------------------- **
+**      linear tabling? (optional)     **
+** ----------------------------------- */
+
+//#define DEBUG_LINEAR_TABLING 1  
+//#define DUMMY_PRINT        1
+
+#define LINEAR_TABLING 1 
+
+/* ------------------------------------------------------ **
+**      linear tabling strategy                           **
+**            (suported modes:                            **
+**                  --BASIC                               **
+**		    --DRA                                 **
+**		    --DRE (basic mode)                    **
+**		    --DRA+DRE)                            **
+**      DRS- Dynamic Reordering of Solutions (optional)   **
+** ------------------------------------------------------ */
+
+/*DSLA- Dynamic Stop Looping Alternative */
+
+//#define LINEAR_TABLING_DSLA 1 /*for debug only- need change on table_completion() */
+
+#define LINEAR_TABLING_DRA 1  
+//#define LINEAR_TABLING_DRE 1 
+//#define LINEAR_TABLING_DRS 1
+
+#ifdef LINEAR_TABLING
+#define MAX_LOOP_ALT_BUCKET   10
+#define MAX_LOOP_ANS_BUCKET   1
+#endif /*LINEAR_TABLING */
+
+
+#ifndef LINEAR_TABLING 
+#if defined(LINEAR_TABLING_DRA) || defined(LINEAR_TABLING_DRE) || defined(LINEAR_TABLING_DRS) || defined(DUMMY_PRINT) || defined(DEBUG_LINEAR_TABLING) 
+#error Please define LINEAR_TABLING mode ...
+#endif
+#endif /*LINEAR_TABLING */
+
+
 
 /****************************************** YAP ISSUES ***********************/
 /* CHECK miguel tag on C/index.c file */
@@ -445,5 +486,8 @@
 /* OBS -> YAP'S CURRENT STATE */
 // COMMENTED --> INCOMPLETE_TABLING
 // #if THREADS_ on C/write.c
+
+
+
 
 
