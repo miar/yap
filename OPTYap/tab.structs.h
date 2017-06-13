@@ -316,17 +316,31 @@ struct consumer_choicept {
 struct loader_choicept {
   struct choicept cp;
   struct answer_trie_node *cp_last_answer;
+#if defined(LINEAR_TABLING) && defined(DUMMY_PRINT)
+  int type_of_node;
+#endif /*DUMMY_PRINT */  
 #ifdef LOW_LEVEL_TRACER
   struct pred_entry *cp_pred_entry;
 #endif /* LOW_LEVEL_TRACER */
 };
 
-
-
 /*********************************
 **      subgoal_state_flag      **
 *********************************/
 
+#ifdef LINEAR_TABLING
+typedef enum {        /* do not change order !!! */
+  incomplete         = 0,  
+  ready              = 1,
+  evaluating         = 2,
+  looping_ready      = 3,  
+  looping_evaluating = 4,  
+  complete           = 5,
+  complete_in_use    = 6,  /* LIMIT_TABLING */
+  compiled           = 7,
+  compiled_in_use    = 8   /* LIMIT_TABLING */
+} subgoal_state_flag;  
+#else /*!LINEAR_TABLING */
 typedef enum {          /* do not change order !!! */
   incomplete      = 0,  /* INCOMPLETE_TABLING */
   ready           = 1,
@@ -336,8 +350,7 @@ typedef enum {          /* do not change order !!! */
   compiled        = 5,
   compiled_in_use = 6   /* LIMIT_TABLING */
 } subgoal_state_flag;
-
-
+#endif /*LINEAR_TABLING */
 
 /****************************
 **      subgoal_entry      **
@@ -477,6 +490,32 @@ typedef struct subgoal_frame {
 #endif /* THREADS_SUBGOAL_FRAME_BY_WID */
 #endif /* THREADS_LOCAL_SG_FR_HASH_BUCKETS */
 #endif /* THREADS_SUBGOAL_SHARING || THREADS_FULL_SHARING */
+#ifdef LINEAR_TABLING
+  int dfn;
+  yamop **first_looping_alt;
+  yamop **current_looping_alt;
+  yamop **stop_looping_alt;
+#ifdef LINEAR_TABLING_DRS
+  yamop *continuation_point;
+  struct answer_trie_node *loop_ans;
+  int consuming_answers;
+  struct answer_trie_node **stop_looping_ans;
+  struct answer_trie_node **current_looping_ans;
+  struct answer_trie_node *new_answer_trie;
+#endif /*LINEAR_TABLING_DRS*/
+  struct subgoal_frame *next_on_branch;
+  struct subgoal_frame *next_on_scc;
+#ifdef LINEAR_TABLING_DRA
+    yamop *current_alt; 
+#endif /*LINEAR_TABLING_DRA */
+#ifdef LINEAR_TABLING_DRE
+  yamop *next_alt;
+  struct choicept *pioneer;
+  struct subgoal_frame *pioneer_frame; /*support for cuts */
+#endif /* LINEAR_TABLING_DRE */
+  yamop  *loop_alts;
+  struct answer_trie_node *batched_answer;
+#endif /* LINEAR_TABLING */
 } *sg_fr_ptr;
 
 /* subgoal_entry fields */
@@ -510,7 +549,6 @@ typedef struct subgoal_frame {
 #define SgFr_active_workers(X)          (SUBGOAL_ENTRY(X) active_workers)
 #define SgFr_lock_comp_wait(X)          (SUBGOAL_ENTRY(X) lock_completion_wait)
 #define SgFr_comp_wait(X)               (SUBGOAL_ENTRY(X) completion_wait)
-
 /* subgoal_frame fields */
 #define SgFr_no_sg_pos(X)               ((X)->no_sg_pos)
 #define SgFr_sg_fr_array(X)             ((X)->subgoal_frame_array)
@@ -525,10 +563,29 @@ typedef struct subgoal_frame {
 #define SgFr_wid(X)                     ((X)->wid)
 #define SgFr_next_wid(X)                ((X)->next_wid)
 #define SgFr_mode_directed_term_type(X) (SUBGOAL_ENTRY(X) mode_directed_array[1])
-
 #define SgFr_cons_ref_ans(X)            ((X)->consumer_ref_answer)
 #define SgFr_cons_ref_first_ans(X)      ((X)->consumer_ref_first_answer) 
 #define SgFr_cons_ref_last_ans(X)       ((X)->consumer_ref_last_answer) 
+#ifdef LINEAR_TABLING
+#define SgFr_current_batched_answer(X)   ((X)->batched_answer)
+#define SgFr_loop_alts(X)                ((X)->loop_alts)
+#define SgFr_new_answer_trie(X)          ((X)->new_answer_trie)
+#define SgFr_dfn(X)                      ((X)->dfn)
+#define SgFr_current_alt(X)              ((X)->current_alt)
+#define SgFr_next_alt(X)                 ((X)->next_alt)
+#define SgFr_first_loop_alt(X)           ((X)->first_looping_alt)
+#define SgFr_current_loop_alt(X)         ((X)->current_looping_alt)
+#define SgFr_stop_loop_alt(X)            ((X)->stop_looping_alt)
+#define SgFr_consuming_answers(X)        ((X)->consuming_answers)
+#define SgFr_cp(X)                       ((X)->continuation_point)
+#define SgFr_loop_ans(X)                 ((X)->loop_ans)
+#define SgFr_stop_loop_ans(X)            ((X)->stop_looping_ans)
+#define SgFr_current_loop_ans(X)         ((X)->current_looping_ans)
+#define SgFr_next_on_branch(X)           ((X)->next_on_branch)
+#define SgFr_next_on_scc(X)              ((X)->next_on_scc)
+#define SgFr_pioneer(X)                  ((X)->pioneer)
+#define SgFr_pioneer_frame(X)            ((X)->pioneer_frame)
+#endif /* LINEAR_TABLING */
 
 
 /**********************************************************************************************************

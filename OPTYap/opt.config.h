@@ -478,7 +478,6 @@
 #endif /*LINEAR_TABLING */
 
 
-
 /****************************************** YAP ISSUES ***********************/
 /* CHECK miguel tag on C/index.c file */
 
