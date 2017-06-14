@@ -1254,6 +1254,9 @@ fix_tabling_info( USES_REGS1 )
   while (sg) {
     if (SgFr_gen_cp(sg))
       SgFr_gen_cp(sg) = GeneratorChoicePtrAdjust(SgFr_gen_cp(sg));
+#if defined(LINEAR_TABLING) && defined(LINEAR_TABLING_DRE)
+    SgFr_pioneer(sg) = GeneratorChoicePtrAdjust(SgFr_pioneer(sg));
+#endif /*LINEAR_TABLING && LINEAR_TABLING_DRE */
     sg = SgFr_next(sg);
   }
 }

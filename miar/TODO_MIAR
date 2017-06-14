@@ -1,0 +1,15 @@
+./C/absmi.c:3170:  OK
+./C/grow.c:1235:  OK
+./OPTYap/opt.config.h:42:  OK
+./OPTYap/tab.structs.h:178: OK
+./H/absmi.h:805:#if defined(FROZEN_STACKS) && !defined(LINEAR_TABLING)
+./OPTYap/linear.tab.insts.h:39:#ifdef LINEAR_TABLING_DRE
+./OPTYap/linear.tab.macros.h:173:#endif /*LINEAR_TABLING_DRS */
+./OPTYap/opt.init.c:219:#endif /* LINEAR_TABLING */
+./OPTYap/opt.macros.h:369:#ifdef LINEAR_TABLING
+./OPTYap/opt.preds.c:446:#endif /*LINEAR_TABLING && DUMMY_PRINT */
+./OPTYap/opt.structs.h:351:#ifdef LINEAR_TABLING
+./OPTYap/tab.completion.c:152:#endif /* LINEAR_TABLING */
+./OPTYap/tab.insts.i:1687:#endif /*!LINEAR_TABLING */
+./OPTYap/tab.macros.h:786:#endif /*LINEAR_TABLING */
+./OPTYap/tab.tries.c:1079:#endif /*LINEAR_TABLING */

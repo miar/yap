@@ -3200,6 +3200,10 @@ Yap_absmi(int inp)
 #include "or.insts.i"
 #endif /* YAPOR */
 #ifdef TABLING
+#ifdef LINEAR_TABLING
+#include "../OPTYap/linear.tab.insts.h"
+#endif /* LINEAR_TABLING */
+
 #include "tab.insts.i"
 #include "tab.tries.insts.i"
 #endif /* TABLING */
