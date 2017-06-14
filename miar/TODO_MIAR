@@ -8,6 +8,8 @@
 ./OPTYap/opt.init.c:219: OK
 ./OPTYap/opt.preds.c:446: OK
 
+CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
+
 
 ./OPTYap/linear.tab.insts.h:39:#ifdef LINEAR_TABLING_DRE
 ./OPTYap/linear.tab.macros.h:173:#endif /*LINEAR_TABLING_DRS */
