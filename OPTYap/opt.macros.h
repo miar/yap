@@ -723,7 +723,6 @@ extern int Yap_page_size;
 #define INFO_LINEAR_TABLING(MESG, ARGS...)
 #endif /* DEBUG_LINEAR_TABLING */
 
-
 #define INFORMATION_MESSAGE(MESSAGE,ARGS...)                            \
         Sfprintf(Serror, "[ " MESSAGE " ]\n", ##ARGS)
 

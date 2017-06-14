@@ -697,10 +697,27 @@ struct local_optyap_data {
 #define REMOTE_ma_h_top(wid)                     (REMOTE(wid)->optyap_data_.ma_h_top)
 #define REMOTE_ma_hash_table(wid)                (REMOTE(wid)->optyap_data_.ma_hash_table)
 
+
+
+
+#ifdef LINEAR_TABLING
+#define REMOTE_top_sg_fr_on_branch(wid)              (REMOTE(wid)->optyap_data_.top_subgoal_frame_on_branch)
+#define REMOTE_max_scc(wid)                          (REMOTE(wid)->optyap_data_.top_subgoal_max_scc)
+#define REMOTE_dfn(wid)                              (REMOTE(wid)->optyap_data_.dfn)
+#ifdef DUMMY_PRINT
+#define REMOTE_nr_followers(wid)                     (REMOTE(wid)->optyap_data_.nr_followers)
+#define REMOTE_nr_generators(wid)                    (REMOTE(wid)->optyap_data_.nr_generators)
+#define REMOTE_nr_consumers(wid)                     (REMOTE(wid)->optyap_data_.nr_consumers)
+#define REMOTE_nr_consumed_answers(wid)              (REMOTE(wid)->optyap_data_.nr_consumed_answers)
+#define REMOTE_nr_consumed_alternatives(wid)         (REMOTE(wid)->optyap_data_.nr_consumed_alternatives)
+#define REMOTE_nr_propagate_depen_cicles(wid)        (REMOTE(wid)->optyap_data_.nr_propagate_depen_cicles)
+#define REMOTE_nr_is_leader_and_has_new_answers(wid) (REMOTE(wid)->optyap_data_.nr_is_leader_and_has_new_answers)
+#endif /*DUMMY_PRINT */
+#endif /* LINEAR_TABLING */
+
 #ifdef YAPOR
 #include "or.structs.h"
 #endif /* YAPOR */
-
 
 #ifdef TABLING
 #include "tab.structs.h"

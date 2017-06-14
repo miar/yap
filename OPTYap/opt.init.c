@@ -312,6 +312,21 @@ void Yap_init_local_optyap_data(int wid) {
   Set_REMOTE_top_cp_on_stack(wid, (choiceptr) LOCAL_LocalBase); /* ??? */
   REMOTE_top_susp_or_fr(wid) = GLOBAL_root_or_fr;
 #endif /* YAPOR */
+
+#ifdef LINEAR_TABLING
+  REMOTE_top_sg_fr_on_branch(wid) = NULL;
+  REMOTE_max_scc(wid) = NULL;
+  REMOTE_dfn(wid) = 1;
+#ifdef DUMMY_PRINT
+  REMOTE_nr_followers(wid) = 0;
+  REMOTE_nr_generators(wid) = 0;
+  REMOTE_nr_consumers(wid) = 0;
+  REMOTE_nr_consumed_answers(wid) = 0;
+  REMOTE_nr_consumed_alternatives(wid) = 0;
+  REMOTE_nr_propagate_depen_cicles(wid) = 0;
+  REMOTE_nr_is_leader_and_has_new_answers(wid) = 0;
+#endif /*DUMMY_PRINT */
+#endif /* LINEAR_TABLING */
 #endif /* TABLING */
   return;
 }
