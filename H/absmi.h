@@ -811,7 +811,7 @@ Macros to check the limits of stacks
 #endif /* FROZEN_STACKS && !BFZ_TRAIL_SCHEME */
 
 
-#ifdef FROZEN_STACKS
+#if defined(FROZEN_STACKS)  && !defined(LINEAR_TABLING)
 #ifdef YAPOR_SBA
 #define PROTECT_FROZEN_H(CPTR)                                  \
        ((Unsigned((Int)((CPTR)->cp_h)-(Int)(H_FZ)) <            \
