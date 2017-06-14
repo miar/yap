@@ -50,6 +50,9 @@ static Int p_abolish_all_tables( USES_REGS1 );
 static Int p_show_tabled_predicates( USES_REGS1 );
 static Int p_show_table( USES_REGS1 );
 static Int p_show_all_tables( USES_REGS1 );
+#if defined(LINEAR_TABLING) && defined(DUMMY_PRINT)
+static Int p_print_drs_opt(void);
+#endif /*LINEAR_TABLING && DUMMY_PRINT */
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
 static Int p_table_query_number( USES_REGS1 );
 #endif
@@ -224,6 +227,9 @@ void Yap_init_optyap_preds(void) {
   Yap_InitCPred("show_tabled_predicates", 1, p_show_tabled_predicates, SafePredFlag|SyncPredFlag);
   Yap_InitCPred("$c_show_table", 3, p_show_table, SafePredFlag|SyncPredFlag|HiddenPredFlag);
   Yap_InitCPred("show_all_tables", 1, p_show_all_tables, SafePredFlag|SyncPredFlag);
+#if defined(LINEAR_TABLING) && defined(DUMMY_PRINT)
+  Yap_InitCPred("print_drs", 0, p_print_drs_opt, SafePredFlag|SyncPredFlag);
+#endif /*LINEAR_TABLING && DUMMY_PRINT*/
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
   Yap_InitCPred("table_query_number", 1, p_table_query_number, SafePredFlag|SyncPredFlag);
 #endif
@@ -745,6 +751,37 @@ static Int p_show_table( USES_REGS1 ) {
   return (TRUE);
 }
 
+
+#if defined(LINEAR_TABLING) && defined(DUMMY_PRINT)
+static Int p_print_drs_opt( USES_REGS1 ) {
+  IOSTREAM *out;
+  Term mod, t;
+  tab_ent_ptr tab_ent;
+  Term t1 = Deref(ARG1);
+
+  if (IsVarTerm(t1) || !IsAtomTerm(t1))
+    return FALSE;
+  if (!(out = Yap_GetStreamHandle(AtomOfTerm(t1))))
+    return FALSE;
+
+  int nr_of_generators = LOCAL_nr_generators-LOCAL_nr_followers;
+  fprintf(out,"|---------------------------------------------------------------------------------|\n");
+  fprintf(out,"| Nr of all follower  nodes             (DRE)                      = %d \n", LOCAL_nr_followers);  
+  fprintf(out,"| Nr of all generator nodes             (without FOLLOWERS)        = %d \n", nr_of_generators);
+  fprintf(out,"| Nr of all consumer  nodes                                        = %d \n", LOCAL_nr_consumers);
+  fprintf(out,"| Nr of all nodes                       (CONSU + FOLLOW + GENER)   = %d \n", LOCAL_nr_consumers+LOCAL_nr_generators);  
+/* LOCAL_consumed_answers. only answers subject to drs condition.(not drs->load_answer_trie.  drs->DRS_LOCAL_answer_resolution) */
+  fprintf(out,"| Nr of consumed answers                (DRS - LOCAL SCHED ONLY)   = %d \n", LOCAL_nr_consumed_answers); 
+  fprintf(out,"| Nr of consumed alternatives                                      = %d \n", LOCAL_nr_consumed_alternatives);
+  fprintf(out,"| Nr of propagate dependencies cicles                              = %d \n", LOCAL_nr_propagate_depen_cicles);
+  fprintf(out,"| Nr of is leader and has new answers                              = %d \n", LOCAL_nr_is_leader_and_has_new_answers);
+  fprintf(out,"|---------------------------------------------------------------------------------|\n");
+
+  PL_release_stream(out);
+  return (TRUE);
+}
+
+#endif /*LINEAR_TABLING && DUMMY_PRINT */
 
 static Int p_show_all_tables( USES_REGS1 ) {
   IOSTREAM *out;
