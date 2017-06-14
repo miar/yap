@@ -499,7 +499,20 @@ struct local_optyap_data {
   //#ifdef DEBUG_COUNT_ALLOC_BUCKETS
     //int debug_count_buckets;
   //#endif /* DEBUG_COUNT_ALLOC_BUCKETS */
-
+#ifdef LINEAR_TABLING
+  int dfn;
+  struct subgoal_frame *top_subgoal_frame_on_branch;
+  struct subgoal_frame *top_subgoal_max_scc;
+#ifdef DUMMY_PRINT
+  int nr_followers;
+  int nr_generators;
+  int nr_consumers;
+  int nr_consumed_answers;
+  int nr_consumed_alternatives;
+  int nr_propagate_depen_cicles;
+  int nr_is_leader_and_has_new_answers;
+#endif /* DUMMY_PRINT */
+#endif /* LINEAR_TABLING */
 
   struct subgoal_frame *top_subgoal_frame;
 #if defined(THREADS_SUBGOAL_SHARING) || defined(THREADS_FULL_SHARING)
@@ -534,6 +547,21 @@ struct local_optyap_data {
 #endif /* (TABLING || !YAPOR_COW) && MULTI_ASSIGNMENT_VARIABLES */
 };
 
+
+#ifdef LINEAR_TABLING
+#ifdef DUMMY_PRINT
+#define LOCAL_nr_followers                      (LOCAL->nr_followers)
+#define LOCAL_nr_generators                     (LOCAL->nr_generators)
+#define LOCAL_nr_consumers                      (LOCAL->nr_consumers)
+#define LOCAL_nr_consumed_answers               (LOCAL->nr_consumed_answers)
+#define LOCAL_nr_consumed_alternatives          (LOCAL->nr_consumed_alternatives)
+#define LOCAL_nr_propagate_depen_cicles         (LOCAL->nr_propagate_depen_cicles)
+#define LOCAL_nr_is_leader_and_has_new_answers  (LOCAL-> nr_is_leader_and_has_new_answers)
+#endif /*DUMMY_PRINT */
+#define LOCAL_dfn                               (LOCAL->dfn)
+#define LOCAL_max_scc                           (LOCAL->top_subgoal_max_scc)
+#define LOCAL_top_sg_fr_on_branch               (LOCAL->top_subgoal_frame_on_branch)
+#endif /*LINEAR_TABLING */
                           
 #define LOCAL_pages_void                   (LOCAL_optyap_data.pages.void_pages)
 #define LOCAL_pages_tab_ent                (LOCAL_optyap_data.pages.table_entry_pages)
@@ -553,8 +581,6 @@ struct local_optyap_data {
 #define LOCAL_next_free_ans_node           (LOCAL_optyap_data.pages.next_free_answer_trie_node)
 
 //#define LOCAL_debug_count_buckets          (LOCAL_optyap_data.debug_count_buckets)
-
-
 #define LOCAL_trie_buckets_buffer          (LOCAL_optyap_data.trie_buckets_buffer)
 
 #define LOCAL_lock                         (LOCAL_optyap_data.lock)
