@@ -104,8 +104,21 @@ static void complete_suspension_branch(susp_fr_ptr susp_fr, choiceptr top_cp, or
 *******************************/
 
 void private_completion(sg_fr_ptr sg_fr USES_REGS) {
-
   /* complete subgoals */
+
+#ifdef LINEAR_TABLING
+  INFO_LINEAR_TABLING("private completion ");
+  while (LOCAL_max_scc != sg_fr) {
+    INFO_LINEAR_TABLING("(while)LOCAL_MAX_SCC= %p", LOCAL_max_scc);
+    mark_as_completed(LOCAL_max_scc);
+    LOCAL_max_scc = SgFr_next_on_scc(LOCAL_max_scc);    
+  }
+  INFO_LINEAR_TABLING("LOCAL_MAX_SCC= %p", LOCAL_max_scc);
+  mark_as_completed(LOCAL_max_scc);
+  LOCAL_max_scc = SgFr_next_on_scc(LOCAL_max_scc);
+  return;
+#else /* ! LINEAR_TABLING */
+
 #ifdef LIMIT_TABLING
   sg_fr_ptr aux_sg_fr;
   while (LOCAL_top_sg_fr != sg_fr) {
@@ -137,6 +150,7 @@ void private_completion(sg_fr_ptr sg_fr USES_REGS) {
   /* adjust freeze registers */
   adjust_freeze_registers();
   return;
+#endif /* LINEAR_TABLING */
 }
 
 
