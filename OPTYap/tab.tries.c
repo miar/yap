@@ -2040,6 +2040,14 @@ ans_node_ptr mode_directed_answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_RE
 void load_answer(ans_node_ptr current_ans_node, CELL *subs_ptr USES_REGS) {
 
 #define subs_arity *subs_ptr
+
+#ifdef LINEAR_TABLING
+#if defined(DUMMY_PRINT) && !defined(LINEAR_TABLING_DRS)
+  if((LOAD_CP(B)->type_of_node)==1)
+     LOCAL_nr_consumed_answers++;  
+#endif /* DUMMY_PRINT && !LINEAR_TABLING_DRS */
+#endif /*LINEAR_TABLING */
+
   CELL *stack_terms;
   int i;
 
