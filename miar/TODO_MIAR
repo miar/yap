@@ -8,6 +8,7 @@
 ./OPTYap/opt.init.c:219: OK
 ./OPTYap/opt.preds.c:446: OK
 ./OPTYap/tab.completion.c:152: OK
+./OPTYap/tab.tries.c:1079: OK FOR NOW (check TO MAKE tag)
 
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
 
@@ -17,7 +18,7 @@ CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */
 
 ./OPTYap/tab.insts.i:1687:#endif /*!LINEAR_TABLING */
 ./OPTYap/tab.macros.h:786:#endif /*LINEAR_TABLING */
-./OPTYap/tab.tries.c:1079:#endif /*LINEAR_TABLING */
+
 
 TO MAKE:
 
