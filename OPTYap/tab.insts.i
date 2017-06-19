@@ -538,7 +538,7 @@
 
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */      
-       init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
 #ifdef DETERMINISTIC_TABLING
       if (IsMode_Batched(TabEnt_mode(tab_ent))) {
 	store_deterministic_generator_node(tab_ent, sg_fr);
@@ -563,7 +563,7 @@
       SgFr_try_answer(sg_fr) = ans_node;
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
-      init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
@@ -737,7 +737,7 @@
 #endif /*!THREADS_SUBGOAL_FRAME_BY_WID */
     if (SgFr_state(sg_fr) == ready) {
       /* subgoal new */
-      init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG->u.Otapl.d);
       PREG = NEXTOP(PREG, Otapl);
       PREFETCH_OP(PREG);
@@ -755,7 +755,7 @@
       SgFr_try_answer(sg_fr) = ans_node;
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
-      init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
@@ -938,7 +938,7 @@
     if (SgFr_state(sg_fr) == ready) {
       //      printf("first call in C\n");
       /* subgoal new */
-      init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, NEXTOP(PREG,Otapl));
       PREG = PREG->u.Otapl.d;
       PREFETCH_OP(PREG);
@@ -956,7 +956,7 @@
       SgFr_try_answer(sg_fr) = ans_node;
 #endif  /* THREADS_FULL_SHARING_FTNA_3 */
       CELL *subs_ptr = YENV;
-      init_subgoal_frame(sg_fr);
+      init_subgoal_frame(sg_fr, tab_ent);
       store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, TRY_ANSWER);
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);

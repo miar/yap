@@ -22,6 +22,11 @@
 #endif /* HAVE_STRING_H */
 #include "opt.mavar.h"
 
+#ifdef LINEAR_TABLING
+#include "linear.tab.macros.h"
+#endif /*LINEAR TABLING */
+
+
 #ifdef EXTRA_STATISTICS_CHOICE_POINTS
 #define  SgEnt_init_extra_statistics_choice_points(SG_ENT)	       \
   SgEnt_query_number(SG_ENT)= -1;
@@ -565,6 +570,25 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 
 
+#ifdef LINEAR_TABLING
+#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)  \
+  ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(SG_FR));  \
+  SgFr_allocate_drs_looping_structure(SG_FR)
+
+#else /* !LINEAR_TABLING */
+#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)
+#define SgFr_init_linear_tabling_fields(SG_FR,TAB_ENT)  \
+  SgFr_next(SG_FR) = LOCAL_top_sg_fr;	                \
+  LOCAL_top_sg_fr = SG_FR
+
+/* if LINEAR_TABLING defined then 
+   SgFr_init_linear_tabling_fields is defined in linear.tab.macros.h 
+   I must clean this stuff later */
+#endif /* LINEAR_TABLING */
+
+
+
+
 #ifdef THREADS_NO_SHARING
 #define TabEnt_init_subgoal_trie_field(TAB_ENT)                           \
         INIT_BUCKETS(&TabEnt_subgoal_trie(TAB_ENT), THREADS_NUM_BUCKETS)
@@ -748,6 +772,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #define new_subgoal_frame(SG_FR, SG_ENT)		           \
         { ALLOC_SUBGOAL_FRAME(SG_FR);    	     	           \
+          SgFr_linear_tabling_new_sg_fr_fields(SG_FR);		   \
           SgFr_sg_ent(SG_FR) = SG_ENT; 		                   \
           SgFr_state(SG_FR) = ready;                               \
 	  SgFr_init_next_complete(SG_FR);    		           \
@@ -756,10 +781,9 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 	  SgFr_init_no_sg_trie_fields(SG_FR);			   \
         }
 
-#define init_subgoal_frame(SG_FR)				   \
+#define init_subgoal_frame(SG_FR, TAB_ENT) 		           \
         { SgFr_state(SG_FR) = evaluating;			   \
-          SgFr_next(SG_FR) = LOCAL_top_sg_fr;			   \
-          LOCAL_top_sg_fr = SG_FR;                                 \
+ 	  SgFr_init_linear_tabling_fields(SG_FR, TAB_ENT);         \
 	}
 #else /* no multithreading || THREADS_SUBGOAL_SHARING || THREADS_NO_SHARING */
 
@@ -767,6 +791,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define new_subgoal_frame(SG_FR, CODE, MODE_ARRAY)		   \
      {   tab_ent_ptr tab_ent = CODE->u.Otapl.te;		   \
 	 ALLOC_SUBGOAL_FRAME(SG_FR);				   \
+         SgFr_linear_tabling_new_sg_fr_fields(SG_FR);		   \
          SgFr_code(SG_FR) = CODE;                                  \
          SgFr_init_mode_directed_fields(SG_FR, MODE_ARRAY);	   \
          SgFr_state(SG_FR) = ready;                                \
@@ -789,6 +814,7 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
         { register ans_node_ptr ans_node;                          \
           new_answer_trie_node(ans_node, 0, 0, NULL, NULL, NULL);  \
           ALLOC_SUBGOAL_FRAME(SG_FR);                              \
+          SgFr_linear_tabling_new_sg_fr_fields(SG_FR);		   \
 	  INIT_LOCK_SG_FR(SG_FR);				   \
 	  INIT_LOCK_SG_FR_COMP_WAIT(SG_FR);			   \
           SgFr_code(SG_FR) = CODE;                                 \
@@ -803,12 +829,12 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
-#define init_subgoal_frame(SG_FR)                                  \
+#define init_subgoal_frame(SG_FR, TAB_ENT)			   \
         { SgFr_init_yapor_fields(SG_FR);                           \
           SgFr_state(SG_FR) = evaluating;                          \
-          SgFr_next(SG_FR) = LOCAL_top_sg_fr;                      \
-          LOCAL_top_sg_fr = SG_FR;                                 \
+ 	  SgFr_init_linear_tabling_fields(SG_FR, TAB_ENT);         \
 	}
+
 #endif /* THREADS_FULL_SHARING  */
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
@@ -1617,8 +1643,12 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
   if (SgFr_state(sg_fr) >= complete)
     return;  
 #endif
-
   LOCK_SG_FR(sg_fr);
+#ifdef LINEAR_TABLING
+  free_alternatives(sg_fr);
+  free_drs_answers(sg_fr);
+#endif /* LINEAR_TABLING */
+
 #if defined(THREADS_FULL_SHARING)
 
 #ifdef THREADS_FULL_SHARING_FTNA_3

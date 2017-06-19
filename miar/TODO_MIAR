@@ -8,8 +8,7 @@
 ./OPTYap/opt.init.c:219: OK
 ./OPTYap/opt.preds.c:446: OK
 ./OPTYap/tab.completion.c:152: OK
-./OPTYap/tab.tries.c:1079: OK FOR NOW (check TO MAKE tag)
-
+./OPTYap/tab.tries.c:1079: OK FOR NOW (check TO MAKE tag - GREEN)
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
 
 
@@ -33,4 +32,14 @@ TO MAKE:
 		  TAG_AS_SUBGOAL_LEAF_NODE(current_sg_node);
 		      }
     #endif /*LINEAR_TABLING */
+
+TO WATCH OUT:
+   verify all tags in macros. I guess that linear tabling and suspension-mt are using a lost of commom bits... (RED)
+
+
+ISSUES ARE MARKED BY COLORS:
+ GREEN  - ASSUMED SAFE
+ YELLOW - DON'T KNOW IF IT IS SAFE OR NOT
+ RED    - DEFINITELY NOT SAFE
+
 
