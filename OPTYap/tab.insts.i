@@ -15,6 +15,14 @@
 **               Tabling instructions: auxiliary macros                **
 ************************************************************************/
 
+#ifdef LINEAR_TABLING
+#include "linear.tab.insts.i"
+#endif /*LINEAR_TABLING */
+
+
+#ifndef LINEAR_TABLING
+
+
 #ifdef LOW_LEVEL_TRACER
 #define store_low_level_trace_info(CP, TAB_ENT)  \
         CP->cp_pred_entry = TabEnt_pe(TAB_ENT)
@@ -1168,6 +1176,7 @@
     GONext();
   ENDOp();
 
+#endif /*!LINEAR_TABLING*/
 
 
 /************************************************************************

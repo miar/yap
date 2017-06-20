@@ -9,14 +9,17 @@
 ./OPTYap/opt.preds.c:446: OK
 ./OPTYap/tab.completion.c:152: OK
 ./OPTYap/tab.tries.c:1079: OK FOR NOW (check TO MAKE tag - GREEN)
+./OPTYap/tab.macros.h:786: OK FOR NOW (check TO MAKE tag - YELLOW)
+./OPTYap/linear.tab.macros.h:173: OK FOR NOW (check TO MAKE tag - YELLOW)
+
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
 
 
 ./OPTYap/linear.tab.insts.h:39:#ifdef LINEAR_TABLING_DRE
-./OPTYap/linear.tab.macros.h:173:#endif /*LINEAR_TABLING_DRS */
+
 
 ./OPTYap/tab.insts.i:1687:#endif /*!LINEAR_TABLING */
-./OPTYap/tab.macros.h:786:#endif /*LINEAR_TABLING */
+
 
 
 TO MAKE:
