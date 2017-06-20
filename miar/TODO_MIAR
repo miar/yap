@@ -13,7 +13,6 @@
 ./OPTYap/linear.tab.macros.h:173: OK FOR NOW ( YELLOW)
 ./OPTYap/linear.tab.insts.h:39: OK FOR NOW ( YELLOW)
 ./OPTYap/linear.tab.insts.i:39: OK FOR NOW ( YELLOW)
-
 ./OPTYap/tab.insts.i:1687: OK FOR NOW ( YELLOW)
 
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 

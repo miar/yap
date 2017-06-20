@@ -549,6 +549,7 @@ struct local_optyap_data {
 
 
 #ifdef LINEAR_TABLING
+
 #ifdef DUMMY_PRINT
 #define LOCAL_nr_followers                      (LOCAL->nr_followers)
 #define LOCAL_nr_generators                     (LOCAL->nr_generators)
