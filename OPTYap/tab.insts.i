@@ -1675,7 +1675,7 @@
   ENDPBOp();
 
 
-
+#ifndef LINEAR_TABLING
 
 /************************************************************************
 **                      table_answer_resolution                        **
@@ -2630,3 +2630,5 @@
     }
     END_PREFETCH()
   ENDBOp();
+
+#endif /* !LINEAR_TABLING */

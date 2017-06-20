@@ -10,15 +10,16 @@
 ./OPTYap/tab.completion.c:152: OK
 ./OPTYap/tab.tries.c:1079: OK FOR NOW (check TO MAKE tag - GREEN)
 ./OPTYap/tab.macros.h:786: OK FOR NOW (check TO MAKE tag - YELLOW)
-./OPTYap/linear.tab.macros.h:173: OK FOR NOW (check TO MAKE tag - YELLOW)
+./OPTYap/linear.tab.macros.h:173: OK FOR NOW ( YELLOW)
+./OPTYap/linear.tab.insts.h:39: OK FOR NOW ( YELLOW)
+./OPTYap/linear.tab.insts.i:39: OK FOR NOW ( YELLOW)
+
+./OPTYap/tab.insts.i:1687: OK FOR NOW ( YELLOW)
 
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
 
 
-./OPTYap/linear.tab.insts.h:39:#ifdef LINEAR_TABLING_DRE
 
-
-./OPTYap/tab.insts.i:1687:#endif /*!LINEAR_TABLING */
 
 
 
