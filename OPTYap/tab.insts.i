@@ -1464,6 +1464,17 @@
       if (BOOL_CAS(&(SgFr_first_answer(sg_fr)), NULL, ans_node)) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
+#ifdef LINEAR_TABLING
+#ifdef LINEAR_TABLING_DRS
+	if (SgFr_new_answer_trie(sg_fr) == NULL){
+	  SgFr_new_answer_trie(sg_fr) = ans_node;
+	}
+#endif /*LINEAR_TABLING_DRS*/
+	INFO_LINEAR_TABLING("nova resposta sg_fr=%p  ans_node=%p", sg_fr, ans_node);
+	//check later if 'TAG_NEW_ANSWERS' can be done outside the lock
+	TAG_NEW_ANSWERS(sg_fr);      
+#endif /* LINEAR_TABLING */
+
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD_____________________
 	if (worker_id == 1) {
 	  gettimeofday(&tv2, NULL);
@@ -1511,6 +1522,17 @@
       if (BOOL_CAS(&(TrNode_child(last_answer)), NULL, ans_node)) {
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
 	SgFr_last_answer(sg_fr) = ans_node;
+#ifdef LINEAR_TABLING
+#ifdef LINEAR_TABLING_DRS
+	if (SgFr_new_answer_trie(sg_fr) == NULL){
+	  SgFr_new_answer_trie(sg_fr) = ans_node;
+	}
+#endif /*LINEAR_TABLING_DRS*/
+	INFO_LINEAR_TABLING("nova resposta sg_fr=%p  ans_node=%p", sg_fr, ans_node);
+	//check later if 'TAG_NEW_ANSWERS' can be done outside the lock
+	TAG_NEW_ANSWERS(sg_fr);      
+#endif /* LINEAR_TABLING */
+
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD__________________
 	if (worker_id == 1) {
 	gettimeofday(&tv2, NULL);
@@ -1558,6 +1580,18 @@
 	else 
 	  TrNode_child(SgFr_last_answer(sg_fr)) = ans_node;
 	SgFr_last_answer(sg_fr) = ans_node;
+
+#ifdef LINEAR_TABLING
+#ifdef LINEAR_TABLING_DRS
+	if (SgFr_new_answer_trie(sg_fr) == NULL){
+	  SgFr_new_answer_trie(sg_fr) = ans_node;
+	}
+#endif /*LINEAR_TABLING_DRS*/
+	INFO_LINEAR_TABLING("nova resposta sg_fr=%p  ans_node=%p", sg_fr, ans_node);
+	//check later if 'TAG_NEW_ANSWERS' can be done outside the lock
+	TAG_NEW_ANSWERS(sg_fr);      
+#endif /* LINEAR_TABLING */
+	
 	TAG_AS_ANSWER_LEAF_NODE(ans_node);
       }
 #ifdef DEBUG_TABLING
@@ -1578,10 +1612,13 @@
 	}
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
 #endif /*THREADS_FULL_SHARING_FTNA */
-
-
+#ifdef LINEAR_TABLING
+      if(IS_BATCHED_SF(sg_fr)){
+#else
       if (IS_BATCHED_GEN_CP(gcp)) {
-#ifdef TABLING_EARLY_COMPLETION
+#endif /*LINEAR_TABLING */
+
+#if defined(TABLING_EARLY_COMPLETION) && !defined(LINEAR_TABLING)
 	if (gcp == PROTECT_FROZEN_B(B) && (*subs_ptr == 0 || gcp->cp_ap == COMPLETION)) {
 	  /* if the current generator choice point is the topmost choice point and the current */
 	  /* call is deterministic (i.e., the number of substitution variables is zero or      */
@@ -1609,7 +1646,7 @@
 #endif /* DEPTH_LIMIT */
         GONext();
       } else {
-#ifdef TABLING_EARLY_COMPLETION
+#if defined(TABLING_EARLY_COMPLETION) && !defined(LINEAR_TABLING) 
 	if (*subs_ptr == 0) {
 	  /* if the number of substitution variables is zero, an answer is sufficient to perform */
           /* an early completion, but the current generator choice point cannot be removed       */
@@ -1617,7 +1654,7 @@
 	  if (gcp->cp_ap != ANSWER_RESOLUTION)
 	    gcp->cp_ap = COMPLETION;
 	}
-#endif /* TABLING_EARLY_COMPLETION */
+#endif /* TABLING_EARLY_COMPLETION  && LINEAR_TABLING */
         /* fail */
         goto fail;
       }

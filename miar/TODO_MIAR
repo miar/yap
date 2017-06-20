@@ -36,6 +36,11 @@ TO MAKE:
 		      }
     #endif /*LINEAR_TABLING */
 
+   --> tab.insts.i
+       	//check later if 'TAG_NEW_ANSWERS' can be done outside the lock
+
+
+
 TO WATCH OUT:
    verify all tags in macros. I guess that linear tabling and suspension-mt are using a lost of commom bits... (RED)
 
