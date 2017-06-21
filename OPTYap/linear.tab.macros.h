@@ -48,7 +48,7 @@
 **      Prototypes      **
 ** -------------------- */
 
-/*------------------------------------------------LINEAR TABLING DRA------------------------------*/
+/*--------------------------------------LINEAR TABLING DRA------------------------------*/
 #ifdef LINEAR_TABLING_DRA
 #define SgFr_init_dra_fields(SG_FR)                         \
         SgFr_current_alt(SG_FR) = NULL;                     
@@ -60,36 +60,32 @@
 
 
 
-/*------------------------------------------------LINEAR TABLING DRE------------------------------*/
+/*-------------------------------------LINEAR TABLING DRE------------------------------*/
 #ifdef LINEAR_TABLING_DRE
 
-#define add_next_follower(SG_FR)                                   \
-{                                                                  \
-        sg_fr_ptr sgfr_aux=NULL;                                   \
-        new_subgoal_frame(sgfr_aux, PREG);                         \
-        DRS_add_next_follower_fields(sgfr_aux);                    \
-        SgFr_stop_loop_alt(sgfr_aux) = NULL;                       \
-	SgFr_current_loop_alt(sgfr_aux) = NULL;                    \
-	SgFr_current_batched_answer(sgfr_aux) = NULL;		   \
-        SgFr_next_alt(sgfr_aux) = NULL; 			   \
-	SgFr_pioneer(sgfr_aux) = NULL;                             \
-	SgFr_pioneer_frame(sgfr_aux) = SG_FR; /*support for cuts*/ \
-        SgFr_gen_cp(sgfr_aux) = SgFr_gen_cp(SG_FR);                \
-        SgFr_next(sgfr_aux) = LOCAL_top_sg_fr;   		   \
-        LOCAL_top_sg_fr = sgfr_aux;				   \
-   }
+#define add_next_follower(SG_FR) {                               \
+  sg_fr_ptr sgfr_aux = NULL;					 \
+  new_subgoal_frame(sgfr_aux, PREG, SgFr_mode_directed(SG_FR));	 \
+  DRS_add_next_follower_fields(sgfr_aux);			 \
+  SgFr_stop_loop_alt(sgfr_aux) = NULL;				 \
+  SgFr_current_loop_alt(sgfr_aux) = NULL;			 \
+  SgFr_current_batched_answer(sgfr_aux) = NULL;			 \
+  SgFr_next_alt(sgfr_aux) = NULL;				 \
+  SgFr_pioneer(sgfr_aux) = NULL;				 \
+  SgFr_pioneer_frame(sgfr_aux) = SG_FR; /*support for cuts*/	 \
+  SgFr_gen_cp(sgfr_aux) = SgFr_gen_cp(SG_FR);			 \
+  SgFr_next(sgfr_aux) = LOCAL_top_sg_fr;			 \
+  LOCAL_top_sg_fr = sgfr_aux;					 \
+}
 
-#define SgFr_init_follower_fields(SG_FR)                         \
-{                                        			 \
-        SgFr_next_alt(SG_FR) = NULL; 			         \
-        SgFr_pioneer(SG_FR) = NULL;                              \
-        SgFr_pioneer_frame(SG_FR) = NULL;                        \
+#define SgFr_init_follower_fields(SG_FR) {  \
+  SgFr_next_alt(SG_FR) = NULL;		    \
+  SgFr_pioneer(SG_FR) = NULL;		    \
+  SgFr_pioneer_frame(SG_FR) = NULL;	    \
 }
 
 #else
 #define SgFr_init_follower_fields(SG_FR)
-
-
 
 #endif  /*LINEAR_TABLING_DRE */
 
@@ -98,7 +94,7 @@
 #ifdef LINEAR_TABLING_DRS
 #define DRS_add_next_follower_fields(sgfr_aux)                      \
 {								    \
-        SgFr_cp(sgfr_aux) =NULL;                                    \
+        SgFr_cp(sgfr_aux) = NULL;                                   \
         SgFr_consuming_answers(sgfr_aux)=0;                         \
         SgFr_new_answer_trie(sgfr_aux) = NULL;                      \
 	SgFr_stop_loop_ans(sgfr_aux) = NULL;                        \

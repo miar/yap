@@ -462,7 +462,7 @@
 //#define LINEAR_TABLING_DSLA 1 /*for debug only- need change on table_completion() */
 
 #define LINEAR_TABLING_DRA 1  
-//#define LINEAR_TABLING_DRE 1 
+#define LINEAR_TABLING_DRE 1 
 #define LINEAR_TABLING_DRS 1
 
 #ifdef LINEAR_TABLING
