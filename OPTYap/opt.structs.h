@@ -551,17 +551,17 @@ struct local_optyap_data {
 #ifdef LINEAR_TABLING
 
 #ifdef DUMMY_PRINT
-#define LOCAL_nr_followers                      (LOCAL->nr_followers)
-#define LOCAL_nr_generators                     (LOCAL->nr_generators)
-#define LOCAL_nr_consumers                      (LOCAL->nr_consumers)
-#define LOCAL_nr_consumed_answers               (LOCAL->nr_consumed_answers)
-#define LOCAL_nr_consumed_alternatives          (LOCAL->nr_consumed_alternatives)
-#define LOCAL_nr_propagate_depen_cicles         (LOCAL->nr_propagate_depen_cicles)
-#define LOCAL_nr_is_leader_and_has_new_answers  (LOCAL-> nr_is_leader_and_has_new_answers)
+#define LOCAL_nr_followers                      (LOCAL_optyap_data.nr_followers)
+#define LOCAL_nr_generators                     (LOCAL_optyap_data.nr_generators)
+#define LOCAL_nr_consumers                      (LOCAL_optyap_data.nr_consumers)
+#define LOCAL_nr_consumed_answers               (LOCAL_optyap_data.nr_consumed_answers)
+#define LOCAL_nr_consumed_alternatives          (LOCAL_optyap_data.nr_consumed_alternatives)
+#define LOCAL_nr_propagate_depen_cicles         (LOCAL_optyap_data.nr_propagate_depen_cicles)
+#define LOCAL_nr_is_leader_and_has_new_answers  (LOCAL_optyap_data.nr_is_leader_and_has_new_answers)
 #endif /*DUMMY_PRINT */
-#define LOCAL_dfn                               (LOCAL->dfn)
-#define LOCAL_max_scc                           (LOCAL->top_subgoal_max_scc)
-#define LOCAL_top_sg_fr_on_branch               (LOCAL->top_subgoal_frame_on_branch)
+#define LOCAL_dfn                               (LOCAL_optyap_data.dfn)
+#define LOCAL_max_scc                           (LOCAL_optyap_data.top_subgoal_max_scc)
+#define LOCAL_top_sg_fr_on_branch               (LOCAL_optyap_data.top_subgoal_frame_on_branch)
 #endif /*LINEAR_TABLING */
                           
 #define LOCAL_pages_void                   (LOCAL_optyap_data.pages.void_pages)
@@ -697,9 +697,6 @@ struct local_optyap_data {
 #define REMOTE_ma_timestamp(wid)                 (REMOTE(wid)->optyap_data_.ma_timestamp)
 #define REMOTE_ma_h_top(wid)                     (REMOTE(wid)->optyap_data_.ma_h_top)
 #define REMOTE_ma_hash_table(wid)                (REMOTE(wid)->optyap_data_.ma_hash_table)
-
-
-
 
 #ifdef LINEAR_TABLING
 #define REMOTE_top_sg_fr_on_branch(wid)              (REMOTE(wid)->optyap_data_.top_subgoal_frame_on_branch)

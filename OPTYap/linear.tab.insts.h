@@ -237,7 +237,7 @@
     sg_fr = subgoal_search(PREG, YENV_ADDRESS); /*incomplete subgoals*/       \
     INFO_LINEAR_TABLING("sg_fr= %p   state=%d",sg_fr,SgFr_state(sg_fr));      \
     MEM2YENV;                                                                 \
-    LOCK(SgFr_lock(sg_fr))
+    LOCK_SG_FR(sg_fr)
 
 
 #define add_alternative(SG_FR,pc)						              \
@@ -310,7 +310,7 @@ inline void propagate_dependencies(sg_fr_ptr sg_fr){
 
 inline void consume_all_answers_on_trie(tab_ent_ptr tab_ent,ans_node_ptr ans_node,sg_fr_ptr sg_fr) {
   /* answers -> get first answer */                     
-  UNLOCK(SgFr_lock(sg_fr));
+  UNLOCK_SG_FR(sg_fr);
 #ifdef DUMMY_PRINT
   DUMMY_LOCAL_nr_consumers_inc();
   store_loader_node(tab_ent, ans_node,0);	       
@@ -335,7 +335,7 @@ inline void table_try_single_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, tab_ent
   add_branch(sg_fr);
   add_max_scc(sg_fr);
   add_next(sg_fr);
-  UNLOCK(SgFr_lock(sg_fr));
+  UNLOCK_SG_FR(sg_fr);
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);
 #ifdef LINEAR_TABLING_DRE
   SgFr_pioneer(sg_fr)=B;
@@ -363,7 +363,7 @@ inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI
   add_branch(sg_fr);
   add_max_scc(sg_fr);
   add_next(sg_fr);
-  UNLOCK(SgFr_lock(sg_fr));
+  UNLOCK_SG_FR(sg_fr);
 #ifdef LINEAR_TABLING_DRE
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);
   SgFr_pioneer(sg_fr)=B;
@@ -416,7 +416,7 @@ inline void table_try_with_completed(sg_fr_ptr sg_fr,ans_node_ptr ans_node,tab_e
     /* answers -> get first answer */
     if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
       /* load answers from the trie */
-      UNLOCK(SgFr_lock(sg_fr));
+      UNLOCK_SG_FR(sg_fr);
       // if(TrNode_child(ans_node) != NULL) {
 #ifdef DUMMY_PRINT
 	store_loader_node(tab_ent, ans_node,0);
@@ -432,7 +432,7 @@ inline void table_try_with_completed(sg_fr_ptr sg_fr,ans_node_ptr ans_node,tab_e
       /* execute compiled code from the trie */
       if (SgFr_state(sg_fr) < compiled)
 	update_answer_trie(sg_fr);
-      UNLOCK(SgFr_lock(sg_fr));
+      UNLOCK_SG_FR(sg_fr);
       PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
       PREFETCH_OP(PREG);
       *--YENV = 0;  /* vars_arity */
