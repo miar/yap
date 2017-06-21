@@ -180,11 +180,11 @@
       ans_node = SgFr_first_answer(sg_fr);                    \
       if (ans_node == NULL) {                                 \
 	/* no answers --> fail */                             \
-	UNLOCK(SgFr_lock(sg_fr));                             \
+	UNLOCK_SG_FR(sg_fr);                                  \
 	goto fail;                                            \
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {       \
 	/* yes answer --> procceed */                         \
-	UNLOCK(SgFr_lock(sg_fr));                             \
+	UNLOCK_SG_FR(sg_fr);                                  \
 	PREG = (yamop *) CPREG;                               \
 	PREFETCH_OP(PREG);                                    \
 	YENV = ENV;                                           \

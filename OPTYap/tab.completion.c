@@ -110,11 +110,11 @@ void private_completion(sg_fr_ptr sg_fr USES_REGS) {
   INFO_LINEAR_TABLING("private completion ");
   while (LOCAL_max_scc != sg_fr) {
     INFO_LINEAR_TABLING("(while)LOCAL_MAX_SCC= %p", LOCAL_max_scc);
-    mark_as_completed(LOCAL_max_scc);
+    mark_as_completed(LOCAL_max_scc  PASS_REGS);
     LOCAL_max_scc = SgFr_next_on_scc(LOCAL_max_scc);    
   }
   INFO_LINEAR_TABLING("LOCAL_MAX_SCC= %p", LOCAL_max_scc);
-  mark_as_completed(LOCAL_max_scc);
+  mark_as_completed(LOCAL_max_scc  PASS_REGS);
   LOCAL_max_scc = SgFr_next_on_scc(LOCAL_max_scc);
   return;
 #else /* ! LINEAR_TABLING */

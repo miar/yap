@@ -228,15 +228,15 @@
 
 
 
-#define table_try_begin(void)	 		 		 	      \
-    tab_ent_ptr tab_ent;                                                      \
-    sg_fr_ptr sg_fr;                                                          \
-    check_trail(TR);                                                          \
-    tab_ent = PREG->u.Otapl.te;                                               \
-    YENV2MEM;                                                                 \
-    sg_fr = subgoal_search(PREG, YENV_ADDRESS); /*incomplete subgoals*/       \
-    INFO_LINEAR_TABLING("sg_fr= %p   state=%d",sg_fr,SgFr_state(sg_fr));      \
-    MEM2YENV;                                                                 \
+#define table_try_begin(void)	 		 		 	           \
+    tab_ent_ptr tab_ent;                                                           \
+    sg_fr_ptr sg_fr;                                                               \
+    check_trail(TR);                                                               \
+    tab_ent = PREG->u.Otapl.te;                                                    \
+    YENV2MEM;                                                                      \
+    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS); /*incomplete subgoals*/  \
+    INFO_LINEAR_TABLING("sg_fr= %p   state=%d",sg_fr,SgFr_state(sg_fr));           \
+    MEM2YENV;                                                                      \
     LOCK_SG_FR(sg_fr)
 
 
@@ -319,7 +319,7 @@ inline void consume_all_answers_on_trie(tab_ent_ptr tab_ent,ans_node_ptr ans_nod
 #endif
   PREG = (yamop *) CPREG;                             
   PREFETCH_OP(PREG);                                    
-  load_answer(ans_node, YENV);                     
+  load_answer(ans_node, YENV PASS_REGS); 
   YENV = ENV;                                
   return;
 }
@@ -426,12 +426,12 @@ inline void table_try_with_completed(sg_fr_ptr sg_fr,ans_node_ptr ans_node,tab_e
 	//}
       PREG = (yamop *) CPREG;
       PREFETCH_OP(PREG);
-      load_answer(ans_node, YENV);
+      load_answer(ans_node, YENV PASS_REGS);
       YENV = ENV;
     } else {
       /* execute compiled code from the trie */
       if (SgFr_state(sg_fr) < compiled)
-	update_answer_trie(sg_fr);
+	update_answer_trie(sg_fr PASS_REGS);
       UNLOCK_SG_FR(sg_fr);
       PREG = (yamop *) TrNode_child(SgFr_answer_trie(sg_fr));
       PREFETCH_OP(PREG);

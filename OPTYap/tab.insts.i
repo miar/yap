@@ -20,9 +20,6 @@
 #endif /*LINEAR_TABLING */
 
 
-#ifndef LINEAR_TABLING
-
-
 #ifdef LOW_LEVEL_TRACER
 #define store_low_level_trace_info(CP, TAB_ENT)  \
         CP->cp_pred_entry = TabEnt_pe(TAB_ENT)
@@ -34,6 +31,7 @@
         TABLING_ERROR_CHECKING(store_node, Unsigned(H) + 1024 > Unsigned(B));    \
 	TABLING_ERROR_CHECKING(store_node, Unsigned(H_FZ) + 1024 > Unsigned(B))
 
+#ifndef LINEAR_TABLING
 
 #define store_generator_node(TAB_ENT, SG_FR, ARITY, AP)                   \
         { register CELL *pt_args;                                         \

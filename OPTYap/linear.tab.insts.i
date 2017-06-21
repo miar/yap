@@ -69,7 +69,7 @@
     } 
     PREG = (yamop *) CPREG;
     PREFETCH_OP(PREG);
-    load_answer(ans_node, subs_ptr);
+    load_answer(ans_node, subs_ptr PASS_REGS);
     YENV = ENV;
     GONext();
   ENDPBOp();
@@ -203,7 +203,7 @@
        CELL *subs_ptr;
        subs_ptr = (CELL *) (GEN_CP(B) + 1);
        subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);
-       load_answer(SgFr_current_batched_answer(LOCAL_top_sg_fr), subs_ptr);
+       load_answer(SgFr_current_batched_answer(LOCAL_top_sg_fr), subs_ptr PASS_REGS);
        SgFr_current_batched_answer(LOCAL_top_sg_fr)=TrNode_child(SgFr_current_batched_answer(LOCAL_top_sg_fr));     
        YENV = ENV;
        GONext();
@@ -259,7 +259,7 @@ ENDPBOp();
 	 LOCAL_nr_consumed_answers++;      
 #endif /*DUMMY_PRINT */
 	 INFO_LINEAR_TABLING("drs- consume loop answer %p",GET_CELL_VALUE(SgFr_current_loop_ans(sg_fr)));
-	 load_answer(GET_CELL_VALUE(SgFr_current_loop_ans(sg_fr)), subs_ptr);
+	 load_answer(GET_CELL_VALUE(SgFr_current_loop_ans(sg_fr)), subs_ptr PASS_REGS);
 	 YENV = ENV;
 	 GONext();
        } else{
@@ -298,7 +298,7 @@ ENDPBOp();
        LOCAL_nr_consumed_answers++;      
 #endif /*DUMMY_PRINT */
        INFO_LINEAR_TABLING("drs- consume trie answer %p",SgFr_new_answer_trie(sg_fr));
-       load_answer(SgFr_new_answer_trie(sg_fr), subs_ptr);
+       load_answer(SgFr_new_answer_trie(sg_fr), subs_ptr PASS_REGS);
        YENV = ENV;
        GONext();
      }
@@ -368,7 +368,7 @@ ENDPBOp();
 #endif /*DUMMY_PRINT */
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG);
-	  load_answer(ans_node, YENV);
+	  load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();
 	}
@@ -494,7 +494,7 @@ BOp(table_completion, Otapl)
 
     if (IS_LEADER(sg_fr)){
       INFO_LINEAR_TABLING("is leader");
-      private_completion(sg_fr);
+      private_completion(sg_fr PASS_REGS);
       /*dre batched leader and pioneer --> consumes all answers*/ 
       goto answer_resolution;      
     }
