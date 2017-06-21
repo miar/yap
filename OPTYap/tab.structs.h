@@ -497,7 +497,7 @@ typedef struct subgoal_frame {
   yamop **stop_looping_alt;
 #ifdef LINEAR_TABLING_DRS
   yamop *continuation_point;
-  struct answer_trie_node *loop_ans;
+  struct answer_trie_node **loop_ans;
   int consuming_answers;
   struct answer_trie_node **stop_looping_ans;
   struct answer_trie_node **current_looping_ans;

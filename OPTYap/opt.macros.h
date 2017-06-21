@@ -699,13 +699,13 @@ extern int Yap_page_size;
 #define FREE_ALTERNATIVES_BUCKET(PTR)  FREE_BLOCK(PTR)
 
 #define ALLOC_ANSWERS_BUCKET(PTR)                                                        \
-{ int i; void **t;                                                                       \
-  ALLOC_BLOCK(t, (MAX_LOOP_ANS_BUCKET + 1) * sizeof(struct answer_trie_node *), void *); \
-  PTR = (struct answer_trie_node *) t;                                                   \
+{ int i; struct answer_trie_node **t;                                                    \
+  ALLOC_BLOCK(t, (MAX_LOOP_ANS_BUCKET + 1) * sizeof(struct answer_trie_node **), struct answer_trie_node *); \
+  PTR = t;                                                                               \
   for(i = 0; i <= MAX_LOOP_ANS_BUCKET; i++)                                              \
     *t++ = NULL;							                 \
    t--;								                         \
-   *t = (struct answer_trie_node*)((unsigned long int)(*t) | 0x1);                       \
+   *t = (struct answer_trie_node*) ((unsigned long int)(*t) | 0x1);                      \
 }
 
 #define FREE_ANSWERS_BUCKET(PTR)  FREE_BLOCK(PTR)
