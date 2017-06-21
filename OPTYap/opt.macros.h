@@ -686,14 +686,14 @@ extern int Yap_page_size;
 ************************************************************************/
 
 #ifdef LINEAR_TABLING
-#define ALLOC_ALTERNATIVES_BUCKET(PTR)                                  \
-{ int i; void **t;                                                      \
-  ALLOC_BLOCK(t, (MAX_LOOP_ALT_BUCKET + 1) * sizeof(yamop *), void *);  \
-  PTR = (yamop *) t;                                                    \
-  for(i = 0; i <= MAX_LOOP_ALT_BUCKET; i++)                             \
-    *t++ = NULL;                                                        \
-  t--;							                \
-  *t = (yamop*) ((unsigned long int)(*t) | 0x1);                        \
+#define ALLOC_ALTERNATIVES_BUCKET(PTR)                                    \
+{ int i; yamop **t;                                                       \
+  ALLOC_BLOCK(t, (MAX_LOOP_ALT_BUCKET + 1) * sizeof(yamop **), yamop *);  \
+  PTR = t;                                                                \
+  for(i = 0; i <= MAX_LOOP_ALT_BUCKET; i++)                               \
+    *t++ = NULL;                                                          \
+  t--;							                  \
+  *t = (yamop*) ((unsigned long int)(*t) | 0x1);                          \
 }
 
 #define FREE_ALTERNATIVES_BUCKET(PTR)  FREE_BLOCK(PTR)

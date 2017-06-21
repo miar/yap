@@ -240,37 +240,36 @@
     LOCK_SG_FR(sg_fr)
 
 
-#define add_alternative(SG_FR,pc)						              \
-  {                                                                                           \
-      if (SgFr_state(SG_FR) == evaluating) {				                      \
-          if (SgFr_current_loop_alt(SG_FR)==NULL) {	  		       	              \
-	    SgFr_current_loop_alt(SG_FR)= SgFr_loop_alts(SG_FR);	                      \
-	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR),pc);                                  \
-   	    INFO_LINEAR_TABLING("add_alternative=%p",pc);                                     \
-          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))!= pc) {                     \
-            SgFr_current_loop_alt(SG_FR)++;                                                   \
-   	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                                  \
-	      yamop *nb;                                                                      \
-              ALLOC_ALTERNATIVES_BUCKET(nb);				                      \
-   	      ALT_TAG_AS_JUMP_CELL(SgFr_current_loop_alt(SG_FR),nb);                          \
-              SgFr_current_loop_alt(SG_FR)=nb;					              \
-	    }                                                                                 \
-	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR),pc);	                              \
-	    INFO_LINEAR_TABLING("add_alternative=%p",pc);		                      \
-          }                                                                                   \
-	}                                                                                     \
+#define add_alternative(SG_FR,pc)				              \
+  {                                                                           \
+      if (SgFr_state(SG_FR) == evaluating) {				      \
+          if (SgFr_current_loop_alt(SG_FR) == NULL) {	  		      \
+	    SgFr_current_loop_alt(SG_FR) = SgFr_loop_alts(SG_FR);	      \
+	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), pc);                 \
+   	    INFO_LINEAR_TABLING("add_alternative=%p", pc);                    \
+          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != pc) {    \
+            SgFr_current_loop_alt(SG_FR)++;                                   \
+   	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                  \
+	      yamop **nb;                                                      \
+              ALLOC_ALTERNATIVES_BUCKET(nb);				      \
+   	      ALT_TAG_AS_JUMP_CELL(SgFr_current_loop_alt(SG_FR), nb);         \
+              SgFr_current_loop_alt(SG_FR) = nb;			      \
+	    }                                                                 \
+	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), pc);	              \
+	    INFO_LINEAR_TABLING("add_alternative=%p", pc);		      \
+          }                                                                   \
+	}                                                                     \
    }
 
 
 
-
 inline void propagate_dependencies(sg_fr_ptr sg_fr){
-  sg_fr_ptr sf_aux=LOCAL_top_sg_fr_on_branch;                                        
-  int dfn=GET_SGFR_DFN(sg_fr);                                                       
+  sg_fr_ptr sf_aux = LOCAL_top_sg_fr_on_branch;                                        
+  int dfn = GET_SGFR_DFN(sg_fr);                                                       
   INFO_LINEAR_TABLING("propagate dependencies upto to sg_fr=%p",sg_fr);
   while(sf_aux && (GET_SGFR_DFN(sf_aux) >dfn 
 #ifdef LINEAR_TABLING_DRS
-	||SgFr_consuming_answers(sf_aux)==1)){
+	|| SgFr_consuming_answers(sf_aux)==1)){
 #else  
        )){
 #endif /*LINEAR_TABLING_DRS */
@@ -278,7 +277,7 @@ inline void propagate_dependencies(sg_fr_ptr sg_fr){
        INFO_LINEAR_TABLING("sgfr_aux=%p",sf_aux);                                       
        TAG_AS_NO_LEADER(sf_aux);
 #ifdef LINEAR_TABLING_DRS
-   if(SgFr_consuming_answers(sf_aux)==1){
+   if(SgFr_consuming_answers(sf_aux) == 1){
        add_answer(sf_aux,SgFr_new_answer_trie(sf_aux))
     }
 #endif /*LINEAR_TABLING_DRS */
@@ -292,7 +291,7 @@ inline void propagate_dependencies(sg_fr_ptr sg_fr){
   }	                                                                             
   if (sf_aux) {	
 #ifdef LINEAR_TABLING_DRS
-   if(SgFr_consuming_answers(sf_aux)==1){
+   if(SgFr_consuming_answers(sf_aux) == 1){
        add_answer(sf_aux,SgFr_new_answer_trie(sf_aux))
     }
 #endif /*LINEAR_TABLING_DRS */
@@ -300,7 +299,7 @@ inline void propagate_dependencies(sg_fr_ptr sg_fr){
     else 
 #endif /*LINEAR_TABLING_DRA && LINEAR_TABLING_DRS */
 #ifdef LINEAR_TABLING_DRA
-   add_alternative(sf_aux, SgFr_current_alt(sf_aux));			     
+      add_alternative(sf_aux, SgFr_current_alt(sf_aux)); 
 #endif /*LINEAR_TABLING_DRA*/
   }
   return;

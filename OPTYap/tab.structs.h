@@ -513,7 +513,7 @@ typedef struct subgoal_frame {
   struct choicept *pioneer;
   struct subgoal_frame *pioneer_frame; /*support for cuts */
 #endif /* LINEAR_TABLING_DRE */
-  yamop  *loop_alts;
+  yamop  **loop_alts;
   struct answer_trie_node *batched_answer;
 #endif /* LINEAR_TABLING */
 } *sg_fr_ptr;

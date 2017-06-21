@@ -12,7 +12,7 @@
 **      macros          **
 ** -------------------- */
 #define ALT_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR)= (yamop *)((unsigned long int)NEXT_NODE | 0x1))
-#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR=(yamop*)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
+#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR=(yamop**)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
 #define IS_JUMP_CELL(PTR)                         (((unsigned long int)(*PTR)) & 0x1)
 
 #define ANS_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR)= (struct answer_trie_node *)((unsigned long int)NEXT_NODE | 0x1))
@@ -236,18 +236,18 @@
 
 
 #define free_alternatives(sg_fr){                 \
-  if (SgFr_current_loop_alt(sg_fr)!=NULL){        \
-    yamop **next=NULL;                            \
-    yamop **curr=NULL;                            \
-    curr=SgFr_loop_alts(sg_fr);                   \
-    next= curr+MAX_LOOP_ALT_BUCKET;               \
-    if (*next!=1){                                \
+  if (SgFr_current_loop_alt(sg_fr) != NULL){      \
+    yamop **next = NULL;                          \
+    yamop **curr = NULL;			  \
+    curr = SgFr_loop_alts(sg_fr);                 \
+    next = curr + MAX_LOOP_ALT_BUCKET;            \
+    if ((long)(*next) != (long) 1){		  \
       ALT_JUMP_NEXT_CELL(next);                   \
-      while(next!=SgFr_loop_alts(sg_fr)){         \
+      while(next != SgFr_loop_alts(sg_fr)){       \
 	FREE_ALTERNATIVES_BUCKET(curr);           \
-	curr=next;                                \
-	next= curr+MAX_LOOP_ALT_BUCKET;           \
-	if((*next)==1)                            \
+	curr = next;                              \
+	next = curr + MAX_LOOP_ALT_BUCKET;        \
+	if((long)(*next) == (long) 1)		  \
 	  break;                                  \
 	ALT_JUMP_NEXT_CELL(next);                 \
       }                                           \
@@ -257,7 +257,7 @@
    SgFr_stop_loop_alt(sg_fr) = NULL;              \
    SgFr_current_loop_alt(sg_fr) = NULL;           \
    SgFr_init_dra_fields(sg_fr);			  \
-   SgFr_loop_alts(sg_fr)=NULL;                    \
+   SgFr_loop_alts(sg_fr) = NULL;                  \
 }
 
 
