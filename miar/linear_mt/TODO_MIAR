@@ -18,6 +18,13 @@
 CURRENTLY IN --> /C/absmi.c   /* --> HERE <-- */ 
 
 
+TO DO: 
+
+  IN HERE "#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX__________"   // HERE (linear.tab.insts.i)
+  table_answer_resolution
+  table_completion
+
+
 
 
 

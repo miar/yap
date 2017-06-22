@@ -228,35 +228,35 @@
 
 
 
-#define table_try_begin(void)	 		 		 	           \
-    tab_ent_ptr tab_ent;                                                           \
-    sg_fr_ptr sg_fr;                                                               \
-    check_trail(TR);                                                               \
-    tab_ent = PREG->u.Otapl.te;                                                    \
-    YENV2MEM;                                                                      \
-    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS); /*incomplete subgoals*/  \
-    INFO_LINEAR_TABLING("sg_fr= %p   state=%d",sg_fr,SgFr_state(sg_fr));           \
-    MEM2YENV;                                                                      \
+#define table_try_begin(void)	 		 		 	             \
+    tab_ent_ptr tab_ent;                                                             \
+    sg_fr_ptr sg_fr;                                                                 \
+    check_trail(TR);                                                                 \
+    tab_ent = PREG->u.Otapl.te;                                                      \
+    YENV2MEM;                                                                        \
+    sg_fr = subgoal_search(PREG, YENV_ADDRESS PASS_REGS); /* incomplete subgoals */  \
+    INFO_LINEAR_TABLING("sg_fr= %p   state=%d",sg_fr,SgFr_state(sg_fr));             \
+    MEM2YENV;                                                                        \
     LOCK_SG_FR(sg_fr)
 
 
-#define add_alternative(SG_FR,pc)				              \
+#define add_alternative(SG_FR, PC)				              \
   {                                                                           \
       if (SgFr_state(SG_FR) == evaluating) {				      \
           if (SgFr_current_loop_alt(SG_FR) == NULL) {	  		      \
 	    SgFr_current_loop_alt(SG_FR) = SgFr_loop_alts(SG_FR);	      \
-	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), pc);                 \
-   	    INFO_LINEAR_TABLING("add_alternative=%p", pc);                    \
-          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != pc) {    \
+	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);                 \
+   	    INFO_LINEAR_TABLING("add_alternative=%p", PC);                    \
+          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != PC) {    \
             SgFr_current_loop_alt(SG_FR)++;                                   \
    	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                  \
-	      yamop **nb;                                                      \
+	      yamop **nb;                                                     \
               ALLOC_ALTERNATIVES_BUCKET(nb);				      \
    	      ALT_TAG_AS_JUMP_CELL(SgFr_current_loop_alt(SG_FR), nb);         \
               SgFr_current_loop_alt(SG_FR) = nb;			      \
 	    }                                                                 \
-	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), pc);	              \
-	    INFO_LINEAR_TABLING("add_alternative=%p", pc);		      \
+	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);	              \
+	    INFO_LINEAR_TABLING("add_alternative=%p", PC);		      \
           }                                                                   \
 	}                                                                     \
    }
@@ -411,7 +411,8 @@ inline void table_try_with_looping_ready(sg_fr_ptr sg_fr){
 }
 
 
-inline void table_try_with_completed(sg_fr_ptr sg_fr,ans_node_ptr ans_node,tab_ent_ptr tab_ent){
+inline void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
+				     tab_ent_ptr tab_ent) {
     /* answers -> get first answer */
     if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
       /* load answers from the trie */

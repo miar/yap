@@ -93,6 +93,25 @@
       GONext();
     } else {
       /* subgoal completed */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos != NULL) {
+	if (SgNoTrie_answer(no_st_pos) == NULL)
+	  /* no answers --> fail */
+	  goto fail;
+	else /* load answer */ {
+          PREG = (yamop *) CPREG;
+          PREFETCH_OP(PREG);	  
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+          //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+          GONext();
+        } 
+      }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
@@ -124,6 +143,25 @@
       GONext();
     } else {
       /* subgoal completed */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos != NULL) {
+	if (SgNoTrie_answer(no_st_pos) == NULL)
+	  /* no answers --> fail */
+	  goto fail;
+	else /* load answer */ {
+          PREG = (yamop *) CPREG;
+          PREFETCH_OP(PREG);	  
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
+          //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+          GONext();
+        } 
+      }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
@@ -155,6 +193,25 @@
       GONext();
     } else {
       /* subgoal completed */
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos != NULL) {
+	if (SgNoTrie_answer(no_st_pos) == NULL) {
+	  /* no answers --> fail */
+	  goto fail;
+	} else /* load answer */ {
+          PREG = (yamop *) CPREG;
+          PREFETCH_OP(PREG);	  
+	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
+	  else
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
+          //load_answer(ans_node, YENV PASS_REGS);
+	  YENV = ENV;
+          GONext();
+        } 
+      }
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
@@ -396,7 +453,7 @@ BOp(table_completion, Otapl)
       GONext();    
    }
    /* check for follower node , not pioneer and state still evaluating */
-   if (SgFr_state(sg_fr)==evaluating && SgFr_pioneer(sg_fr)!=B){
+   if (SgFr_state(sg_fr) == evaluating && SgFr_pioneer(sg_fr) != B) {
      if (HAS_NEW_ANSWERS(sg_fr)) {
        UNTAG_NEW_ANSWERS(sg_fr);
        TAG_NEW_ANSWERS(LOCAL_top_sg_fr_on_branch);
@@ -416,11 +473,11 @@ BOp(table_completion, Otapl)
 	  SgFr_state(sg_fr) = looping_evaluating;
 	  if (!IS_LEADER(sg_fr)) 
 	    remove_branch(sg_fr);	  
-	  ALT_TAG_AS_JUMP_CELL(next_loop_alt,sg_fr->loop_alts);
+	  ALT_TAG_AS_JUMP_CELL(next_loop_alt, sg_fr->loop_alts);
 	  next_loop_alt = SgFr_stop_loop_alt(sg_fr) = sg_fr->loop_alts;
-	  SgFr_first_loop_alt(sg_fr)=SgFr_stop_loop_alt(sg_fr); 
+	  SgFr_first_loop_alt(sg_fr) = SgFr_stop_loop_alt(sg_fr); 
 	} else { 
-	  /*get next alternative  */	  
+	  /* get next alternative */	  
 	  if (IS_JUMP_CELL(next_loop_alt)) 
 	    ALT_JUMP_NEXT_CELL(next_loop_alt);
 	}
@@ -446,31 +503,49 @@ BOp(table_completion, Otapl)
 //#else  /*!LINEAR_TABLING_DSLA --- TO REMOVE*/
 	    if(next_loop_alt == SgFr_first_loop_alt(sg_fr)){
 #ifdef LINEAR_TABLING_DRE
-	      if( SgFr_pioneer(sg_fr)==B)
+	      if( SgFr_pioneer(sg_fr) == B)
 #endif /*LINEAR_TABLING_DRE*/
 		{ 
-		  while(LOCAL_max_scc !=sg_fr){                        
+		  while(LOCAL_max_scc != sg_fr){                        
 		    SgFr_state(LOCAL_max_scc) = looping_ready;
-		    INFO_LINEAR_TABLING("LOCAL_MAX_SCC=%p",LOCAL_max_scc);	
-		    LOCAL_max_scc  = SgFr_next_on_scc(LOCAL_max_scc);
+		    INFO_LINEAR_TABLING("LOCAL_MAX_SCC=%p", LOCAL_max_scc);	
+		    LOCAL_max_scc = SgFr_next_on_scc(LOCAL_max_scc);
 		  }
 		}
-	      UNTAG_NEW_ANSWERS(sg_fr);		  
-	      if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){
+	      UNTAG_NEW_ANSWERS(sg_fr);
+
+	      if (IS_BATCHED_SF(sg_fr)) {
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX__________   // HERE
+		no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+		if (no_st_pos != NULL) {
+ 		  if (SgNoTrie_answer(no_st_pos) != NULL) {
+		    SgFr_current_loop_alt(sg_fr) = next_loop_alt;
+   		    INFO_LINEAR_TABLING("table_completion answer");
+
+
+
+
+	          }
+		
+  	        } else
+#else /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+	      if (SgFr_first_answer(sg_fr) != NULL) {
 		SgFr_current_loop_alt(sg_fr) = next_loop_alt;
 		INFO_LINEAR_TABLING("table_completion answer");
-		SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);  
+		SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);
 		goto try_answer;		     
 	      }
-	    }	    		 
+#endif /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+	      }
+	    }
 	    SgFr_current_loop_alt(sg_fr) = next_loop_alt;
 	  }
 //#endif /*LINEAR_TABLING_DSLA*/
-	    table_completion_launch_next_loop_alt(sg_fr,next_loop_alt);	  
+	    table_completion_launch_next_loop_alt(sg_fr, next_loop_alt);	  
 	    GONext();          	
 	}
 
-	if (next_loop_alt != SgFr_stop_loop_alt(sg_fr) ) {  
+	if (next_loop_alt != SgFr_stop_loop_alt(sg_fr)) {  
 	  INFO_LINEAR_TABLING("next loop alt!= stop loop alt");
 	  SgFr_current_loop_alt(sg_fr) = next_loop_alt;	  
 	  table_completion_launch_next_loop_alt(sg_fr,next_loop_alt);	  
@@ -479,7 +554,7 @@ BOp(table_completion, Otapl)
       }
    /*---------- no more alternatives to consume  ----------------------------*/
 #ifdef LINEAR_TABLING_DRE
-    if (SgFr_pioneer(sg_fr)!=B){
+    if (SgFr_pioneer(sg_fr) != B){
       if (HAS_NEW_ANSWERS(sg_fr)) {
        	  UNTAG_NEW_ANSWERS(sg_fr);
 	  TAG_NEW_ANSWERS(LOCAL_top_sg_fr_on_branch);
@@ -502,12 +577,12 @@ BOp(table_completion, Otapl)
     /*if DRE is present then (it is pioneer and not leader) */
 #ifdef LINEAR_TABLING_DRS
     if (IS_LOCAL_SF(sg_fr)){
-      if(SgFr_cp(sg_fr)!=B->cp_cp){
-	INFO_LINEAR_TABLING("drs- SgFr_cp=%p  B->cp=%p",SgFr_cp(sg_fr),B->cp_cp);
-	SgFr_cp(sg_fr)=B->cp_cp;
-	free_drs_answers(sg_fr);                
+      if(SgFr_cp(sg_fr) != B->cp_cp){
+	INFO_LINEAR_TABLING("drs- SgFr_cp=%p  B->cp=%p", SgFr_cp(sg_fr), B->cp_cp);
+	SgFr_cp(sg_fr) = B->cp_cp;
+	free_drs_answers(sg_fr);
 	SgFr_allocate_drs_looping_structure(sg_fr);
-	SgFr_new_answer_trie(sg_fr)=SgFr_first_answer(sg_fr);
+	SgFr_new_answer_trie(sg_fr) = SgFr_first_answer(sg_fr); //H
       } 
       goto DRS_LOCAL_answer_resolution;
     }
