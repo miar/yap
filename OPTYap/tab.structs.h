@@ -514,7 +514,7 @@ typedef struct subgoal_frame {
   struct subgoal_frame *pioneer_frame; /*support for cuts */
 #endif /* LINEAR_TABLING_DRE */
   yamop  **loop_alts;
-  struct answer_trie_node *batched_answer;
+  void *batched_answer;
 #endif /* LINEAR_TABLING */
 } *sg_fr_ptr;
 
