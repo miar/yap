@@ -4,14 +4,15 @@
 ** ------------------------------ */  
 #ifdef LINEAR_TABLING_DRE
 
+// --> HERE <--
 #define DRE_table_try_with_evaluating(sg_fr)                                    \
-  if (SgFr_next_alt(sg_fr)!=NULL){                                              \
+  if (SgFr_next_alt(sg_fr) != NULL){                                            \
     INFO_LINEAR_TABLING("follower");                                            \
     DUMMY_LOCAL_nr_followers_inc();                                             \
-    register choiceptr gcp_temp=SgFr_gen_cp(sg_fr);                             \
+    register choiceptr gcp_temp = SgFr_gen_cp(sg_fr);                           \
     store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);          \
     add_next_follower(sg_fr);                                                   \
-    SgFr_gen_cp(sg_fr)=gcp_temp;                                                \
+    SgFr_gen_cp(sg_fr) = gcp_temp;                                              \
     if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){	    	        \
       SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);  \
       goto try_answer;						                \
@@ -24,17 +25,17 @@
 
 
 #define DRE_table_try_with_looping_evaluating(sg_fr)                            \
-  yamop **follower_alt=SgFr_current_loop_alt(sg_fr)+1;                          \
+  yamop **follower_alt = SgFr_current_loop_alt(sg_fr) + 1;                      \
   if (IS_JUMP_CELL(follower_alt))                                               \
     ALT_JUMP_NEXT_CELL(follower_alt);	                                        \
   if (follower_alt != SgFr_stop_loop_alt(sg_fr)){                               \
     INFO_LINEAR_TABLING("follower");                                            \
     DUMMY_DRE_table_try_with_looping_evaluating(); 			        \
-    register choiceptr gcp_temp=SgFr_gen_cp(sg_fr);                             \
+    register choiceptr gcp_temp = SgFr_gen_cp(sg_fr);                           \
     store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);          \
     add_next_follower(sg_fr);                                                   \
-    SgFr_gen_cp(sg_fr)=gcp_temp;                                                \
-    SgFr_current_loop_alt(sg_fr)=follower_alt;                                  \
+    SgFr_gen_cp(sg_fr) = gcp_temp;                                              \
+    SgFr_current_loop_alt(sg_fr) = follower_alt;                                \
     if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){	    	        \
       SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);  \
       goto try_answer;						                \
