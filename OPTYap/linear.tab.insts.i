@@ -332,15 +332,15 @@ ENDPBOp();
 	 GONext();
        } else{
 	 /*schedule for trie answers and consume first answers*/
-	 SgFr_consuming_answers(sg_fr)=1; 
+	 SgFr_consuming_answers(sg_fr) = 1; 
 	 add_branch(sg_fr);   
        }
      }else {
        /*explore next answers on trie */
-       SgFr_new_answer_trie(sg_fr)=TrNode_child(SgFr_new_answer_trie(sg_fr));
+       SgFr_new_answer_trie(sg_fr) = TrNode_child(SgFr_new_answer_trie(sg_fr));
      }
        
-     if (SgFr_new_answer_trie(sg_fr)!=NULL){ 
+     if (SgFr_new_answer_trie(sg_fr) != NULL){ 
        /*first time to load answers from trie */
        if (SgFr_new_answer_trie(sg_fr) == SgFr_answer_trie(sg_fr)) {	 
 	 // yes answer --> procceed 
@@ -395,29 +395,50 @@ ENDPBOp();
       sg_fr_ptr sg_fr;
       sg_fr = GEN_CP(B)->cp_sg_fr; 
 #if defined(DUMMY_PRINT) && defined(LINEAR_TABLING_DRE)
-      int type_of_node=0; /*0-follower or (batched  && leader)   1- drs generator */
-      if (IS_LOCAL_SF(sg_fr) && SgFr_pioneer(sg_fr)==B)
-	type_of_node=1;
+      int type_of_node = 0; /*0 - follower or (batched  && leader) 1 - drs generator */
+      if (IS_LOCAL_SF(sg_fr) && SgFr_pioneer(sg_fr) == B)
+	type_of_node = 1;
 #endif /*DUMMY_PRINT && LINEAR_TABLING_DRE*/
-      INFO_LINEAR_TABLING("sgfr(%p)->state=%d\n",sg_fr,SgFr_state(sg_fr));
+      INFO_LINEAR_TABLING("sgfr(%p)->state=%d\n", sg_fr, SgFr_state(sg_fr));
       if (IS_LOCAL_SF(sg_fr)
 #ifdef LINEAR_TABLING_DRE
-          || (IS_BATCHED_SF(sg_fr) && IS_LEADER(sg_fr) && SgFr_pioneer(sg_fr)==B)
+          || (IS_BATCHED_SF(sg_fr) && IS_LEADER(sg_fr) && SgFr_pioneer(sg_fr) == B)
 #endif /*LINEAR_TABLING_DRE */
       ) {
 	/* consume_answers*/	
-	ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
-	if (ans_node == NULL) {
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+	no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+	if (no_st_pos != NULL) {
+	  if (SgNoTrie_answer(no_st_pos) == NULL)
+	    /* no answers --> fail */
+	    goto fail;
+	  else /* load answer */ {
+	    PREG = (yamop *) CPREG;
+	    PREFETCH_OP(PREG);	  
+	    if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
+	      { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
+	    else
+	      {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    //load_answer(ans_node, YENV PASS_REGS);
+	    YENV = ENV;
+	    GONext();
+	  } 
+	}
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+/* if THREADS_NO_SUBGOAL_TRIE_MIN_MAX defined then worker is where when no_st_pos == NULL */
+	ans_node_ptr ans_node = SgFr_first_answer(sg_fr); //H
+	if (ans_node == NULL) {                           //H
 	  /* no answers --> fail */
 	  remove_next(sg_fr);
 	  B = B->cp_b;
 	  SET_BB(PROTECT_FROZEN_B(B));
-	  INFO_LINEAR_TABLING("no answers--fail. actual B is %p",B);
+	  INFO_LINEAR_TABLING("no answers--fail. actual B is %p", B);
 	  goto fail;
 	}
 	remove_next(sg_fr);
 	pop_generator_node(SgFr_arity(sg_fr));
-	if (ans_node == SgFr_answer_trie(sg_fr)) {
+	if (ans_node == SgFr_answer_trie(sg_fr)) {   //H
 	  /* yes answer --> procceed */
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG);
@@ -440,8 +461,8 @@ ENDPBOp();
 	  YENV = ENV;
 	  GONext();
 	}
-      }else{ /*is batched sf*/
-	  /*backtrack */
+      }else{ /* is batched sf */
+	  /* backtrack */
 	  remove_next(sg_fr);
 	  B = B->cp_b;
 	  SET_BB(PROTECT_FROZEN_B(B));
@@ -597,7 +618,7 @@ BOp(table_completion, Otapl)
 	    SgFr_cp(sg_fr) = B->cp_cp;
 	    free_drs_answers(sg_fr);
 	    SgFr_allocate_drs_looping_structure(sg_fr);
-	    SgFr_new_answer_trie(sg_fr) = SgFr_first_answer(sg_fr); //H
+	    SgFr_new_answer_trie(sg_fr) = SgFr_first_answer(sg_fr);
 	  } 
 	  goto DRS_LOCAL_answer_resolution;
 	}    
