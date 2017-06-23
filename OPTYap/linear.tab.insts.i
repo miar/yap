@@ -305,10 +305,11 @@ ENDPBOp();
   {
      sg_fr_ptr sg_fr = GEN_CP(B)->cp_sg_fr; 
      INFO_LINEAR_TABLING("answer resolution sg_fr=%p",sg_fr);
-     if(SgFr_consuming_answers(sg_fr)==0){
-       if (SgFr_stop_loop_ans(sg_fr) && SgFr_current_loop_ans(sg_fr)!=SgFr_stop_loop_ans(sg_fr)){
-	 if (SgFr_current_loop_ans(sg_fr)==NULL){
-	   SgFr_current_loop_ans(sg_fr)= SgFr_loop_ans(sg_fr);
+     if(SgFr_consuming_answers(sg_fr) == 0){
+       if (SgFr_stop_loop_ans(sg_fr) && 
+	   SgFr_current_loop_ans(sg_fr) != SgFr_stop_loop_ans(sg_fr)){
+	 if (SgFr_current_loop_ans(sg_fr) == NULL) {
+	   SgFr_current_loop_ans(sg_fr) = SgFr_loop_ans(sg_fr);
 	   /* first time to load answers from looping answers */	
 	   remove_branch(sg_fr);	     	   
 	 }else{
@@ -334,7 +335,7 @@ ENDPBOp();
 	 SgFr_consuming_answers(sg_fr)=1; 
 	 add_branch(sg_fr);   
        }
-     }else{
+     }else {
        /*explore next answers on trie */
        SgFr_new_answer_trie(sg_fr)=TrNode_child(SgFr_new_answer_trie(sg_fr));
      }
@@ -585,24 +586,28 @@ BOp(table_completion, Otapl)
 
     /*if DRE is present then (it is pioneer and not leader) */
 #ifdef LINEAR_TABLING_DRS
-    if (IS_LOCAL_SF(sg_fr)){
-      if(SgFr_cp(sg_fr) != B->cp_cp){
-	INFO_LINEAR_TABLING("drs- SgFr_cp=%p  B->cp=%p", SgFr_cp(sg_fr), B->cp_cp);
-	SgFr_cp(sg_fr) = B->cp_cp;
-	free_drs_answers(sg_fr);
-	SgFr_allocate_drs_looping_structure(sg_fr);
-	SgFr_new_answer_trie(sg_fr) = SgFr_first_answer(sg_fr); //H
-      } 
-      goto DRS_LOCAL_answer_resolution;
-    }
-    
+
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+      if (no_st_pos == NULL)
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+	if (IS_LOCAL_SF(sg_fr)) {
+          if(SgFr_cp(sg_fr) != B->cp_cp) {
+            INFO_LINEAR_TABLING("drs- SgFr_cp=%p  B->cp=%p", SgFr_cp(sg_fr), B->cp_cp);
+	    SgFr_cp(sg_fr) = B->cp_cp;
+	    free_drs_answers(sg_fr);
+	    SgFr_allocate_drs_looping_structure(sg_fr);
+	    SgFr_new_answer_trie(sg_fr) = SgFr_first_answer(sg_fr); //H
+	  } 
+	  goto DRS_LOCAL_answer_resolution;
+	}    
 #endif /*LINEAR_TABLING_DRS */
 
       if (HAS_NEW_ANSWERS(sg_fr)) {
         /* bprolog test_cs_r (dra+dre+batched) leaves the system in a
            inconsistent state because it has a cut, which cuts several
            subgoals, but one is not on LOCAL_top_sg_fr chain (and not
-           on LOCAL_max_scc chain), so it is not reseted and gets here
+           on LOCAL_max_scc chain), so it is not reset and gets here
            like a pioneer and non lider state and no subgoals on
            LOCAL_top_sg_fr_on_branch chain */
 	if (LOCAL_top_sg_fr_on_branch){
