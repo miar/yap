@@ -45,8 +45,6 @@
     GONext();                                                                   \
   }
 
-
-
 #else
 #define DRE_table_try_with_evaluating(sg_fr)
 #define DRE_table_try_with_looping_evaluating(sg_fr)
@@ -262,6 +260,7 @@
        subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+
        no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
        if (no_st_pos != NULL) {
          if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
@@ -409,17 +408,32 @@ ENDPBOp();
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 	no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
+	INFO_LINEAR_TABLING("- 0- goto answer_resolution ---------------\n");
 	if (no_st_pos != NULL) {
-	  if (SgNoTrie_answer(no_st_pos) == NULL)
+	  INFO_LINEAR_TABLING("- 1- goto answer_resolution ---------------\n");
+	  if (SgNoTrie_answer(no_st_pos) == NULL || IS_BATCHED_SF(sg_fr)) {
 	    /* no answers --> fail */
+	    remove_next(sg_fr);
+	    B = B->cp_b;
+	    SET_BB(PROTECT_FROZEN_B(B));
+	    INFO_LINEAR_TABLING("no answers--fail or is_batched_sf. actual B is %p", B);
 	    goto fail;
-	  else /* load answer */ {
+	  } else /* load answer */ {
+	    remove_next(sg_fr);
+	    pop_generator_node(SgFr_arity(sg_fr));
+	    
+	    // YENV2MEM;
 	    PREG = (yamop *) CPREG;
 	    PREFETCH_OP(PREG);	  
-	    if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	      { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	    else
-	      {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER) { 
+	      INFO_LINEAR_TABLING("- 2- goto answer_resolution ---------------\n");
+	      Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));
+	    }
+	    else {
+	      INFO_LINEAR_TABLING("- 3- goto answer_resolution ---------------\n");
+	      Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));
+	    }
+	    INFO_LINEAR_TABLING("- 4- goto answer_resolution ---------------\n");
 	    //load_answer(ans_node, YENV PASS_REGS);
 	    YENV = ENV;
 	    GONext();
