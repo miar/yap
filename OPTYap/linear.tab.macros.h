@@ -19,7 +19,7 @@
 #define ANS_JUMP_NEXT_CELL(PTR)                   (PTR = (struct answer_trie_node **)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
 #define GET_CELL_VALUE(PTR)                       (*(PTR))
 
-#define SET_CELL_VALUE(PTR,VALUE)                 (*(PTR) = VALUE)
+#define SET_CELL_VALUE(PTR, VALUE)                (*(PTR) = VALUE)
 #define TAG_NEW_ANSWERS(SG_FR)                    (SgFr_dfn(SG_FR) = (SgFr_dfn(SG_FR) | 0x1))
 #define TAG_AS_LEADER(SG_FR)                      (SgFr_dfn(SG_FR) = (SgFr_dfn(SG_FR) | 0x2))
 

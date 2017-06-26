@@ -246,7 +246,8 @@
           if (SgFr_current_loop_alt(SG_FR) == NULL) {	  		      \
 	    SgFr_current_loop_alt(SG_FR) = SgFr_loop_alts(SG_FR);	      \
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);                 \
-   	    INFO_LINEAR_TABLING("add_alternative=%p", PC);                    \
+   	    INFO_LINEAR_TABLING("add_alternative = %p", PC);                  \
+            INFO_LINEAR_TABLING("get_alternative = %p  %p", SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
           } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != PC) {    \
             SgFr_current_loop_alt(SG_FR)++;                                   \
    	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                  \
@@ -256,7 +257,8 @@
               SgFr_current_loop_alt(SG_FR) = nb;			      \
 	    }                                                                 \
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);	              \
-	    INFO_LINEAR_TABLING("add_alternative=%p", PC);		      \
+	    INFO_LINEAR_TABLING("add_alternative = %p", PC);		      \
+            INFO_LINEAR_TABLING("get_alternative = %p  %p", SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
           }                                                                   \
 	}                                                                     \
    }
@@ -353,10 +355,12 @@ inline void table_try_single_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, tab_ent
 
 
 
-inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,tab_ent_ptr tab_ent){
+inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,
+				 tab_ent_ptr tab_ent) {
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
-  INFO_LINEAR_TABLING("i3: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
+  INFO_LINEAR_TABLING("i3: LOCAL_nr_consumed_alternatives = %d",
+		      LOCAL_nr_consumed_alternatives);
 #endif /* DUMMY_PRINT */
   init_subgoal_frame(sg_fr,tab_ent);
   add_branch(sg_fr);
@@ -373,7 +377,7 @@ inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI
 #ifdef LINEAR_TABLING_DRA
   SgFr_current_alt(sg_fr) =  PREG_CI;
 #else 
-  add_alternative(sg_fr,PREG_CI);
+  add_alternative(sg_fr, PREG_CI);
 #endif  /*LINEAR_TABLING_DRA */
   PREG = PREG_CI;                          
   PREFETCH_OP(PREG);
@@ -500,8 +504,11 @@ inline void table_completion_launch_next_loop_alt(sg_fr_ptr sg_fr,yamop **next_l
   YENV = (CELL *) PROTECT_FROZEN_B(B);
   set_cut(YENV, B->cp_b);
   SET_BB(NORM_CP(YENV));
+
+  INFO_LINEAR_TABLING("current_alt=%p", SgFr_current_loop_alt(sg_fr));
+
   PREG = GET_CELL_VALUE(SgFr_current_loop_alt(sg_fr));
-  INFO_LINEAR_TABLING("current_alt=%p",PREG);
+  //INFO_LINEAR_TABLING("current_alt=%p",PREG);
   PREFETCH_OP(PREG);
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
