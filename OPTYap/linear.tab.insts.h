@@ -365,7 +365,7 @@ inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI
   UNLOCK_SG_FR(sg_fr);
 #ifdef LINEAR_TABLING_DRE
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);
-  SgFr_pioneer(sg_fr)=B;
+  SgFr_pioneer(sg_fr) = B;
   SgFr_next_alt(sg_fr)= PREG_NI;
 #else
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, PREG_NI);
@@ -395,7 +395,7 @@ inline void table_try_with_looping_ready(sg_fr_ptr sg_fr){
   SgFr_stop_loop_alt(sg_fr)=SgFr_current_loop_alt(sg_fr) = SgFr_first_loop_alt(sg_fr);
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);
 #ifdef LINEAR_TABLING_DRE
-  SgFr_pioneer(sg_fr)=B;
+  SgFr_pioneer(sg_fr) = B;
 #endif  /*LINEAR_TABLING_DRE*/
   if(IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){
     //B->cp_ap= (yamop *)TRY_ANSWER;

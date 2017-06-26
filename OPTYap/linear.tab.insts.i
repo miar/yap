@@ -3,8 +3,33 @@
 **      Tabling instructions      **
 ** ------------------------------ */  
 #ifdef LINEAR_TABLING_DRE
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+#define DRE_table_try_batched(sg_fr, LOCAL_top_sg_fr)          \
+  if (IS_BATCHED_SF(sg_fr)) {                                  \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr); \
+    if (no_st_pos != NULL) {                                   \
+      if (SgNoTrie_answer(no_st_pos) != NULL) {                \
+        INFO_LINEAR_TABLING("DRE table_try answer");           \
+        SgFr_current_batched_answer(LOCAL_top_sg_fr) =         \
+          (void *) SgNoTrie_answer(no_st_pos);                 \
+        goto try_answer;                                       \
+      }                                                        \
+    } else                                                     \
+      if (SgFr_first_answer(sg_fr)) {                          \
+        SgFr_current_batched_answer(LOCAL_top_sg_fr) =         \
+          (void *) SgFr_first_answer(sg_fr);                   \
+        goto try_answer;				       \
+      }                                                        \
+  }
+#else  /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+#define DRE_table_try_batched(sg_fr, LOCAL_top_sg_fr)          \
+  if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)) {      \
+    SgFr_current_batched_answer(LOCAL_top_sg_fr) =             \
+      (void *) SgFr_first_answer(sg_fr);                       \
+    goto try_answer;					       \
+  }
+#endif /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
-// --> HERE <--
 #define DRE_table_try_with_evaluating(sg_fr)                                    \
   if (SgFr_next_alt(sg_fr) != NULL){                                            \
     INFO_LINEAR_TABLING("follower");                                            \
@@ -13,16 +38,12 @@
     store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);          \
     add_next_follower(sg_fr);                                                   \
     SgFr_gen_cp(sg_fr) = gcp_temp;                                              \
-    if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){	    	        \
-      SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);  \
-      goto try_answer;						                \
-    }								                \
+    DRE_table_try_batched(sg_fr, LOCAL_top_sg_fr);			        \
     PREG = SgFr_next_alt(sg_fr);                                                \
     PREFETCH_OP(PREG);                                                          \
     allocate_environment();                                                     \
     GONext();                                                                   \
   }
-
 
 #define DRE_table_try_with_looping_evaluating(sg_fr)                            \
   yamop **follower_alt = SgFr_current_loop_alt(sg_fr) + 1;                      \
@@ -36,10 +57,7 @@
     add_next_follower(sg_fr);                                                   \
     SgFr_gen_cp(sg_fr) = gcp_temp;                                              \
     SgFr_current_loop_alt(sg_fr) = follower_alt;                                \
-    if (IS_BATCHED_SF(sg_fr) && SgFr_first_answer(sg_fr)){	    	        \
-      SgFr_current_batched_answer(LOCAL_top_sg_fr) = SgFr_first_answer(sg_fr);  \
-      goto try_answer;						                \
-    }								                \
+    DRE_table_try_batched(sg_fr, LOCAL_top_sg_fr);			        \
     PREG = GET_CELL_VALUE(SgFr_current_loop_alt(sg_fr));		        \
     PREFETCH_OP(PREG);                                                          \
     allocate_environment();                                                     \
@@ -463,7 +481,7 @@ ENDPBOp();
 	  /* answers -> get first answer */
 #ifdef DUMMY_PRINT
 #ifdef LINEAR_TABLING_DRE
-	  store_loader_node(tab_ent, ans_node,type_of_node);
+	  store_loader_node(tab_ent, ans_node, type_of_node);
 #else
 	  store_loader_node(tab_ent, ans_node,1);
 #endif /*LINEAR_TABLING_DRE*/
@@ -493,7 +511,7 @@ BOp(table_completion, Otapl)
    sg_fr_ptr sg_fr = GEN_CP(B)->cp_sg_fr;       
    INFO_LINEAR_TABLING("sg_fr=%p state=%d",sg_fr, SgFr_state(sg_fr));
 #ifdef LINEAR_TABLING_DRE
-   if (SgFr_next_alt(sg_fr)!=NULL){
+   if (SgFr_next_alt(sg_fr) != NULL){
       PREG = SgFr_next_alt(sg_fr);
       INFO_LINEAR_TABLING("next alt != null");
       PREFETCH_OP(PREG);
@@ -607,8 +625,7 @@ BOp(table_completion, Otapl)
       }	
       /*batched and not pioneer --> fail */
       goto answer_resolution;
-    } 
-    
+    }     
 #endif /*LINEAR_TABLING_DRE */    
      
      remove_branch(sg_fr);
