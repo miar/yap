@@ -11,9 +11,10 @@
 /* -------------------- **
 **      macros          **
 ** -------------------- */
-#define ALT_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (yamop *)((unsigned long int)NEXT_NODE | 0x1))
-#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR = (yamop**)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
-#define IS_JUMP_CELL(PTR)                         (((unsigned long int)(*PTR)) & 0x1)
+#define ALT_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (yamop *)((long)NEXT_NODE | 0x1))
+
+#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR = (yamop**)(((long)(*PTR)) & 0xFFFFFFFE))
+#define IS_JUMP_CELL(PTR)                         (((long)(*PTR)) & 0x1)
 
 #define ANS_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (struct answer_trie_node *)((unsigned long int)NEXT_NODE | 0x1))
 #define ANS_JUMP_NEXT_CELL(PTR)                   (PTR = (struct answer_trie_node **)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
@@ -226,6 +227,7 @@
 
 
 #define free_alternatives(SG_FR) {		  \
+ INFO_LINEAR_TABLING("free alts sg_fr = %p", sg_fr); \
   if (SgFr_current_loop_alt(SG_FR) != NULL){      \
     yamop **next = NULL;                          \
     yamop **curr = NULL;			  \
@@ -251,19 +253,20 @@
 }
 
 
-#define SgFr_init_linear_tabling_fields(SG_FR, TAB_ENT) {     		    \
-        SET_SGFR_DFN(SG_FR,LOCAL_dfn++);			            \
-	TAG_AS_LEADER(SG_FR);                                               \
-	if (IsMode_Local(TabEnt_mode(TAB_ENT))){			    \
-	  TAG_AS_LOCAL_SF(SG_FR);                                           \
-        }                                                                   \
-        SgFr_stop_loop_alt(SG_FR) = NULL;                                   \
-        SgFr_first_loop_alt(SG_FR) = NULL;                                  \
-	SgFr_current_loop_alt(SG_FR) = NULL;                                \
-        SgFr_current_batched_answer(SG_FR)=NULL;			    \
-	SgFr_init_follower_fields(SG_FR);                                   \
-    	SgFr_init_drs_fields(SG_FR);                                        \
-	SgFr_init_dra_fields(SG_FR);                                        \
+#define SgFr_init_linear_tabling_fields(SG_FR, TAB_ENT) {    \
+        INFO_LINEAR_TABLING("init sg_fr = %p", sg_fr);       \
+        SET_SGFR_DFN(SG_FR,LOCAL_dfn++);		     \
+	TAG_AS_LEADER(SG_FR);                                \
+	if (IsMode_Local(TabEnt_mode(TAB_ENT))){	     \
+	  TAG_AS_LOCAL_SF(SG_FR);                            \
+        }                                                    \
+        SgFr_stop_loop_alt(SG_FR) = NULL;                    \
+        SgFr_first_loop_alt(SG_FR) = NULL;                   \
+	SgFr_current_loop_alt(SG_FR) = NULL;                 \
+        SgFr_current_batched_answer(SG_FR)=NULL;	     \
+	SgFr_init_follower_fields(SG_FR);                    \
+    	SgFr_init_drs_fields(SG_FR);                         \
+	SgFr_init_dra_fields(SG_FR);                         \
 }
 
 

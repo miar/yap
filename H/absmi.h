@@ -449,6 +449,7 @@ restore_absmi_regs(REGSTORE * old_regs)
 
 #if USE_THREADED_CODE && (LIMITED_PREFETCH || USE_PREFETCH)
 
+
 #define ALWAYS_GONext() JMP(to_go)
 
 #define ALWAYS_GONextW() JMP(to_go)
@@ -811,21 +812,22 @@ Macros to check the limits of stacks
 #endif /* FROZEN_STACKS && !BFZ_TRAIL_SCHEME */
 
 
+
 #if defined(FROZEN_STACKS)  && !defined(LINEAR_TABLING)
 #ifdef YAPOR_SBA
 #define PROTECT_FROZEN_H(CPTR)                                  \
-       ((Unsigned((Int)((CPTR)->cp_h)-(Int)(H_FZ)) <            \
-	 Unsigned((Int)(B_FZ)-(Int)(H_FZ))) ?                   \
-	(CPTR)->cp_h : H_FZ)
+  ((Unsigned((Int)((CPTR)->cp_h)-(Int)(H_FZ)) <            \
+    Unsigned((Int)(B_FZ)-(Int)(H_FZ))) ?                   \
+   (CPTR)->cp_h : H_FZ)
 #define PROTECT_FROZEN_B(CPTR)                                  \
-       ((Unsigned((Int)(CPTR)-(Int)(H_FZ)) <                    \
-	 Unsigned((Int)(B_FZ)-(Int)(H_FZ)))  ?                  \
-	(CPTR) : B_FZ)
-	 /*
-#define PROTECT_FROZEN_H(CPTR) ((CPTR)->cp_h > H_FZ && (CPTR)->cp_h < (CELL *)B_FZ ? (CPTR)->cp_h : H_FZ )
-
-#define PROTECT_FROZEN_B(CPTR)  ((CPTR) < B_FZ && (CPTR) > (choiceptr)H_FZ ? (CPTR) : B_FZ )
-	 */
+  ((Unsigned((Int)(CPTR)-(Int)(H_FZ)) <                    \
+    Unsigned((Int)(B_FZ)-(Int)(H_FZ)))  ?                  \
+   (CPTR) : B_FZ)
+/*                                                                                                                                                                                   
+#define PROTECT_FROZEN_H(CPTR) ((CPTR)->cp_h > H_FZ && (CPTR)->cp_h < (CELL *)B_FZ ? (CPTR)->cp_h : H_FZ )                                                                                    
+                                                                                                                                                                                              
+#define PROTECT_FROZEN_B(CPTR)  ((CPTR) < B_FZ && (CPTR) > (choiceptr)H_FZ ? (CPTR) : B_FZ )                                                                                                  
+*/
 #else /* TABLING */
 #define PROTECT_FROZEN_B(CPTR)  (YOUNGER_CP(CPTR, B_FZ) ? CPTR        : B_FZ)
 #define PROTECT_FROZEN_H(CPTR)  (((CPTR)->cp_h > H_FZ) ? (CPTR)->cp_h : H_FZ)
@@ -835,18 +837,22 @@ Macros to check the limits of stacks
 #define PROTECT_FROZEN_H(CPTR)  (CPTR)->cp_h
 #endif /* FROZEN_STACKS */
 
+
 #define restore_yaam_regs(AP)                                    \
-                 { register CELL *x1 = B_YREG->cp_env;	         \
-                   register yamop *x2;				 \
-                   H = HBREG = PROTECT_FROZEN_H(B_YREG);            \
-		   restore_yaam_reg_cpdepth(B_YREG);	         \
-                   CPREG  = B_YREG->cp_cp;		                 \
-		   /* AP may depend on H */			 \
-		   x2 = (yamop *)AP;		                 \
-                   ENV    = x1;                                  \
-                   YAPOR_update_alternative(PREG, x2)            \
-                   B_YREG->cp_ap = x2;                              \
-                 }
+  { register CELL *x1 = B_YREG->cp_env;           \
+  register yamop *x2;                           \
+  H = HBREG = PROTECT_FROZEN_H(B_YREG);            \
+  restore_yaam_reg_cpdepth(B_YREG);             \
+  CPREG  = B_YREG->cp_cp;                               \
+  /* AP may depend on H */                      \
+  x2 = (yamop *)AP;                             \
+  ENV    = x1;                                  \
+  YAPOR_update_alternative(PREG, x2)            \
+  B_YREG->cp_ap = x2;                              \
+  }
+
+
+
 
 /***************************************************************
 * Restore variable number of arguments from a choice point     *

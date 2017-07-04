@@ -532,19 +532,34 @@ BOp(table_completion, Otapl)
 #endif /*LINEAR_TABLING_DRA*/
       {
 	/*----------determine which alternative to consume ----------------------------*/
-	yamop **next_loop_alt = SgFr_current_loop_alt(sg_fr) + 1;
+
+	yamop **next_loop_alt;
+	next_loop_alt = SgFr_current_loop_alt(sg_fr) + 1;
+
 	if (SgFr_state(sg_fr) == evaluating){
 	  /*first time on table completion */	   
 	  SgFr_state(sg_fr) = looping_evaluating;
 	  if (!IS_LEADER(sg_fr)) 
 	    remove_branch(sg_fr);	  
-	  ALT_TAG_AS_JUMP_CELL(next_loop_alt, sg_fr->loop_alts);
+	  // PROBLEM IS IN 'ALT_TAG_AS_JUMP_CELL'
+	  ALT_TAG_AS_JUMP_CELL(next_loop_alt, (sg_fr->loop_alts));
+
+	  INFO_LINEAR_TABLING("SgFr_current_loop_alt(sg_fr) + 1 = %p", 
+			      *(SgFr_current_loop_alt(sg_fr) + 1));	
+
 	  next_loop_alt = SgFr_stop_loop_alt(sg_fr) = sg_fr->loop_alts;
+	  INFO_LINEAR_TABLING("1-next_loop_alt = %p *next_loop_alt = %p", 
+			      next_loop_alt, *next_loop_alt);	
 	  SgFr_first_loop_alt(sg_fr) = SgFr_stop_loop_alt(sg_fr); 
 	} else { 
 	  /* get next alternative */	  
-	  if (IS_JUMP_CELL(next_loop_alt)) 
+	  if (IS_JUMP_CELL(next_loop_alt)) {
+
+	    INFO_LINEAR_TABLING("IS_JUMP_CELL");	
+	    
 	    ALT_JUMP_NEXT_CELL(next_loop_alt);
+
+	  }
 	}
 	/*----------launch alternative (if any) ----------------------------*/
 	if (IS_LEADER(sg_fr) && HAS_NEW_ANSWERS(sg_fr) ) {  
@@ -563,6 +578,10 @@ BOp(table_completion, Otapl)
 		}
 	      } 
 	    SgFr_stop_loop_alt(sg_fr) = SgFr_current_loop_alt(sg_fr) = next_loop_alt;
+
+	    INFO_LINEAR_TABLING("2-next_loop_alt = %p *next_loop_alt = %p", 
+			      next_loop_alt, *next_loop_alt);	
+
 	    UNTAG_NEW_ANSWERS(sg_fr);
 	  }else{ /* is batched- do not change dymamically the stop alt */
 //#else  /*!LINEAR_TABLING_DSLA --- TO REMOVE*/
@@ -585,6 +604,7 @@ BOp(table_completion, Otapl)
 		no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
 		if (no_st_pos != NULL) {
 		  if (SgNoTrie_answer(no_st_pos) != NULL) {
+		    INFO_LINEAR_TABLING("4-SgFr_current_loop_alt(sg_fr)", SgFr_current_loop_alt(sg_fr));
 		    SgFr_current_loop_alt(sg_fr) = next_loop_alt;
    		    INFO_LINEAR_TABLING("table_completion answer");
 		    SgFr_current_batched_answer(LOCAL_top_sg_fr) = 
@@ -594,7 +614,12 @@ BOp(table_completion, Otapl)
 	        } else 
 #endif /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 		  if (SgFr_first_answer(sg_fr) != NULL) {
+		    INFO_LINEAR_TABLING("5-SgFr_current_loop_alt(sg_fr)", SgFr_current_loop_alt(sg_fr));
 		    SgFr_current_loop_alt(sg_fr) = next_loop_alt;
+
+		    INFO_LINEAR_TABLING("3-next_loop_alt = %p *next_loop_alt = %p", 
+			      next_loop_alt, *next_loop_alt);	
+
 		    INFO_LINEAR_TABLING("table_completion answer");
 		    SgFr_current_batched_answer(LOCAL_top_sg_fr) = 
 		      (void *) SgFr_first_answer(sg_fr);
@@ -603,14 +628,23 @@ BOp(table_completion, Otapl)
 	      }
 	    }
 	    SgFr_current_loop_alt(sg_fr) = next_loop_alt;
+	    INFO_LINEAR_TABLING("4-next_loop_alt = %p *next_loop_alt = %p", 
+				next_loop_alt, *next_loop_alt);	
+
 	  }
 //#endif /*LINEAR_TABLING_DSLA*/
-	    table_completion_launch_next_loop_alt(sg_fr, next_loop_alt);	  
-	    GONext();          	
+	  table_completion_launch_next_loop_alt(sg_fr, next_loop_alt);	  
+	  //goto nextop;
+	  INFO_LINEAR_TABLING("772-next_loop_alt = %p *next_loop_alt = %p",
+			      next_loop_alt, *next_loop_alt);	
+
+	  GONext();          	
 	}
+	//	INFO_LINEAR_TABLING("66-next_loop_alt = %p *next_loop_alt = %p", 
+	//		    next_loop_alt, *next_loop_alt);	
 
 	if (next_loop_alt != SgFr_stop_loop_alt(sg_fr)) {  
-	  INFO_LINEAR_TABLING("next loop alt!= stop loop alt");
+	  INFO_LINEAR_TABLING("1-SgFr_current_loop_alt(sg_fr)", SgFr_current_loop_alt(sg_fr));
 	  SgFr_current_loop_alt(sg_fr) = next_loop_alt;	  
 	  table_completion_launch_next_loop_alt(sg_fr, next_loop_alt);
 	  GONext();     

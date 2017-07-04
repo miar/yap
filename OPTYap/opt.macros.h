@@ -690,10 +690,13 @@ extern int Yap_page_size;
 { int i; yamop **t;                                                       \
   ALLOC_BLOCK(t, (MAX_LOOP_ALT_BUCKET + 1) * sizeof(yamop **), yamop *);  \
   PTR = t;                                                                \
-  for(i = 0; i <= MAX_LOOP_ALT_BUCKET; i++)                               \
+  for(i = 0; i <= MAX_LOOP_ALT_BUCKET; i++) {				  \
     *t++ = NULL;                                                          \
+    INFO_LINEAR_TABLING("t = %p *t = %p", t-1, *(t-1)); 		\
+  }									  \
   t--;							                  \
   *t = (yamop*) ((unsigned long int)(*t) | 0x1);                          \
+  INFO_LINEAR_TABLING("LAST t = %p *t = %p", t, *t);			  \
 }
 
 #define FREE_ALTERNATIVES_BUCKET(PTR)  FREE_BLOCK(PTR)

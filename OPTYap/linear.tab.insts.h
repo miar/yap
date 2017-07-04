@@ -247,25 +247,26 @@
 	    SgFr_current_loop_alt(SG_FR) = SgFr_loop_alts(SG_FR);	      \
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);                 \
    	    INFO_LINEAR_TABLING("add_alternative = %p", PC);                  \
-            INFO_LINEAR_TABLING("get_alternative = %p  %p", SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
+            INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
           } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != PC) {    \
             SgFr_current_loop_alt(SG_FR)++;                                   \
    	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                  \
 	      yamop **nb;                                                     \
               ALLOC_ALTERNATIVES_BUCKET(nb);				      \
    	      ALT_TAG_AS_JUMP_CELL(SgFr_current_loop_alt(SG_FR), nb);         \
+	      INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR)); \
               SgFr_current_loop_alt(SG_FR) = nb;			      \
 	    }                                                                 \
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);	              \
 	    INFO_LINEAR_TABLING("add_alternative = %p", PC);		      \
-            INFO_LINEAR_TABLING("get_alternative = %p  %p", SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
+	    INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
           }                                                                   \
 	}                                                                     \
    }
 
 
 
-inline void propagate_dependencies(sg_fr_ptr sg_fr){
+void propagate_dependencies(sg_fr_ptr sg_fr){
   sg_fr_ptr sf_aux = LOCAL_top_sg_fr_on_branch;                                        
   int dfn = GET_SGFR_DFN(sg_fr);                                                       
   INFO_LINEAR_TABLING("propagate dependencies upto to sg_fr=%p",sg_fr);
@@ -309,7 +310,7 @@ inline void propagate_dependencies(sg_fr_ptr sg_fr){
 
 
 
-inline void consume_all_answers_on_trie(tab_ent_ptr tab_ent,ans_node_ptr ans_node,sg_fr_ptr sg_fr) {
+void consume_all_answers_on_trie(tab_ent_ptr tab_ent,ans_node_ptr ans_node,sg_fr_ptr sg_fr) {
   /* answers -> get first answer */                     
   UNLOCK_SG_FR(sg_fr);
 #ifdef DUMMY_PRINT
@@ -327,7 +328,7 @@ inline void consume_all_answers_on_trie(tab_ent_ptr tab_ent,ans_node_ptr ans_nod
 
 
 
-inline void table_try_single_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, tab_ent_ptr tab_ent){
+void table_try_single_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, tab_ent_ptr tab_ent){
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
   INFO_LINEAR_TABLING("i3: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
@@ -355,7 +356,7 @@ inline void table_try_single_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, tab_ent
 
 
 
-inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,
+void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,
 				 tab_ent_ptr tab_ent) {
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
@@ -387,7 +388,7 @@ inline void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI
 
 
 
-inline void table_try_with_looping_ready(sg_fr_ptr sg_fr){
+ void table_try_with_looping_ready(sg_fr_ptr sg_fr){
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
   INFO_LINEAR_TABLING("i3: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
@@ -396,6 +397,7 @@ inline void table_try_with_looping_ready(sg_fr_ptr sg_fr){
   add_max_scc(sg_fr);
   add_next(sg_fr);
   SgFr_state(sg_fr) = looping_evaluating; 
+  INFO_LINEAR_TABLING("6-SgFr_current_loop_alt(sg_fr)", SgFr_current_loop_alt(sg_fr));
   SgFr_stop_loop_alt(sg_fr)=SgFr_current_loop_alt(sg_fr) = SgFr_first_loop_alt(sg_fr);
   store_generator_node(tab_ent, sg_fr, PREG->u.Otapl.s, COMPLETION);
 #ifdef LINEAR_TABLING_DRE
@@ -415,7 +417,7 @@ inline void table_try_with_looping_ready(sg_fr_ptr sg_fr){
 }
 
 
-inline void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
+ void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
 				     tab_ent_ptr tab_ent) {
     /* answers -> get first answer */
     if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {
@@ -447,7 +449,7 @@ inline void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
 
 
 
-inline void table_retry(yamop* PREG_CI, yamop* PREG_NI){
+ void table_retry(yamop* PREG_CI, yamop* PREG_NI){
 #ifdef DUMMY_PRINT
     LOCAL_nr_consumed_alternatives++;
     INFO_LINEAR_TABLING("i8: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
@@ -474,7 +476,7 @@ inline void table_retry(yamop* PREG_CI, yamop* PREG_NI){
 }
 
 
-inline void table_trust(yamop* PREG_CI){
+ void table_trust(yamop* PREG_CI){
 /*------------------------------------------------LINEAR TABLING------------------------------*/
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
@@ -499,17 +501,29 @@ inline void table_trust(yamop* PREG_CI){
 }
 
 
-inline void table_completion_launch_next_loop_alt(sg_fr_ptr sg_fr,yamop **next_loop_alt){
+void table_completion_launch_next_loop_alt(sg_fr_ptr sg_fr,yamop **next_loop_alt){
   restore_generator_node(SgFr_arity(sg_fr), COMPLETION);
   YENV = (CELL *) PROTECT_FROZEN_B(B);
   set_cut(YENV, B->cp_b);
   SET_BB(NORM_CP(YENV));
 
-  INFO_LINEAR_TABLING("current_alt=%p", SgFr_current_loop_alt(sg_fr));
+  //INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  GET_CELL_VALUE() = %p", 
+  //		      sg_fr, SgFr_current_loop_alt(sg_fr), 
+  //		      GET_CELL_VALUE(SgFr_current_loop_alt(sg_fr)));
 
+  INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p", sg_fr, SgFr_current_loop_alt(sg_fr));
+  INFO_LINEAR_TABLING("77-next_loop_alt = %p *next_loop_alt = %p",
+		      next_loop_alt, *next_loop_alt);	
   PREG = GET_CELL_VALUE(SgFr_current_loop_alt(sg_fr));
+
+  INFO_LINEAR_TABLING("771-next_loop_alt = %p *next_loop_alt = %p",
+		      next_loop_alt, *next_loop_alt);	
+
+  //PREG = *next_loop_alt;
+
   //INFO_LINEAR_TABLING("current_alt=%p",PREG);
-  PREFETCH_OP(PREG);
+  //PREFETCH_OP(PREG);
+
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
   INFO_LINEAR_TABLING("i2: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
