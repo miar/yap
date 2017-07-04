@@ -11,13 +11,14 @@
 /* -------------------- **
 **      macros          **
 ** -------------------- */
-#define ALT_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (yamop *)((long)NEXT_NODE | 0x1))
+#define ALT_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (yamop *)((long)NEXT_NODE | (long)0x1))
 
-#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR = (yamop**)(((long)(*PTR)) & 0xFFFFFFFE))
+#define ALT_JUMP_NEXT_CELL(PTR)                   (PTR = (yamop**)(((long)(*PTR)) & (long)0xFFFFFFFFFFFFFFFE))
+
 #define IS_JUMP_CELL(PTR)                         (((long)(*PTR)) & 0x1)
 
 #define ANS_TAG_AS_JUMP_CELL(PTR,NEXT_NODE)       ((*PTR) = (struct answer_trie_node *)((unsigned long int)NEXT_NODE | 0x1))
-#define ANS_JUMP_NEXT_CELL(PTR)                   (PTR = (struct answer_trie_node **)(((unsigned long int)(*PTR)) & 0xFFFFFFFE))
+#define ANS_JUMP_NEXT_CELL(PTR)                   (PTR = (struct answer_trie_node **)(((unsigned long int)(*PTR)) & 0xFFFFFFFFFFFFFFFE))
 #define GET_CELL_VALUE(PTR)                       (*(PTR))
 
 #define SET_CELL_VALUE(PTR, VALUE)                (*(PTR) = VALUE)

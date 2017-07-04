@@ -542,10 +542,17 @@ BOp(table_completion, Otapl)
 	  if (!IS_LEADER(sg_fr)) 
 	    remove_branch(sg_fr);	  
 	  // PROBLEM IS IN 'ALT_TAG_AS_JUMP_CELL'
+	  INFO_LINEAR_TABLING("1-next_loop_alt = %p *next_loop_alt = %p sg_fr->loop_alts = %p",
+			      next_loop_alt, *next_loop_alt, sg_fr->loop_alts);
+ 
+		      
 	  ALT_TAG_AS_JUMP_CELL(next_loop_alt, (sg_fr->loop_alts));
 
-	  INFO_LINEAR_TABLING("SgFr_current_loop_alt(sg_fr) + 1 = %p", 
-			      *(SgFr_current_loop_alt(sg_fr) + 1));	
+
+	  INFO_LINEAR_TABLING("2-next_loop_alt = %p *next_loop_alt = %p sg_fr->loop_alts = %p",
+			      next_loop_alt, *next_loop_alt, sg_fr->loop_alts);
+
+
 
 	  next_loop_alt = SgFr_stop_loop_alt(sg_fr) = sg_fr->loop_alts;
 	  INFO_LINEAR_TABLING("1-next_loop_alt = %p *next_loop_alt = %p", 
@@ -556,8 +563,18 @@ BOp(table_completion, Otapl)
 	  if (IS_JUMP_CELL(next_loop_alt)) {
 
 	    INFO_LINEAR_TABLING("IS_JUMP_CELL");	
+	    INFO_LINEAR_TABLING("3-next_loop_alt = %p *next_loop_alt = %p sg_fr->loop_alts = %p",
+				next_loop_alt, *next_loop_alt, sg_fr->loop_alts);
+
 	    
 	    ALT_JUMP_NEXT_CELL(next_loop_alt);
+
+	    INFO_LINEAR_TABLING("4-next_loop_alt = %p",next_loop_alt);
+
+
+	    INFO_LINEAR_TABLING("4-next_loop_alt = %p *next_loop_alt = %p sg_fr->loop_alts = %p",
+				next_loop_alt, *next_loop_alt, sg_fr->loop_alts);
+
 
 	  }
 	}
