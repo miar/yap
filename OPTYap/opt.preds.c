@@ -364,7 +364,10 @@ static Int p_table( USES_REGS1 ) {
 	  Term list3 = list2;
 	  list3 = TailOfTerm(list3);
 	  mode = IntOfTerm(HeadOfTerm(list3));
-	  if (mode == MODE_DIRECTED_DIM_INTEGER || mode == MODE_DIRECTED_DIM_FLOAT) {
+	  if (mode == MODE_DIRECTED_DIM_INTEGER     || 
+	      mode == MODE_DIRECTED_DIM_FLOAT       ||
+	      mode == MODE_DIRECTED_DIM_BIG_INTEGER || 
+	      mode == MODE_DIRECTED_DIM_BIG_FLOAT) {
 	    /* user has defined the no_trie type */
 	    no_subgoal_trie_term_type = mode;
 	    list2 = TailOfTerm(list3);
