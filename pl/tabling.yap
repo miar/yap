@@ -197,7 +197,6 @@ table(Pred) :-
 '$transl_to_mode_directed_tabling'(last, 6).
 %'$transl_to_mode_directed_tabling'(dim, 7). don't uncomment. this is just to set mode dim=7.
 '$transl_to_mode_directed_tabling'(sum, 8).
-
 '$transl_to_mode_directed_tabling_no_trie'(integer, 9).      % mode dim -> int answers
 '$transl_to_mode_directed_tabling_no_trie'(float, 10).       % mode dim -> float answers
 '$transl_to_mode_directed_tabling_no_trie'(bigInteger, 11).  % mode dim -> big int answers

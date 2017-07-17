@@ -1629,6 +1629,64 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 #ifdef THREADS
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big)                       \
+    /* HERE */								                               \
+    int *mode_directed;							                               \
+    mode_directed = SgFr_mode_directed(sg_fr);				                               \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
+      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_integer(et) = term_value;				                               \
+      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
+        {return true;}			                                                               \
+      free(et);							 	                               \
+    }									                               \
+    /* at least one term is in no_st_pos */			  	                               \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
+    TERM_TYPE no_trie_value = (TERM_TYPE) 0.0;						               \
+    if (mode == MODE_DIRECTED_MIN) {					                               \
+      do {								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);	   		                               \
+	if (term_value > no_trie_value)					                               \
+	  return false;							                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                    \
+    } else if (mode == MODE_DIRECTED_MAX) {				                               \
+      do {								                               \
+	no_trie_value =  SgNoTrie_entry_integer(et);			                               \
+	if (term_value < no_trie_value)					                               \
+	  return false;							                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                    \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
+      return false;							                               \
+    } else if (mode == MODE_DIRECTED_LAST) {				                               \
+      do								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);			                               \
+      while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, term_value));                      \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
+      TERM_TYPE no_trie_sum_value = (TERM_TYPE) 0.0;		                                       \
+      do {								                               \
+	no_trie_value = SgNoTrie_entry_integer(et);			                               \
+	no_trie_sum_value = no_trie_value + term_value;	                                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_integer(et)), no_trie_value, no_trie_sum_value));             \
+    }									                               \
+    return true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
  /* GIVING bus error on MkFloatTerm --> check this */			                               \
@@ -1758,6 +1816,9 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 #else /* !THREADS */
 
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big)
+
+
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
  /* GIVING bus error on MkFloatTerm --> check this */			                               \
     int *mode_directed;							                               \
@@ -1850,11 +1911,20 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
   }  else  if (IsFloatTerm(term)) {
     //FLOAT_SINGLE_THREAD_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
-
     FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float); 
-    
   }  else {
-    Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie");
+    /* check if is a big number */
+    CELL *pt = RepAppl(term) + 1;
+    CELL big_tag = pt[0];
+    if (big_tag == BIG_INT) {
+      MP_INT *big = Yap_BigIntOfTerm(term);
+      BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big);
+    } else if (big_tag == BIG_RATIONAL) {
+      //      Term trat = Yap_RatTermToApplTerm(t);
+      Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie - not working with rationals");
+    } else {
+      Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie - unknown type");
+    }
     return false; /* avoids compiler(gcc) warning */
   }
 

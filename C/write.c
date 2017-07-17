@@ -238,18 +238,18 @@ writebig(Term t, int p, int depth, int rinfixarg, struct write_globs *wglb, stru
   CELL *pt = RepAppl(t)+1;
   CELL big_tag = pt[0];
 
-  ///printf("o11111111111111111\n");
+  //printf("MIAR - BIG NUMBERS 1\n");
   
 
 #ifdef USE_GMP
-  ///printf("o22222222222222\n");
   if (big_tag == BIG_INT) 
   {
     MP_INT *big = Yap_BigIntOfTerm(t);
-    //printf("o3333333333333333\n");
+    // printf("MIAR - BIG INTEGERS \n");
     write_mpint(big, wglb);
     return;
   } else if (big_tag == BIG_RATIONAL) {
+    //printf("MIAR - BIG RATIONALS\n");
     Term trat = Yap_RatTermToApplTerm(t);
     writeTerm(trat, p, depth, rinfixarg, wglb, rwt);
     return;
