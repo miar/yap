@@ -192,18 +192,20 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define TRAVERSE_POSITION_LAST     2
 
 /* mode directed tabling */
-#define MODE_DIRECTED_TAGBITS         0xF
-#define MODE_DIRECTED_NUMBER_TAGBITS  4
-#define MODE_DIRECTED_INDEX           1
-#define MODE_DIRECTED_FIRST           2
-#define MODE_DIRECTED_ALL             3
-#define MODE_DIRECTED_MAX             4
-#define MODE_DIRECTED_MIN             5
-#define MODE_DIRECTED_LAST            6
-#define MODE_DIRECTED_DIM             7
-#define MODE_DIRECTED_SUM             8
-#define MODE_DIRECTED_DIM_INTEGER     9
-#define MODE_DIRECTED_DIM_FLOAT      10
+#define MODE_DIRECTED_TAGBITS           0xF
+#define MODE_DIRECTED_NUMBER_TAGBITS    4
+#define MODE_DIRECTED_INDEX             1
+#define MODE_DIRECTED_FIRST             2
+#define MODE_DIRECTED_ALL               3
+#define MODE_DIRECTED_MAX               4
+#define MODE_DIRECTED_MIN               5
+#define MODE_DIRECTED_LAST              6
+#define MODE_DIRECTED_DIM               7
+#define MODE_DIRECTED_SUM               8
+#define MODE_DIRECTED_DIM_INTEGER       9
+#define MODE_DIRECTED_DIM_FLOAT        10
+#define MODE_DIRECTED_DIM_BIG_INTEGER  11
+#define MODE_DIRECTED_DIM_BIG_FLOAT    12
 
 #define NoTrie_LoadIntegerTerm(ANSWER)  (MkIntTerm((ANSWER)))
 #define NoTrie_LoadFloatTerm(ANSWER)    (MkFloatTerm((ANSWER)))

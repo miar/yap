@@ -1845,7 +1845,7 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
    TabEnt_no_subgoal_trie_term_type(tab_ent) == MODE_DIRECTED_DIM_INTEGER
    tab_ent is also not accessible at this point --> DO THIS LATER
  */
-  /* BOOL_CAS does not support floats.... */
+  /* BOOL_CAS does not support floats, so I have created my version of a BOOL_CAS .... */
   if (IsIntTerm(term)) {
     INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
   }  else  if (IsFloatTerm(term)) {
