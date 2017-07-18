@@ -25,11 +25,12 @@ typedef enum {false,true} boolean;
 typedef union {
   Int term_integer;
   Float term_float; // Yap's Float is double
-  MP_INT *term_big_integer;
+  Term term_big_integer;
 } entry_type;
 
-#define SgNoTrie_entry_integer(X) ((X)->term_integer)  // X is entry_type
-#define SgNoTrie_entry_float(X)   ((X)->term_float)
+#define SgNoTrie_entry_integer(X)           ((X)->term_integer)  // X is entry_type
+#define SgNoTrie_entry_float(X)             ((X)->term_float)
+#define SgNoTrie_entry_big_integer_term(X)  ((X)->term_big_integer)
 
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
@@ -38,11 +39,11 @@ typedef struct no_subgoal_trie_pos {
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 } *no_subgoal_trie_pos_ptr;
 
-#define SgNoTrie_sg_fr(X)                ((X)->subgoal_frame)
-#define SgNoTrie_answer(X)               ((X)->entry)
-#define SgNoTrie_answer_integer(X)       (((X)->entry)->term_integer)
-#define SgNoTrie_answer_float(X)         (((X)->entry)->term_float)
-#define SgNoTrie_answer_big_integer(X)   (((X)->entry)->term_big_integer)
+#define SgNoTrie_sg_fr(X)                     ((X)->subgoal_frame)
+#define SgNoTrie_answer(X)                    ((X)->entry)
+#define SgNoTrie_answer_integer(X)            (((X)->entry)->term_integer)
+#define SgNoTrie_answer_float(X)              (((X)->entry)->term_float)
+#define SgNoTrie_answer_big_integer_term(X)   (((X)->entry)->term_big_integer)
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
