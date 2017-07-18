@@ -652,21 +652,22 @@ typedef struct dependency_frame {
   struct dependency_frame *next;
 } *dep_fr_ptr;
 
-#define DepFr_lock(X)                    ((X)->lock)
-#define DepFr_leader_dep_is_on_stack(X)  ((X)->leader_dependency_is_on_stack)
-#define DepFr_top_or_fr(X)               ((X)->top_or_frame)
-#define DepFr_timestamp(X)               ((X)->timestamp)
-#define DepFr_external(X)                ((X)->generator_is_external)
-#define DepFr_backchain_cp(X)            ((X)->backchain_choice_point)
-#define DepFr_leader_cp(X)               ((X)->leader_choice_point)
-#define DepFr_cons_cp(X)                 ((X)->consumer_choice_point)
-#define DepFr_last_answer(X)             ((X)->last_consumed_answer)
-#define DepFr_last_consumed_term_type(X) ((X)->last_consumed_term_type)
-//#define DepFr_last_term(X)               (DepFr_last_term_float(X))
-#define DepFr_last_term_integer(X)       ((X)->last_consumed.term_integer)
-#define DepFr_last_term_float(X)         ((X)->last_consumed.term_float)
-#define DepFr_next(X)                    ((X)->next)
-#define DepFr_no_sg_pos(X)               ((X)->no_sg_pos)
+#define DepFr_lock(X)                        ((X)->lock)
+#define DepFr_leader_dep_is_on_stack(X)      ((X)->leader_dependency_is_on_stack)
+#define DepFr_top_or_fr(X)                   ((X)->top_or_frame)
+#define DepFr_timestamp(X)                   ((X)->timestamp)
+#define DepFr_external(X)                    ((X)->generator_is_external)
+#define DepFr_backchain_cp(X)                ((X)->backchain_choice_point)
+#define DepFr_leader_cp(X)                   ((X)->leader_choice_point)
+#define DepFr_cons_cp(X)                     ((X)->consumer_choice_point)
+#define DepFr_last_answer(X)                 ((X)->last_consumed_answer)
+#define DepFr_last_consumed_term_type(X)     ((X)->last_consumed_term_type)
+//#define DepFr_last_term(X)                 (DepFr_last_term_float(X))
+#define DepFr_last_term_integer(X)           ((X)->last_consumed.term_integer)
+#define DepFr_last_term_float(X)             ((X)->last_consumed.term_float)
+#define DepFr_last_term_big_integer_term(X)  ((X)->last_consumed.term_big_integer)
+#define DepFr_next(X)                        ((X)->next)
+#define DepFr_no_sg_pos(X)                   ((X)->no_sg_pos)
 
 
 /*********************************************************************************************************
