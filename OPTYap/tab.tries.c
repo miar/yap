@@ -1629,20 +1629,19 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 #ifdef THREADS
-#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term, TERM_TYPE)           \
-    /* HERE */								                               \
-    MP_INT *big_new = Yap_BigIntOfTerm(term);                                                          \
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new, TERM_TYPE)           \
+ /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			\
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
-    printf("**********big_new = %p value= %d\n", big_new, mpz_get_ui(big_new)); \
+    printf("sg_fr = %p **********big_new = %p value= %d\n", sg_fr, big_new, mpz_get_ui(big_new)); \
     no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
     if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
       entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
       SgNoTrie_entry_big_integer(et) = big_new;				                               \
-      printf("**********big_new = %p value= %d\n", big_new, mpz_get_ui(big_new)); \
+      printf("**********big_new = %p value= %u\n", big_new, mpz_get_ui(big_new));                     \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
-        return true;							                               \
+        {return true;}					                                               \
       free(et);							 	                               \
     }									                               \
     /* at least one term is in no_st_pos */			  	                               \
@@ -1897,30 +1896,35 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
    tab_ent is also not accessible at this point --> DO THIS LATER
  */
   /* BOOL_CAS does not support floats, so I have created my version of a BOOL_CAS .... */
-  if (IsIntTerm(term) /* HERE */ ) {
+  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER) {
+    //if (IsIntTerm(term) /* HERE */ ) {
+    printf("number %d\n", IntOfTerm(term));
     printf("olaaaaaaaaaaaaaaaaaaaa-------------0\n");
     INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
-  }  else  if (IsFloatTerm(term)) {
+  }else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {
+    //}  else  if (IsFloatTerm(term)) {
     //FLOAT_SINGLE_THREAD_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
     FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float); 
-  }  else {
+  } else /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
     /* check if is a big number */
-    printf("olaaaaaaaaaaaaaaaaaaaa-------------1\n");
-    CELL *pt = RepAppl(term) + 1;
-    CELL big_tag = pt[0];
-    if (big_tag == BIG_INT) {
-      printf("olaaaaaaaaaaaaaaaaaaaa-------------2\n");
-      //MP_INT *big = Yap_BigIntOfTerm(term);
-      BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term, Term);
-    } else if (big_tag == BIG_RATIONAL) {
-      //      Term trat = Yap_RatTermToApplTerm(t);
-      Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie - not working with rationals");
-    } else {
-      Yap_Error(INTERNAL_ERROR, TermNil, "mode_directed_answer_search_no_trie - unknown type");
-    }
-    return false; /* avoids compiler(gcc) warning */
-  }
+    
+    MP_INT new; /* always having the same reference HERE */
+    //MP_INT new2;
+    //printf(" &new = %p new2 = %p\n", &new, &new2);
 
+    if (IsIntTerm(term)) {
+      Int number = IntOfTerm(term);
+      printf("number %d\n", IntOfTerm(term));
+      mpz_init_set_ui(&new, number);
+
+    }
+    //if (IsBigIntTerm(term))
+    printf("olaaaaaaaaaaaaaaaaaaaa-------------2\n");
+    //MP_INT *big = Yap_BigIntOfTerm(term); 
+    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, &new, Term);    
+    
+  }
+  return false; /* avoids compiler(gcc) warning */
 #undef subs_arity
 }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
