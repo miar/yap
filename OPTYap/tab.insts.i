@@ -617,7 +617,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -811,7 +811,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -1016,7 +1016,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -1707,6 +1707,7 @@
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       if (SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) != NULL) {
 	/* if the subgoal call has at least one answer */
+
 	if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_INTEGER) {
 	  //printf("2-dep_fr = %p %p\n", dep_fr, DepFr_no_sg_pos(dep_fr));
 
@@ -1717,17 +1718,21 @@
 						SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	  }
 
-	} else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	} else if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_FLOAT) {
 
 	  if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	    /* unconsumed answer in dependency frame */
 	    consume_answer_and_procceed_no_trie(dep_fr, 
 						SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	  }
+	} else /* DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
+	  if (DepFr_last_term_big_integer(dep_fr) != 
+	      SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr))) {
+	    /* unconsumed answer in dependency frame */
+	    consume_answer_and_procceed_no_trie(dep_fr, 
+						SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
+	  }	  
 	}
-
-
-
       }
       //printf("passed here -2\n");
       /* no unconsumed answers */
@@ -1761,7 +1766,9 @@
 		consume_answer_and_procceed_no_trie(dep_fr, 
 						    SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	      }
-	    } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	    
+	    } else if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_FLOAT) {
+
 	      if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 		/* unconsumed answer in dependency frame */
 		/* restore bindings, update registers, consume answer and procceed */
@@ -1771,11 +1778,23 @@
 		TRAIL_LINK(B->cp_tr);
 		
 		consume_answer_and_procceed_no_trie(dep_fr, 
-						    SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+		  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	      }
+	    } else /* DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
+	      if (DepFr_last_term_big_integer(dep_fr) != 
+		  SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr))) {
+		/* unconsumed answer in dependency frame */
+		/* restore bindings, update registers, consume answer and procceed */
+		restore_bindings(B->cp_tr, chain_cp->cp_tr);
+		B = chain_cp;
+		TR = TR_FZ;
+		TRAIL_LINK(B->cp_tr);		
+		consume_answer_and_procceed_no_trie(dep_fr, 
+    	          SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));	
 	      }
 	    }
 	  }
-	    dep_fr = DepFr_next(dep_fr);
+	  dep_fr = DepFr_next(dep_fr);
         }
 	/* no dependency frames with unconsumed answers found */
 	/* unbind variables */
@@ -2232,10 +2251,9 @@
 		TRAIL_LINK(B->cp_tr);
 	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	    }
-	  } else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+	  } else if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_FLOAT) {
 	    if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
-	      /* unconsumed answer in dependency frame */
-	      
+	      /* unconsumed answer in dependency frame */	      
 	      if (B->cp_ap)
 		DepFr_backchain_cp(dep_fr) = B;
 	      else
@@ -2247,9 +2265,24 @@
 	      TR = TR_FZ;
 	      if (TR != B->cp_tr)
 		TRAIL_LINK(B->cp_tr);
-	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
-	      
+	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));	      
 	    }	  
+	  } else /* DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
+	    if (DepFr_last_term_big_integer(dep_fr) != SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr))) {
+	      /* unconsumed answer in dependency frame */	      
+	      if (B->cp_ap)
+		DepFr_backchain_cp(dep_fr) = B;
+	      else
+		DepFr_backchain_cp(dep_fr) = B->cp_b;
+	      
+	      // rebind variables, update registers, consume answer and procceed
+	      rebind_variables(DepFr_cons_cp(dep_fr)->cp_tr, B->cp_tr);
+	      B = DepFr_cons_cp(dep_fr);
+	      TR = TR_FZ;
+	      if (TR != B->cp_tr)
+		TRAIL_LINK(B->cp_tr);
+	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
+	    }	     
 	  }
 	}
 	dep_fr = DepFr_next(dep_fr);
@@ -2287,7 +2320,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;

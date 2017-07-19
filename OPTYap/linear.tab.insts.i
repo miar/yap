@@ -123,7 +123,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -175,7 +175,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -227,7 +227,7 @@
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
 	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
@@ -290,8 +290,11 @@
        if (no_st_pos != NULL) {
          if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
 	   { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	 else
+	 else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	   {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	 else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	   {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
+
 	 SgFr_current_batched_answer(LOCAL_top_sg_fr) = NULL; /* consume one answer only */
        } else
 #else /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
@@ -454,10 +457,12 @@ ENDPBOp();
 	      INFO_LINEAR_TABLING("- 2- goto answer_resolution ---------------\n");
 	      Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));
 	    }
-	    else {
+	    
+	    else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {
 	      INFO_LINEAR_TABLING("- 3- goto answer_resolution ---------------\n");
 	      Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));
-	    }
+	    } else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	      {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}	    
 	    INFO_LINEAR_TABLING("- 4- goto answer_resolution ---------------\n");
 	    //load_answer(ans_node, YENV PASS_REGS);
 	    YENV = ENV;
