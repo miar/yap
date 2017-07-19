@@ -202,41 +202,45 @@
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 
-#define consume_answer_and_procceed_no_trie(DEP_FR, ANSWER)                         \
-        { CELL *subs_ptr;                                                           \
-          /* restore consumer choice point */                                       \
-          H = HBREG = PROTECT_FROZEN_H(B);                                          \
-          restore_yaam_reg_cpdepth(B);                                              \
-          CPREG = B->cp_cp;                                                         \
-          ENV = B->cp_env;                                                          \
-          /* set_cut(YENV, B->cp_b); --> no effect */                               \
-          PREG = (yamop *) CPREG;                                                   \
-          PREFETCH_OP(PREG);                                                        \
-          /* load answer from table to global stack */                              \
-          if (B == DepFr_leader_cp(DEP_FR)) {                                       \
-            /*  B is a generator-consumer node  */                                  \
-            /* never here if batched scheduling */                                  \
-            TABLING_ERROR_CHECKING(generator_consumer, IS_BATCHED_GEN_CP(B));       \
-            subs_ptr = (CELL *) (GEN_CP(B) + 1);                                    \
-            subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);                            \
-	  } else {                                                                  \
-            subs_ptr = (CELL *) (CONS_CP(B) + 1);                                   \
-	  }                                                                         \
-	  /* printf("consumed answer was %lf \n", ANSWER); */		            \
-	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	            \
-	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) { \
-	    /* printf (" oooooo2 -> %ld \n", ANSWER); */		\
-	    DepFr_last_term_integer(DEP_FR) = ANSWER;		  	            \
-            Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));	            \
-	  } else  /* MODE_DIRECTED_DIM_FLOAT */ {			            \
-	    DepFr_last_term_float(DEP_FR) = ANSWER;			            \
-            Bind((CELL *) subs_ptr[1], NoTrie_LoadFloatTerm(ANSWER));               \
-          }								            \
-          /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/        \
-          /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */       \
-          /* procceed */                                                            \
-          YENV = ENV;                                                               \
-          GONext();                                                                 \
+#define consume_answer_and_procceed_no_trie(DEP_FR, ANSWER)                               \
+        { CELL *subs_ptr;                                                                 \
+          /* restore consumer choice point */                                             \
+          H = HBREG = PROTECT_FROZEN_H(B);                                                \
+          restore_yaam_reg_cpdepth(B);                                                    \
+          CPREG = B->cp_cp;                                                               \
+          ENV = B->cp_env;                                                                \
+          /* set_cut(YENV, B->cp_b); --> no effect */                                     \
+          PREG = (yamop *) CPREG;                                                         \
+          PREFETCH_OP(PREG);                                                              \
+          /* load answer from table to global stack */                                    \
+          if (B == DepFr_leader_cp(DEP_FR)) {                                             \
+            /*  B is a generator-consumer node  */                                        \
+            /* never here if batched scheduling */                                        \
+            TABLING_ERROR_CHECKING(generator_consumer, IS_BATCHED_GEN_CP(B));             \
+            subs_ptr = (CELL *) (GEN_CP(B) + 1);                                          \
+            subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);                                  \
+	  } else {                                                                        \
+            subs_ptr = (CELL *) (CONS_CP(B) + 1);                                         \
+	  }                                                                               \
+	  /* printf("consumed answer was %lf \n", ANSWER); */		                  \
+	  /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	                  \
+	  if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_INTEGER) {       \
+	    /* printf (" oooooo2 -> %ld \n", ANSWER); */		                  \
+	    DepFr_last_term_integer(DEP_FR) = ANSWER;		  	                  \
+            Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));	                  \
+	  } else if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT) {  \
+	    DepFr_last_term_float(DEP_FR) = ANSWER;			                  \
+            Bind((CELL *) subs_ptr[1], NoTrie_LoadFloatTerm(ANSWER));                     \
+          } else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ {                                   \
+	    /* ANSWER is a Term here */					                  \
+	    DepFr_last_term_big_integer_term(DEP_FR) = ANSWER;                            \
+            Bind((CELL *) subs_ptr[1], NoTrie_LoadBigIntegerFloatTerm(ANSWER));           \
+          }  						                                  \
+          /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/              \
+          /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */             \
+          /* procceed */                                                                  \
+          YENV = ENV;                                                                     \
+          GONext();                                                                       \
         }
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
@@ -611,8 +615,10 @@
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
 	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	  else
+	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -802,9 +808,11 @@
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
-	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
+	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1005,9 +1013,11 @@
           PREG = (yamop *) CPREG;
           PREFETCH_OP(PREG);	  
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
-	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
+	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -2268,14 +2278,12 @@
 	  //printf("3-FloatOfTerm(term) = %.16lf \n", SgNoTrie_answer_float(no_st_pos));
 	  //Term ttt = MkFloatTerm(SgNoTrie_answer_float(no_st_pos));
 	  //printf("4-FloatOfTerm(term) = %.15lf \n", FloatOfTerm(ttt));
-
-
-
-
 	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm(SgNoTrie_answer_integer(no_st_pos)));}
-	  else
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm(SgNoTrie_answer_float(no_st_pos)));}
+	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
+	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
+	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
+	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();

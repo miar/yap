@@ -207,8 +207,10 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 #define MODE_DIRECTED_DIM_BIG_INTEGER  11
 #define MODE_DIRECTED_DIM_BIG_FLOAT    12
 
-#define NoTrie_LoadIntegerTerm(ANSWER)  (MkIntTerm((ANSWER)))
-#define NoTrie_LoadFloatTerm(ANSWER)    (MkFloatTerm((ANSWER)))
+#define NoTrie_LoadIntegerTerm(ANSWER)     (MkIntTerm((ANSWER)))
+#define NoTrie_LoadFloatTerm(ANSWER)       (MkFloatTerm((ANSWER)))
+#define NoTrie_LoadBigIntegerTerm(ANSWER)  (Yap_MkBigIntTerm((ANSWER)))
+
 
 #define MODE_DIRECTED_SET(ARG,MODE)   (((ARG) << MODE_DIRECTED_NUMBER_TAGBITS) + MODE)
 #define MODE_DIRECTED_GET_ARG(X)      ((X) >> MODE_DIRECTED_NUMBER_TAGBITS)

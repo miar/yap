@@ -25,7 +25,7 @@ typedef enum {false,true} boolean;
 typedef union {
   Int term_integer;
   Float term_float; // Yap's Float is double
-  Term term_big_integer;
+  MP_INT *term_big_integer;
 } entry_type;
 
 #define SgNoTrie_entry_integer(X)           ((X)->term_integer)  // X is entry_type

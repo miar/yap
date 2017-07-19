@@ -1631,45 +1631,48 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 #ifdef THREADS
 #define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term, TERM_TYPE)           \
     /* HERE */								                               \
+    MP_INT *big_new = Yap_BigIntOfTerm(term);                                                          \
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
     no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
     if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
-      entry_type * et = (entry_type *) malloc(sizeof(entry_type));	                               \
-      SgNoTrie_entry_big_integer_term(et) = term;				                       \
+      entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
+      SgNoTrie_entry_big_integer_term(et) = big_new;				                       \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
-        {return true;}			                                                               \
+        return true;							                               \
       free(et);							 	                               \
     }									                               \
     /* at least one term is in no_st_pos */			  	                               \
     entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
-    TERM_TYPE no_trie_term;						                               \
+    MP_INT *big_no_trie;						                               \
     if (mode == MODE_DIRECTED_MIN) {					                               \
       do {								                               \
-	no_trie_term = SgNoTrie_entry_big_integer_term(et);	   	                               \
-	if (Yap_gmp_cmp_big_big(term, no_trie_term) > 0)                                               \
+	big_no_trie = SgNoTrie_entry_big_integer_term(et);	   	                               \
+	if (mpz_cmp(big_new, big_no_trie) > 0)                                                         \
 	  return false;							                               \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), no_trie_term, term));                  \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), big_no_trie, big_new));                \
     } else if (mode == MODE_DIRECTED_MAX) {				                               \
       do {								                               \
-	no_trie_term = SgNoTrie_entry_big_integer_term(et);	   	                               \
-	if (Yap_gmp_cmp_big_big(term, no_trie_term) < 0)                                               \
+	big_no_trie = SgNoTrie_entry_big_integer_term(et);	   	                               \
+	if (mpz_cmp(big_new, big_no_trie) < 0)                                                         \
 	  return false;							                               \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), no_trie_term, term));                  \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), big_no_trie, big_new));                \
     } else if (mode == MODE_DIRECTED_FIRST) {				                               \
       return false;							                               \
     } else if (mode == MODE_DIRECTED_LAST) {				                               \
       do								                               \
-	no_trie_term = SgNoTrie_entry_big_integer_term(et);	   	                               \
-      while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), no_trie_term, term));                    \
+	big_no_trie = SgNoTrie_entry_big_integer_term(et);	   	                               \
+      while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), big_no_trie, big_new));                  \
     } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
-      TERM_TYPE no_trie_sum_term;		                                                       \
+      MP_INT *big_no_trie_sum = NULL;	                                                               \
       do {								                               \
-	no_trie_term = SgNoTrie_entry_big_integer_term(et);	   	                               \
-        no_trie_sum_term = Yap_gmp_add_big_big(no_trie_term, term);	                               \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), no_trie_term, no_trie_sum_term));      \
+	mpz_init_set(big_no_trie_sum, big_new);				                               \
+	big_no_trie = SgNoTrie_entry_big_integer_term(et);	   	                               \
+	mpz_add(big_no_trie_sum, big_no_trie_sum, big_no_trie);		                               \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer_term(et)), big_no_trie, big_no_trie_sum));        \
     }									                               \
+    /*mpz_clear(big_no_trie);  TO DO LATER*/					                       \
     return true
 
 
