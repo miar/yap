@@ -1716,13 +1716,18 @@
 	    consume_answer_and_procceed_no_trie(dep_fr, 
 						SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	  }
+
 	} else /* DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT */ {
+
 	  if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	    /* unconsumed answer in dependency frame */
 	    consume_answer_and_procceed_no_trie(dep_fr, 
 						SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	  }
 	}
+
+
+
       }
       //printf("passed here -2\n");
       /* no unconsumed answers */
