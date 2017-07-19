@@ -618,7 +618,7 @@
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
 	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -812,7 +812,7 @@
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
 	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -1017,7 +1017,7 @@
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
 	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
           //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
           GONext();
@@ -2283,7 +2283,7 @@
 	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
 	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
 	  else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_float(no_st_pos))));}
+	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
 	  //load_answer(ans_node, YENV PASS_REGS);
 	  YENV = ENV;
 	  GONext();
