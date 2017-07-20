@@ -1629,17 +1629,17 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 #ifdef THREADS
-#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new, TERM_TYPE)           \
- /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			\
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)                   \
+ /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			                               \
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
-    printf("sg_fr = %p **********big_new = %p value= %d\n", sg_fr, big_new, mpz_get_ui(big_new)); \
+    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_ui(big_new));                \
     no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
     if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
       entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
       SgNoTrie_entry_big_integer(et) = big_new;				                               \
-      printf("**********big_new = %p value= %u\n", big_new, mpz_get_ui(big_new));                      \
+      printf("**********big_new = %p value= %u value2 = %u\n", big_new, mpz_get_ui(big_new), mpz_get_ui(SgNoTrie_entry_big_integer(et))); \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
         {return true;}					                                               \
       free(et);							 	                               \
@@ -1805,7 +1805,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 #else /* !THREADS */
 
-#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, term, TERM_TYPE)
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)
 
 
 #define FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, term_value, TERM_TYPE)           \
@@ -1915,14 +1915,14 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
 
     if (IsIntTerm(term)) {
       Int number = IntOfTerm(term);
-      printf("number %d\n", IntOfTerm(term));
+      printf("number %d new = %p\n", IntOfTerm(term), new);
       mpz_init_set_ui(new, number);
 
     }
     //if (IsBigIntTerm(term))
     printf("olaaaaaaaaaaaaaaaaaaaa-------------2\n");
     //MP_INT *big = Yap_BigIntOfTerm(term); 
-    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new, Term);    
+    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new);    
     
   }
   return false; /* avoids compiler(gcc) warning */
