@@ -462,8 +462,13 @@ ENDPBOp();
 	      INFO_LINEAR_TABLING("- 3- goto answer_resolution ---------------\n");
 	      Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));
 	    } else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	      {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}	    
-	    INFO_LINEAR_TABLING("- 4- goto answer_resolution ---------------\n");
+	      INFO_LINEAR_TABLING("- 4.1- goto answer_resolution ---------------\n");
+	      // {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}	    
+	    /* HERE */
+	    printf(" sg_fr = %p SgNoTrie_answer_big_integer(no_st_pos)= %p \n", big_new, mpz_get_ui(big_new), mpz_get_ui(SgNoTrie_entry_big_integer(et))); \
+
+	    Yap_MkBigIntTerm(SgNoTrie_answer_big_integer(no_st_pos));
+	    INFO_LINEAR_TABLING("- 4.2- goto answer_resolution ---------------\n");
 	    //load_answer(ans_node, YENV PASS_REGS);
 	    YENV = ENV;
 	    GONext();

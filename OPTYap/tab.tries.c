@@ -1908,11 +1908,7 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   } else /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
     /* check if is a big number */
     
-    //MP_INT new; /* always having the same reference HERE */
-    MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); /* always having the same reference HERE */
-    //MP_INT new2;
-    //printf(" &new = %p new2 = %p\n", &new, &new2);
-
+    MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); 
     if (IsIntTerm(term)) {
       Int number = IntOfTerm(term);
       printf("number %d new = %p\n", IntOfTerm(term), new);
