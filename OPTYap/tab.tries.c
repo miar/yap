@@ -1639,7 +1639,7 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
       entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
       SgNoTrie_entry_big_integer(et) = big_new;				                               \
-      printf("**********big_new = %p value= %u\n", big_new, mpz_get_ui(big_new));                     \
+      printf("**********big_new = %p value= %u\n", big_new, mpz_get_ui(big_new));                      \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
         {return true;}					                                               \
       free(et);							 	                               \
@@ -1651,29 +1651,29 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
       do {								                               \
 	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
 	if (mpz_cmp(big_new, big_no_trie) > 0)                                                         \
-	  return false;							                               \
+	  {free(big_new); return false;}				                               \
       } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                     \
     } else if (mode == MODE_DIRECTED_MAX) {				                               \
       do {								                               \
 	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
 	if (mpz_cmp(big_new, big_no_trie) < 0)                                                         \
-	  return false;							                               \
+	  {free(big_new); return false;}				                               \
       } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                     \
     } else if (mode == MODE_DIRECTED_FIRST) {				                               \
-      return false;							                               \
+      	  {free(big_new); return false;}				                               \
     } else if (mode == MODE_DIRECTED_LAST) {				                               \
       do								                               \
 	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
       while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                       \
     } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
-      MP_INT *big_no_trie_sum = NULL;	                                                               \
+      MP_INT *big_no_trie_sum = (MP_INT*) malloc(sizeof(MP_INT));                                      \
       do {								                               \
-	mpz_init_set(big_no_trie_sum, big_new);				                               \
 	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
-	mpz_add(big_no_trie_sum, big_no_trie_sum, big_no_trie);		                               \
+	mpz_add(big_no_trie_sum, big_new, big_no_trie);		                                       \
       } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_no_trie_sum));             \
     }									                               \
-    /*mpz_clear(big_no_trie);  TO DO LATER*/					                       \
+    /* free(big_no_trie); TO DO LATER */						               \
+    /* mpz_clear(big_no_trie);  TO DO LATER*/					                       \
     return true
 
 
@@ -1908,20 +1908,21 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
   } else /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
     /* check if is a big number */
     
-    MP_INT new; /* always having the same reference HERE */
+    //MP_INT new; /* always having the same reference HERE */
+    MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); /* always having the same reference HERE */
     //MP_INT new2;
     //printf(" &new = %p new2 = %p\n", &new, &new2);
 
     if (IsIntTerm(term)) {
       Int number = IntOfTerm(term);
       printf("number %d\n", IntOfTerm(term));
-      mpz_init_set_ui(&new, number);
+      mpz_init_set_ui(new, number);
 
     }
     //if (IsBigIntTerm(term))
     printf("olaaaaaaaaaaaaaaaaaaaa-------------2\n");
     //MP_INT *big = Yap_BigIntOfTerm(term); 
-    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, &new, Term);    
+    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new, Term);    
     
   }
   return false; /* avoids compiler(gcc) warning */
