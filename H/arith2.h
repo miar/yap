@@ -176,7 +176,7 @@ do_sll(Int i, Int j) /* j > 0 */
 
 static inline Term
 p_plus(Term t1, Term t2) {
-  printf("add_int\n");
+  //printf("add_int\n");
 
   switch (ETypeOfTerm(t1)) {
   case long_int_e:

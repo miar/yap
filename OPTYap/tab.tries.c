@@ -1898,13 +1898,8 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
  */
   /* BOOL_CAS does not support floats, so I have created my version of a BOOL_CAS .... */
   if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER) {
-    //if (IsIntTerm(term) /* HERE */ ) {
-    printf("number %d\n", IntOfTerm(term));
-    printf("olaaaaaaaaaaaaaaaaaaaa-------------0\n");
     INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, IntOfTerm(term), Int);
   }else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {
-    //}  else  if (IsFloatTerm(term)) {
-    //FLOAT_SINGLE_THREAD_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float);
     FLOAT_check_insert_mode_directed_answer_search_no_trie(sg_fr, FloatOfTerm(term), Float); 
   } else /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
     /* check if is a big number */
@@ -1912,15 +1907,18 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); 
     if (IsIntTerm(term)) {
       Int number = IntOfTerm(term);
-      printf("number %d new = %p\n", IntOfTerm(term), new);
+      printf("11 - number %d new = %p\n", IntOfTerm(term), new);
       mpz_init_set_si(new, number);
-
+    } else {
+      /* HERE (C/bignum.c line 52) */
+      MP_INT *big_term = Yap_BigIntOfTerm(term);      
+      new->_mp_size = big_term->_mp_size;
+      new->_mp_alloc = big_term->_mp_alloc;
+      memcpy((void *)(new->_mp_d), (const void *)(big_term->_mp_d), 
+	     (big_term->_mp_alloc));
+      //new->_mp_d = big_term->_mp_d;      
     }
-    //if (IsBigIntTerm(term))
-    printf("olaaaaaaaaaaaaaaaaaaaa-------------2\n");
-    //MP_INT *big = Yap_BigIntOfTerm(term); 
-    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new);    
-    
+    BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new);        
   }
   return false; /* avoids compiler(gcc) warning */
 #undef subs_arity
