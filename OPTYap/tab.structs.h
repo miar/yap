@@ -30,7 +30,7 @@ typedef union {
 
 #define SgNoTrie_entry_integer(X)           ((X)->term_integer)  // X is entry_type
 #define SgNoTrie_entry_float(X)             ((X)->term_float)
-#define SgNoTrie_entry_big_integer(X)  ((X)->term_big_integer)
+#define SgNoTrie_entry_big_integer(X)       ((X)->term_big_integer)
 
 typedef struct no_subgoal_trie_pos {
   struct subgoal_frame *subgoal_frame;
@@ -665,7 +665,7 @@ typedef struct dependency_frame {
 //#define DepFr_last_term(X)                 (DepFr_last_term_float(X))
 #define DepFr_last_term_integer(X)           ((X)->last_consumed.term_integer)
 #define DepFr_last_term_float(X)             ((X)->last_consumed.term_float)
-#define DepFr_last_term_big_integer_term(X)  ((X)->last_consumed.term_big_integer)
+#define DepFr_last_term_big_integer(X)       ((X)->last_consumed.term_big_integer)
 #define DepFr_next(X)                        ((X)->next)
 #define DepFr_no_sg_pos(X)                   ((X)->no_sg_pos)
 

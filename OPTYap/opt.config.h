@@ -445,7 +445,7 @@
 //#define DEBUG_LINEAR_TABLING 1  
 //#define DUMMY_PRINT        1
 
-#define LINEAR_TABLING 1   /* ready for 64 bits architecture - check ALT_JUMP_NEXT_CELL */
+//#define LINEAR_TABLING 1   /* ready for 64 bits architecture - check ALT_JUMP_NEXT_CELL */
 
 /* ------------------------------------------------------ **
 **      linear tabling strategy                           **

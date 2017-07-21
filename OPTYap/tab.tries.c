@@ -1634,12 +1634,13 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
     int *mode_directed;							                               \
     mode_directed = SgFr_mode_directed(sg_fr);				                               \
     int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
-    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_ui(big_new));                \
+    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_si(big_new));                \
     no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
+    printf("SgNoTrie_answer(no_st_pos) = %p\n", SgNoTrie_answer(no_st_pos));                           \
     if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
       entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
       SgNoTrie_entry_big_integer(et) = big_new;				                               \
-      printf("**********big_new = %p value= %u value2 = %u\n", big_new, mpz_get_ui(big_new), mpz_get_ui(SgNoTrie_entry_big_integer(et))); \
+      printf("**********big_new = %p value= %u value2 = %p\n", big_new, mpz_get_si(big_new), &SgNoTrie_entry_big_integer(et)); \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
         {return true;}					                                               \
       free(et);							 	                               \
@@ -1912,7 +1913,7 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     if (IsIntTerm(term)) {
       Int number = IntOfTerm(term);
       printf("number %d new = %p\n", IntOfTerm(term), new);
-      mpz_init_set_ui(new, number);
+      mpz_init_set_si(new, number);
 
     }
     //if (IsBigIntTerm(term))

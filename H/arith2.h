@@ -29,6 +29,7 @@ inline static Term
 add_int(Int i, Int j)
 {
   Int x = i+j;
+
 #if USE_GMP
   /* Integer overflow, we need to use big integers */
   Int overflow = (i & j & ~x) | (~i & ~j & x);
@@ -175,6 +176,8 @@ do_sll(Int i, Int j) /* j > 0 */
 
 static inline Term
 p_plus(Term t1, Term t2) {
+  printf("add_int\n");
+
   switch (ETypeOfTerm(t1)) {
   case long_int_e:
     switch (ETypeOfTerm(t2)) {

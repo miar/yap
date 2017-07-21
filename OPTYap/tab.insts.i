@@ -202,6 +202,38 @@
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
 
+#define consume_answer_and_procceed_no_trie_big_int(DEP_FR, ANSWER)                       \
+        { CELL *subs_ptr;                                                                 \
+          /* restore consumer choice point */                                             \
+          H = HBREG = PROTECT_FROZEN_H(B);                                                \
+          restore_yaam_reg_cpdepth(B);                                                    \
+          CPREG = B->cp_cp;                                                               \
+          ENV = B->cp_env;                                                                \
+          /* set_cut(YENV, B->cp_b); --> no effect */                                     \
+          PREG = (yamop *) CPREG;                                                         \
+          PREFETCH_OP(PREG);                                                              \
+          /* load answer from table to global stack */                                    \
+          if (B == DepFr_leader_cp(DEP_FR)) {                                             \
+            /*  B is a generator-consumer node  */                                        \
+            /* never here if batched scheduling */                                        \
+            TABLING_ERROR_CHECKING(generator_consumer, IS_BATCHED_GEN_CP(B));             \
+            subs_ptr = (CELL *) (GEN_CP(B) + 1);                                          \
+            subs_ptr += SgFr_arity(GEN_CP(B)->cp_sg_fr);                                  \
+	  } else {                                                                        \
+            subs_ptr = (CELL *) (CONS_CP(B) + 1);                                         \
+	  }                                                                               \
+	    /* printf("consumed answer was %lf \n", ANSWER); */		                  \
+	    /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	                  \
+          /* MODE_DIRECTED_DIM_BIG_INTEGER */                                             \
+           DepFr_last_term_big_integer(DEP_FR) = ANSWER;                                  \
+           Bind((CELL *) subs_ptr[1], NoTrie_LoadBigIntegerTerm(ANSWER));                 \
+          /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/              \
+          /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */             \
+          /* procceed */                                                                  \
+          YENV = ENV;                                                                     \
+          GONext();                                                                       \
+        }
+
 #define consume_answer_and_procceed_no_trie(DEP_FR, ANSWER)                               \
         { CELL *subs_ptr;                                                                 \
           /* restore consumer choice point */                                             \
@@ -230,11 +262,7 @@
             Bind((CELL *) subs_ptr[1], NoTrie_LoadIntegerTerm(ANSWER));	                  \
 	  } else if (DepFr_last_consumed_term_type(DEP_FR) == MODE_DIRECTED_DIM_FLOAT) {  \
 	    DepFr_last_term_float(DEP_FR) = ANSWER;			                  \
-            Bind((CELL *) subs_ptr[1], NoTrie_LoadFloatTerm(ANSWER));                     \
-          } else  /* MODE_DIRECTED_DIM_BIG_INTEGER */ {                                   \
-	    /* ANSWER is a Term here */					                  \
-	    DepFr_last_term_big_integer_term(DEP_FR) = ANSWER;                            \
-            Bind((CELL *) subs_ptr[1], NoTrie_LoadBigIntegerFloatTerm(ANSWER));           \
+            Bind((CELL *) subs_ptr[1], NoTrie_LoadFloatTerm(ANSWER));	                  \
           }  						                                  \
           /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/              \
           /* --> Bind replaces load_answer(ans_node, YENV PASS_REGS); <--  */             \
@@ -1715,7 +1743,7 @@
 	    //printf("passed here -1\n");
 	    /* unconsumed answer in dependency frame */
 	    consume_answer_and_procceed_no_trie(dep_fr, 
-						SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
+	    					SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
 	  }
 
 	} else if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_FLOAT) {
@@ -1723,14 +1751,14 @@
 	  if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
 	    /* unconsumed answer in dependency frame */
 	    consume_answer_and_procceed_no_trie(dep_fr, 
-						SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+	    					SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	  }
 	} else /* DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
 	  if (DepFr_last_term_big_integer(dep_fr) != 
 	      SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr))) {
 	    /* unconsumed answer in dependency frame */
-	    consume_answer_and_procceed_no_trie(dep_fr, 
-						SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
+	    consume_answer_and_procceed_no_trie_big_int(dep_fr, 
+							SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
 	  }	  
 	}
       }
@@ -1761,12 +1789,10 @@
 		restore_bindings(B->cp_tr, chain_cp->cp_tr);
 		B = chain_cp;
 		TR = TR_FZ;
-		TRAIL_LINK(B->cp_tr);      
-		
+		TRAIL_LINK(B->cp_tr);      		
 		consume_answer_and_procceed_no_trie(dep_fr, 
 						    SgNoTrie_answer_integer(DepFr_no_sg_pos(dep_fr)));
-	      }
-	    
+	      }	    
 	    } else if (DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_FLOAT) {
 
 	      if (DepFr_last_term_float(dep_fr) != SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr))) {
@@ -1775,10 +1801,9 @@
 		restore_bindings(B->cp_tr, chain_cp->cp_tr);
 		B = chain_cp;
 		TR = TR_FZ;
-		TRAIL_LINK(B->cp_tr);
-		
+		TRAIL_LINK(B->cp_tr);		
 		consume_answer_and_procceed_no_trie(dep_fr, 
-		  SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
+						    SgNoTrie_answer_float(DepFr_no_sg_pos(dep_fr)));
 	      }
 	    } else /* DepFr_last_consumed_term_type(dep_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ {
 	      if (DepFr_last_term_big_integer(dep_fr) != 
@@ -1789,8 +1814,8 @@
 		B = chain_cp;
 		TR = TR_FZ;
 		TRAIL_LINK(B->cp_tr);		
-		consume_answer_and_procceed_no_trie(dep_fr, 
-    	          SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));	
+		consume_answer_and_procceed_no_trie_big_int(dep_fr, 
+							    SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));	
 	      }
 	    }
 	  }
@@ -2281,7 +2306,8 @@
 	      TR = TR_FZ;
 	      if (TR != B->cp_tr)
 		TRAIL_LINK(B->cp_tr);
-	      consume_answer_and_procceed_no_trie(dep_fr, SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
+	      consume_answer_and_procceed_no_trie_big_int(dep_fr, 
+							  SgNoTrie_answer_big_integer(DepFr_no_sg_pos(dep_fr)));
 	    }	     
 	  }
 	}
