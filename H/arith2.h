@@ -176,7 +176,7 @@ do_sll(Int i, Int j) /* j > 0 */
 
 static inline Term
 p_plus(Term t1, Term t2) {
-  //printf("add_int\n");
+  printf("add_int\n");
 
   switch (ETypeOfTerm(t1)) {
   case long_int_e:
@@ -216,9 +216,11 @@ p_plus(Term t1, Term t2) {
 #ifdef USE_GMP
     switch (ETypeOfTerm(t2)) {
     case long_int_e:
+      printf("int + big \n");
       return Yap_gmp_add_int_big(IntegerOfTerm(t2), t1);
     case big_int_e:
       /* two bignums */
+      printf("two bigs\n");
       return Yap_gmp_add_big_big(t1, t2);
     case double_e:
       return Yap_gmp_add_float_big(FloatOfTerm(t2),t1);

@@ -1629,18 +1629,20 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 #ifdef THREADS
-#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)                   \
- /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			                               \
-    int *mode_directed;							                               \
-    mode_directed = SgFr_mode_directed(sg_fr);				                               \
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                               \
-    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_si(big_new));                \
-    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                               \
-    printf("SgNoTrie_answer(no_st_pos) = %p\n", SgNoTrie_answer(no_st_pos));                           \
-    if (SgNoTrie_answer(no_st_pos) == NULL) {				                               \
-      entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                               \
-      SgNoTrie_entry_big_integer(et) = big_new;				                               \
-      printf("**********big_new = %p value= %u value2 = %p\n", big_new, mpz_get_si(big_new), &SgNoTrie_entry_big_integer(et)); \
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)    \
+ /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			                \
+    int *mode_directed;							                \
+    mode_directed = SgFr_mode_directed(sg_fr);				                \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                \
+    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_si(big_new)); \
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                \
+    printf("SgNoTrie_answer(no_st_pos) = %p\n", SgNoTrie_answer(no_st_pos));            \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                \
+      entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                \
+      SgNoTrie_entry_big_integer(et) = big_new;				                \
+      printf("value inserted = ");					                \
+      mpz_out_str (stdout, 10, SgNoTrie_entry_big_integer(et));                       \
+      printf("\n" );                                                                   \
       if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
         {return true;}					                                               \
       free(et);							 	                               \
@@ -1905,18 +1907,25 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     /* check if is a big number */
     
     MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); 
-    if (IsIntTerm(term)) {
-      Int number = IntOfTerm(term);
-      printf("11 - number %d new = %p\n", IntOfTerm(term), new);
+    if (IsIntegerTerm(term)) {
+      Int number = IntegerOfTerm(term);
+      printf("11 - number %d new = %p\n", IntegerOfTerm(term), new);
       mpz_init_set_si(new, number);
+      printf("new_term = ");
+      mpz_out_str ( stdout, 10, new );
+      printf("\n");
+      
     } else {
       /* HERE (C/bignum.c line 52) */
-      MP_INT *big_term = Yap_BigIntOfTerm(term);      
-      new->_mp_size = big_term->_mp_size;
-      new->_mp_alloc = big_term->_mp_alloc;
-      memcpy((void *)(new->_mp_d), (const void *)(big_term->_mp_d), 
-	     (big_term->_mp_alloc));
-      //new->_mp_d = big_term->_mp_d;      
+      printf("HHHHHHHHHHHHHHHHHHH1 = \n");
+      CELL *pt1 = RepAppl(term);
+      if (pt1[1] != BIG_INT) {
+	printf("EEEEEEEEEEEEEERRRRRRRRRRRRRRRRRRRRROOOOOOOOO \n");	
+	return false;
+	
+      }
+      MP_INT *big_term = Yap_BigIntOfTerm(term);
+      mpz_init_set(new, big_term);      
     }
     BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new);        
   }
