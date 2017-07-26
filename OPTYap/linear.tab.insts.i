@@ -454,26 +454,12 @@ ENDPBOp();
 	    PREG = (yamop *) CPREG;
 	    PREFETCH_OP(PREG);	  
 	    if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER) { 
-	      INFO_LINEAR_TABLING("- 2- goto answer_resolution ---------------\n");
 	      Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));
-	    }
-	    
-	    else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {
-	      INFO_LINEAR_TABLING("- 3- goto answer_resolution ---------------\n");
+	    } else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {
 	      Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));
 	    } else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */  {
-	      printf(" sg_fr = %p SgNoTrie_answer_big_integer(no_st_pos)= %p \n", sg_fr, &SgNoTrie_answer_big_integer(no_st_pos)); 
-	      Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));
-	    
-	      //NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos)));
-	      //setregs();
+	      Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos)))); 
 	    }	    
-	    /* HERE */
-
-
-	    //Yap_MkBigIntTerm(SgNoTrie_answer_big_integer(no_st_pos));
-	    INFO_LINEAR_TABLING("- 4.2- goto answer_resolution ---------------\n");
-	    //load_answer(ans_node, YENV PASS_REGS);
 	    YENV = ENV;
 	    GONext();
 	  } 

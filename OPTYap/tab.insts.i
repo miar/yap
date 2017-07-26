@@ -225,9 +225,7 @@
 	    /* printf("consumed answer was %lf \n", ANSWER); */		                  \
 	    /* subs_ptr = (CELL *) (LOAD_CP(B) + 1);*/		  	                  \
           /* MODE_DIRECTED_DIM_BIG_INTEGER */                                             \
-  	   printf("consumimg = ");					                  \
-           mpz_out_str (stdout, 10, ANSWER);		                                  \
-  	   printf("\n");					                          \
+	   INFO_PRINT_BIG_INTEGER(ANSWER);				                  \
            DepFr_last_term_big_integer(DEP_FR) = ANSWER;                                  \
            Bind((CELL *) subs_ptr[1], NoTrie_LoadBigIntegerTerm(ANSWER));                 \
           /* Bind((CELL *) YENV[1], ANSWER); -- wrong */ /* subs_arity = 1*/              \

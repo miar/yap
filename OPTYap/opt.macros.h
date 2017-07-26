@@ -722,8 +722,14 @@ extern int Yap_page_size;
 
 #ifdef DEBUG_LINEAR_TABLING
 #define INFO_LINEAR_TABLING(MESG, ARGS...)  INFORMATION_MESSAGE(MESG, ##ARGS)
+#define INFO_PRINT_BIG_INTEGER(MP_INTEGER)  \
+  printf("integer = ");		            \
+  mpz_out_str ( stdout, 10, MP_INTEGER);    \
+  printf("\n")
+
 #else
 #define INFO_LINEAR_TABLING(MESG, ARGS...)
+#define INFO_PRINT_BIG_INTEGER(MP_INTEGER)
 #endif /* DEBUG_LINEAR_TABLING */
 
 #define INFORMATION_MESSAGE(MESSAGE,ARGS...)                            \

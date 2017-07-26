@@ -1629,54 +1629,52 @@ ans_node_ptr answer_search(sg_fr_ptr sg_fr, CELL *subs_ptr USES_REGS) {
 
 
 #ifdef THREADS
-#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)    \
- /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			                \
-    int *mode_directed;							                \
-    mode_directed = SgFr_mode_directed(sg_fr);				                \
-    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                \
-    printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_si(big_new)); \
-    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                \
-    printf("SgNoTrie_answer(no_st_pos) = %p\n", SgNoTrie_answer(no_st_pos));            \
-    if (SgNoTrie_answer(no_st_pos) == NULL) {				                \
-      entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                \
-      SgNoTrie_entry_big_integer(et) = big_new;				                \
-      printf("value inserted = ");					                \
-      mpz_out_str (stdout, 10, SgNoTrie_entry_big_integer(et));                       \
-      printf("\n" );                                                                   \
-      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                               \
-        {return true;}					                                               \
-      free(et);							 	                               \
-    }									                               \
-    /* at least one term is in no_st_pos */			  	                               \
-    entry_type *et = SgNoTrie_answer(no_st_pos);			                               \
-    MP_INT *big_no_trie;						                               \
-    if (mode == MODE_DIRECTED_MIN) {					                               \
-      do {								                               \
-	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
-	if (mpz_cmp(big_new, big_no_trie) > 0)                                                         \
-	  {free(big_new); return false;}				                               \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                     \
-    } else if (mode == MODE_DIRECTED_MAX) {				                               \
-      do {								                               \
-	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
-	if (mpz_cmp(big_new, big_no_trie) < 0)                                                         \
-	  {free(big_new); return false;}				                               \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                     \
-    } else if (mode == MODE_DIRECTED_FIRST) {				                               \
-      	  {free(big_new); return false;}				                               \
-    } else if (mode == MODE_DIRECTED_LAST) {				                               \
-      do								                               \
-	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
-      while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));                       \
-    } else /* mode == MODE_DIRECTED_SUM */ {			  	                               \
-      MP_INT *big_no_trie_sum = (MP_INT*) malloc(sizeof(MP_INT));                                      \
-      do {								                               \
-	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                                       \
-	mpz_add(big_no_trie_sum, big_new, big_no_trie);		                                       \
-      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_no_trie_sum));             \
-    }									                               \
-    /* free(big_no_trie); TO DO LATER */						               \
-    /* mpz_clear(big_no_trie);  TO DO LATER*/					                       \
+#define BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, big_new)       \
+ /*MP_INT *big_new = Yap_BigIntOfTerm(term);	*/			                   \
+    int *mode_directed;							                   \
+    mode_directed = SgFr_mode_directed(sg_fr);				                   \
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[0]);	  	                   \
+    /*printf("sg_fr = %p big_new = %p value= %d\n", sg_fr, big_new, mpz_get_si(big_new));*/\
+    no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);		                   \
+    /*printf("SgNoTrie_answer(no_st_pos) = %p\n", SgNoTrie_answer(no_st_pos)); */          \
+    if (SgNoTrie_answer(no_st_pos) == NULL) {				                   \
+      entry_type *et = (entry_type *) malloc(sizeof(entry_type));	                   \
+      SgNoTrie_entry_big_integer(et) = big_new;				                   \
+      INFO_PRINT_BIG_INTEGER(SgNoTrie_entry_big_integer(et));		                   \
+      if (BOOL_CAS(&(SgNoTrie_answer(no_st_pos)), NULL, et))		                   \
+        {return true;}					                                   \
+      free(et);							 	                   \
+    }									                   \
+    /* at least one term is in no_st_pos */			  	                   \
+    entry_type *et = SgNoTrie_answer(no_st_pos);			                   \
+    MP_INT *big_no_trie;						                   \
+    if (mode == MODE_DIRECTED_MIN) {					                   \
+      do {								                   \
+	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                           \
+	if (mpz_cmp(big_new, big_no_trie) > 0)                                             \
+	  {free(big_new); return false;}				                   \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));         \
+    } else if (mode == MODE_DIRECTED_MAX) {				                   \
+      do {								                   \
+	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                           \
+	if (mpz_cmp(big_new, big_no_trie) < 0)                                             \
+	  {free(big_new); return false;}				                   \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));         \
+    } else if (mode == MODE_DIRECTED_FIRST) {				                   \
+      	  {free(big_new); return false;}				                   \
+    } else if (mode == MODE_DIRECTED_LAST) {				                   \
+      do								                   \
+	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                           \
+      while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_new));           \
+    } else /* mode == MODE_DIRECTED_SUM */ {			  	                   \
+      MP_INT *big_no_trie_sum = (MP_INT*) malloc(sizeof(MP_INT));                          \
+      do {								                   \
+	big_no_trie = SgNoTrie_entry_big_integer(et);	   	                           \
+	mpz_add(big_no_trie_sum, big_new, big_no_trie);		                           \
+      } while(!BOOL_CAS(&(SgNoTrie_entry_big_integer(et)), big_no_trie, big_no_trie_sum)); \
+    }									                   \
+    /* free(big_no_trie); TO DO LATER */						   \
+    /* mpz_clear(big_no_trie);  TO DO LATER*/					           \
     return true
 
 
@@ -1909,23 +1907,18 @@ boolean mode_directed_answer_search_no_trie(sg_fr_ptr sg_fr, CELL *subs_ptr USES
     MP_INT *new = (MP_INT*) malloc(sizeof(MP_INT)); 
     if (IsIntegerTerm(term)) {
       Int number = IntegerOfTerm(term);
-      printf("11 - number %d new = %p\n", IntegerOfTerm(term), new);
       mpz_init_set_si(new, number);
-      printf("new_term = ");
-      mpz_out_str ( stdout, 10, new );
-      printf("\n");
-      
+      INFO_PRINT_BIG_INTEGER(new);
     } else {
       /* HERE (C/bignum.c line 52) */
-      printf("HHHHHHHHHHHHHHHHHHH1 = \n");
       CELL *pt1 = RepAppl(term);
       if (pt1[1] != BIG_INT) {
-	printf("EEEEEEEEEEEEEERRRRRRRRRRRRRRRRRRRRROOOOOOOOO \n");	
-	return false;
-	
+	Yap_Error(SYSTEM_ERROR, TermNil, "Found a non integer answer");
+	return false;	
       }
       MP_INT *big_term = Yap_BigIntOfTerm(term);
-      mpz_init_set(new, big_term);      
+      mpz_init_set(new, big_term);
+      INFO_PRINT_BIG_INTEGER(new);
     }
     BIG_INTEGER_check_insert_mode_directed_answer_search_no_trie(sg_fr, new);        
   }
