@@ -574,8 +574,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 
 #ifdef LINEAR_TABLING
-#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)  \
-  ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(SG_FR));  \
+#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)             \
+  /*ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(SG_FR)); */	\
   SgFr_allocate_drs_looping_structure(SG_FR)
 
 #else /* !LINEAR_TABLING */
@@ -1650,10 +1650,6 @@ static inline void mark_as_completed(sg_fr_ptr sg_fr USES_REGS) {
     return;  
 #endif
   LOCK_SG_FR(sg_fr);
-#ifdef LINEAR_TABLING
-  free_alternatives(sg_fr);
-  free_drs_answers(sg_fr);
-#endif /* LINEAR_TABLING */
 
 #if defined(THREADS_FULL_SHARING)
 
@@ -2061,8 +2057,6 @@ static inline void abolish_incomplete_subgoals(choiceptr prune_cp) {
       while(LOCAL_max_scc && GET_SGFR_DFN(LOCAL_max_scc) >= cut_dfn){
 	sg_fr = LOCAL_max_scc;
 	SgFr_state(sg_fr) = incomplete;
-	free_alternatives(sg_fr);
-	free_drs_answers(sg_fr);
 	if (LOCAL_max_scc == LOCAL_top_sg_fr_on_branch)
 	  LOCAL_top_sg_fr_on_branch = SgFr_next_on_branch(LOCAL_top_sg_fr_on_branch);	  
 	LOCAL_max_scc =SgFr_next_on_scc(LOCAL_max_scc);

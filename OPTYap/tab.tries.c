@@ -1195,10 +1195,19 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   
   sg_fr = SgNoTrie_sg_fr(no_st_pos);
 
+#ifdef LINEAR_TABLING
+    yamop  **loop_alts_bucket = NULL;
+#endif /* LINEAR_TABLING */
+
+
 #ifdef THREADS
   if (sg_fr) {
     if (SgFr_state(sg_fr) >= complete || SgFr_wid(sg_fr) == worker_id)
       return sg_fr;
+
+#ifdef LINEAR_TABLING
+    loop_alts_bucket = SgFr_loop_alts(sg_fr);
+#endif /* LINEAR_TABLING */
 
     mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
     sg_fr = SgFr_next_wid(sg_fr);
@@ -1212,32 +1221,46 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     new_subgoal_frame(sg_fr, preg, mode_directed);
     SgFr_wid(sg_fr) = worker_id;
     SgFr_no_sg_pos(sg_fr) = no_st_pos;
-    
+
+#ifdef LINEAR_TABLING
+    SgFr_loop_alts(sg_fr) = loop_alts_bucket;
+#endif /* LINEAR_TABLING */
+
     sg_fr_ptr sg_fr_aux; 
     do {
       sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
-      if (SgFr_state(sg_fr_aux) >= complete)
+      if (SgFr_state(sg_fr_aux) >= complete) {
+        FREE_SUBGOAL_FRAME(sg_fr);
 	return sg_fr_aux;
+      }
       SgFr_next_wid(sg_fr) = sg_fr_aux;
 
     } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
   } else {
     /* no sg_fr complete for now */ 
     mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
-
     new_subgoal_frame(sg_fr, preg, mode_directed);
     SgFr_wid(sg_fr) = worker_id;
     SgFr_no_sg_pos(sg_fr) = no_st_pos;
     SgFr_next_wid(sg_fr) = NULL;
+
+#ifdef LINEAR_TABLING
+    ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
+#endif /* LINEAR_TABLING */
+
     if (!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), NULL, sg_fr)) { 
       sg_fr_ptr sg_fr_aux;     
       do {
 	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
 
-	if (SgFr_state(sg_fr_aux) >= complete)
+	if (SgFr_state(sg_fr_aux) >= complete) {
+	  FREE_SUBGOAL_FRAME(sg_fr);
+#ifdef LINEAR_TABLING
+	  FREE_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
+#endif /* LINEAR_TABLING */
 	  return sg_fr_aux;
+        }
 	SgFr_next_wid(sg_fr) = sg_fr_aux;	
-
       } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
     }
   }
@@ -1247,6 +1270,9 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   if (sg_fr == NULL) {
    mode_directed = TabEnt_sg_fr_mode_directed(tab_ent);
    new_subgoal_frame(sg_fr, preg, mode_directed);
+#ifdef LINEAR_TABLING
+    ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
+#endif /* LINEAR_TABLING */
    SgFr_no_sg_pos(sg_fr) = no_st_pos;
    SgNoTrie_sg_fr(no_st_pos) = sg_fr;
  }
@@ -2679,9 +2705,12 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
       return;
 
     sg_fr_ptr sg_fr_last = sg_fr;
-    while(SgFr_next_complete(sg_fr_last))
+#ifdef LINEAR_TABLING
+    free_alternatives(sg_fr);
+    free_drs_answers(sg_fr);
+#endif /* LINEAR_TABLING */
+    while(SgFr_next_complete(sg_fr_last)) 
       sg_fr_last = SgFr_next_complete(sg_fr_last);
-
     sg_fr_ptr remote_sg_fr;
     do {
       remote_sg_fr = REMOTE_top_sg_fr_complete(0);
