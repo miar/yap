@@ -248,18 +248,19 @@
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);                 \
    	    INFO_LINEAR_TABLING("add_alternative = %p", PC);                  \
             INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
-          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != PC) {    \
-            SgFr_current_loop_alt(SG_FR)++;                                   \
-   	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                  \
-	      yamop **nb;                                                     \
-              ALLOC_ALTERNATIVES_BUCKET(nb);				      \
-   	      ALT_TAG_AS_JUMP_CELL(SgFr_current_loop_alt(SG_FR), nb);         \
-	      INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR)); \
-              SgFr_current_loop_alt(SG_FR) = nb;			      \
+          } else if (GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR)) != PC) {                 \
+            SgFr_current_loop_alt(SG_FR)++;                                                \
+   	    if (IS_JUMP_CELL(SgFr_current_loop_alt(SG_FR))){                               \
+	      if ((long)SgFr_current_loop_alt(SG_FR) == (long) 0x1) {	                   \
+		yamop **nb;						                   \
+                ALLOC_ALTERNATIVES_BUCKET(nb);				                   \
+              if (!BOOL_CAS(&(SgFr_current_loop_alt(SG_FR)), 0x1, ((long)nb | (long)0x1))) \
+		FREE_ALTERNATIVES_BUCKET(nb);				                   \
+	      }								                   \
+              SgFr_current_loop_alt(SG_FR) = (yamop**)((long)SgFr_current_loop_alt(SG_FR) & ~((long)0x1)); \
 	    }                                                                 \
 	    SET_CELL_VALUE(SgFr_current_loop_alt(SG_FR), PC);	              \
 	    INFO_LINEAR_TABLING("add_alternative = %p", PC);		      \
-	    INFO_LINEAR_TABLING("SgFr_current_loop_alt(%p) = %p  %p", sg_fr, SgFr_current_loop_alt(SG_FR), GET_CELL_VALUE(SgFr_current_loop_alt(SG_FR))); \
           }                                                                   \
 	}                                                                     \
    }
