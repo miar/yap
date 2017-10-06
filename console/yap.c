@@ -353,6 +353,7 @@ parse_yap_arguments(int argc, char *argv[], YAP_init_args *iap)
 	    ssize = &(iap->AttsSize);
 	    goto GetSize;
 	  case 'T':
+	    //printf("HHHHHHHHHHHHHHHHHHERE-1\n");
 	    ssize = &(iap->MaxTrailSize);
 	    goto get_trail_size;
 	  case 't':
@@ -398,6 +399,8 @@ parse_yap_arguments(int argc, char *argv[], YAP_init_args *iap)
 		iap->YapPrologTopLevelGoal = add_end_dot(*argv);
 	      } else {
 		*ssize = i;
+		//printf("HHHHHHHHHHHHHHHHHHERE-2 *ssize = %u  \n", *ssize);
+
 	      }
 	    }
 	    break;
@@ -679,7 +682,6 @@ main (int argc, char **argv)
   int BootMode;
   YAP_init_args init_args;
   int i;
-
 
   BootMode = init_standard_system(argc, argv, &init_args);
   if (BootMode == YAP_BOOT_ERROR) {

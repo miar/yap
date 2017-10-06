@@ -2968,6 +2968,7 @@ YAP_Init(YAP_init_args *yap_init)
   }
   if (yap_init->TrailSize == 0) {
     if (yap_init->MaxTrailSize) {
+      //printf("yap_init->MaxTrailSize = %u\n", yap_init->MaxTrailSize);
       Trail = yap_init->MaxTrailSize;
     } else if (Trail == 0)
       Trail = DefTrailSpace;

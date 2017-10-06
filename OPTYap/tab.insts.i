@@ -1271,8 +1271,11 @@
 	  struct timeval tv1, tv2;
 	  gettimeofday(&tv1, NULL);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */
-          if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true 
-              && IS_BATCHED_GEN_CP(gcp)) {
+	  if (mode_directed_answer_search_no_trie(sg_fr, subs_ptr PASS_REGS) == true) {
+#ifdef LINEAR_TABLING
+	    TAG_NEW_ANSWERS(sg_fr);
+#endif
+	    if (IS_BATCHED_GEN_CP(gcp)) {
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD___
 	    gettimeofday(&tv2, NULL);
 	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
@@ -1284,15 +1287,17 @@
 	    SREG = YENV;
 	    ENV = YENV = (CELL *) YENV[E_E];
 	    GONext();
-	  } else /* repeated answer or local_scheduling mode */ {
+	    }
+	  } /* repeated answer or local_scheduling mode */
 #ifdef EXTRA_STATISTICS_WALLTIME_BY_THREAD___
-	    gettimeofday(&tv2, NULL);
-	    walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
+	  gettimeofday(&tv2, NULL);
+	  walltime_by_thread[walltime_by_thread_run][worker_id] += ((float)(1000000*(tv2.tv_sec - tv1.tv_sec) + tv2.tv_usec - tv1.tv_usec) / 1000);
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */	    
-	    goto fail; 
-	  }
+	  goto fail; 	  
+	}
 
-        }
+
+
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr PASS_REGS);
@@ -1731,7 +1736,6 @@
     dep_fr = CONS_CP(B)->cp_dep_fr;
 
 #ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-
 
     if (DepFr_no_sg_pos(dep_fr) != NULL) {
       if (SgNoTrie_answer(DepFr_no_sg_pos(dep_fr)) != NULL) {

@@ -461,7 +461,7 @@
 
 //#define LINEAR_TABLING_DSLA 1 /*for debug only- need change on table_completion() */
 
-//#define LINEAR_TABLING_DRA 1  
+#define LINEAR_TABLING_DRA 1  
 //#define LINEAR_TABLING_DRE 1 /* --> HERE <-- still not working with THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
 /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX is not using DRS. With local, it always consumes the answer in the table */
@@ -476,7 +476,7 @@
 
 #ifndef LINEAR_TABLING 
 #if defined(LINEAR_TABLING_DRA) || defined(LINEAR_TABLING_DRE) || defined(LINEAR_TABLING_DRS) || defined(DUMMY_PRINT) || defined(DEBUG_LINEAR_TABLING) 
-#error Please define LINEAR_TABLING mode ...
+#define LINEAR_TABLING 1
 #endif
 #endif /*LINEAR_TABLING */
 
