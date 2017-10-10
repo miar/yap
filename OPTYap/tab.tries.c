@@ -1248,19 +1248,15 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 #ifdef LINEAR_TABLING
     ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
 #endif /* LINEAR_TABLING */
-
+    sg_fr_ptr sg_fr_aux;
+    sg_fr_aux = NULL;
+    SgFr_next_wid(sg_fr) = NULL;
     if (!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), NULL, sg_fr)) { 
-      sg_fr_ptr sg_fr_aux;     
+      sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
+      free(SgFr_loop_alts(sg_fr));
+      SgFr_loop_alts(sg_fr) = SgFr_loop_alts(sg_fr_aux);      
       do {
 	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
-
-	if (SgFr_state(sg_fr_aux) >= complete) {
-	  FREE_SUBGOAL_FRAME(sg_fr);
-#ifdef LINEAR_TABLING
-	  FREE_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
-#endif /* LINEAR_TABLING */
-	  return sg_fr_aux;
-        }
 	SgFr_next_wid(sg_fr) = sg_fr_aux;	
       } while(!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), sg_fr_aux, sg_fr));
     }
@@ -1432,6 +1428,7 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   SgFr_sg_leaf_node(sg_fr) = current_sg_node;
 
   sg_fr_ptr sg_fr_aux = NULL;
+  SgFr_next_wid(sg_fr) = NULL;
   if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))) {
     sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
     SgFr_loop_alts(sg_fr) = SgFr_loop_alts(sg_fr_aux);
