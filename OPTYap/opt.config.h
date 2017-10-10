@@ -72,7 +72,7 @@
 ************************************************************************/
 //#define THREADS_NO_SHARING 1
 #define THREADS_SUBGOAL_SHARING 1
-//#define THREADS_FULL_SHARING 1
+//#define THREADS_FULL_SHARING 1  /* LINEAR TABLING NOT WORKING WITH FULL_SHARING */
 
 //#define EXTRA_STATISTICS   1
 //#define EXTRA_STATISTICS_CPUTIME_BY_THREAD   1

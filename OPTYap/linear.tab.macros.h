@@ -169,15 +169,14 @@
 
 
 #define fail_or_yes_answer(tab_ent,sg_fr)		      \
+  printf("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n");	      \
       ans_node_ptr ans_node;                                  \
       ans_node = SgFr_first_answer(sg_fr);                    \
       if (ans_node == NULL) {                                 \
 	/* no answers --> fail */                             \
-	UNLOCK_SG_FR(sg_fr);                                  \
 	goto fail;                                            \
       } else if (ans_node == SgFr_answer_trie(sg_fr)) {       \
 	/* yes answer --> procceed */                         \
-	UNLOCK_SG_FR(sg_fr);                                  \
 	PREG = (yamop *) CPREG;                               \
 	PREFETCH_OP(PREG);                                    \
 	YENV = ENV;                                           \

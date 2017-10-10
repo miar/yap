@@ -1219,6 +1219,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
 
     /* no sg_fr complete for now */
     new_subgoal_frame(sg_fr, preg, mode_directed);
+
     SgFr_wid(sg_fr) = worker_id;
     SgFr_no_sg_pos(sg_fr) = no_st_pos;
 
@@ -1296,6 +1297,11 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   int i, subs_arity, pred_arity;
   sg_fr_ptr sg_fr;
   sg_node_ptr current_sg_node;
+
+#ifdef LINEAR_TABLING
+  yamop  **loop_alternatives = NULL;
+#endif /* LINEAR_TABLING */
+
 
 #ifdef MODE_DIRECTED_TABLING
   int *mode_directed, aux_mode_directed[MAX_TABLE_VARS];
@@ -1390,8 +1396,11 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
 	SgFr_state(sg_fr) >= complete ||
 #endif  /* THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE */		
 	SgFr_wid(sg_fr) == worker_id)
-       return sg_fr;
-	mode_directed = SgFr_mode_directed(sg_fr);
+      return sg_fr;
+
+
+    loop_alternatives = SgFr_loop_alts(sg_fr);
+    mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     while(sg_fr) {
       if (
@@ -1405,21 +1414,34 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   } else
     mode_directed = NULL;
   
+  
   /* no sg_fr complete for now */
   if (mode_directed == NULL && subs_pos) {
     ALLOC_BLOCK(mode_directed, subs_pos*sizeof(int), int);
     memcpy((void *)mode_directed, (void *)aux_mode_directed, subs_pos*sizeof(int));
   }
   new_subgoal_frame(sg_fr, preg, mode_directed);
+#ifdef LINEAR_TABLING
+  if (loop_alternatives == NULL) {
+    ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(sg_fr));
+   } else
+    SgFr_loop_alts(sg_fr) = loop_alternatives;
+#endif /* LINEAR_TABLING */
+
   SgFr_wid(sg_fr) = worker_id;
   SgFr_sg_leaf_node(sg_fr) = current_sg_node;
 
-  sg_fr_ptr sg_fr_aux;
-  do {
+  sg_fr_ptr sg_fr_aux = NULL;
+  if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))) {
     sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
-    SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
-  } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
-  
+    SgFr_loop_alts(sg_fr) = SgFr_loop_alts(sg_fr_aux);
+    free(loop_alternatives);
+    do {
+      sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
+      SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
+    } while(!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1)));
+  }
+
   /*  
   printf("\n---sg_fr mode_directed--- \n");
   for (i = 0; i < subs_pos; i++)

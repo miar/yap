@@ -574,8 +574,8 @@ static void invalidate_answer_trie(ans_node_ptr, sg_fr_ptr, int USES_REGS);
 
 
 #ifdef LINEAR_TABLING
-#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)             \
-  /*ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(SG_FR)); */	\
+#define SgFr_linear_tabling_new_sg_fr_fields(SG_FR)     \
+  /*ALLOC_ALTERNATIVES_BUCKET(SgFr_loop_alts(SG_FR));*/	\
   SgFr_allocate_drs_looping_structure(SG_FR)
 
 #else /* !LINEAR_TABLING */

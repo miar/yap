@@ -1295,9 +1295,6 @@
 #endif /* EXTRA_STATISTICS_WALLTIME_BY_THREAD */	    
 	  goto fail; 	  
 	}
-
-
-
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
       ans_node = mode_directed_answer_search(sg_fr, subs_ptr PASS_REGS);

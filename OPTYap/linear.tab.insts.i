@@ -466,8 +466,8 @@ ENDPBOp();
 	}
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 /* if THREADS_NO_SUBGOAL_TRIE_MIN_MAX defined then worker is where when no_st_pos == NULL */
-	ans_node_ptr ans_node = SgFr_first_answer(sg_fr); //H
-	if (ans_node == NULL) {                           //H
+	ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
+	if (ans_node == NULL) {
 	  /* no answers --> fail */
 	  remove_next(sg_fr);
 	  B = B->cp_b;
@@ -477,7 +477,7 @@ ENDPBOp();
 	}
 	remove_next(sg_fr);
 	pop_generator_node(SgFr_arity(sg_fr));
-	if (ans_node == SgFr_answer_trie(sg_fr)) {   //H
+	if (ans_node == SgFr_answer_trie(sg_fr)) {
 	  /* yes answer --> procceed */
 	  PREG = (yamop *) CPREG;
 	  PREFETCH_OP(PREG);
@@ -547,7 +547,6 @@ BOp(table_completion, Otapl)
 	  SgFr_state(sg_fr) = looping_evaluating;
 	  if (!IS_LEADER(sg_fr)) 
 	    remove_branch(sg_fr);	  
-	  // PROBLEM IS IN 'ALT_TAG_AS_JUMP_CELL'
 	  INFO_LINEAR_TABLING("1-next_loop_alt = %p *next_loop_alt = %p sg_fr->loop_alts = %p",
 			      next_loop_alt, *next_loop_alt, sg_fr->loop_alts);
  
