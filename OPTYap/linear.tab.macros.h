@@ -169,7 +169,6 @@
 
 
 #define fail_or_yes_answer(tab_ent,sg_fr)		      \
-  printf("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n");	      \
       ans_node_ptr ans_node;                                  \
       ans_node = SgFr_first_answer(sg_fr);                    \
       if (ans_node == NULL) {                                 \
@@ -195,7 +194,7 @@
 #define remove_next(SG_FR) {                                  \
      if(B == SgFr_gen_cp(LOCAL_top_sg_fr)){	              \
        LOCAL_top_sg_fr= SgFr_next(LOCAL_top_sg_fr);	      \
-     }else{						      \
+     }else{						      \     
         printf("nao pode acontecer\n"); 		      \
      }							      \
 }

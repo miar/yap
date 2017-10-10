@@ -1149,19 +1149,38 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
   Term t = Deref(XREGS[j]);
   int no_st_index = IntOfTerm(t);
 
-  /*  
-      printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
-	 IntOfTerm(Deref(XREGS[1])), 
-	 IntOfTerm(Deref(XREGS[2])), 
-	 IntOfTerm(Deref(XREGS[3])),
-	 j, no_st_index); 
+  
+
+  /*
+  if (no_st_index < 0 || no_st_index >= 16000000) {
+    printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
+	   IntOfTerm(Deref(XREGS[1])), 
+	   IntOfTerm(Deref(XREGS[2])), 
+	   IntOfTerm(Deref(XREGS[3])),
+	   j, no_st_index);
+    exit(1);
+  }
   */
 
+  
+
   for (i = 1; i < pred_arity; i++) {
+
     mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
-    j = MODE_DIRECTED_GET_ARG(mode_directed[i]) + 1;    
+    j = MODE_DIRECTED_GET_ARG(mode_directed[i]) + 1; 
+    
     t = Deref(XREGS[j]);
     if (mode == MODE_DIRECTED_DIM) {
+      if (!(IsIntTerm(Deref(XREGS[j])))) {
+	printf("Error-Found a non integer dimension.\n)");	      
+	printf("pred_arity %d subs_arity %d args 1-(%d) 2-(%d) 3-(%d) j-(%d) i-(%d)\n",
+	       pred_arity, subs_arity, 
+	       IntOfTerm(Deref(XREGS[1])), 
+	       IntOfTerm(Deref(XREGS[2])), 
+	       IntOfTerm(Deref(XREGS[3])),
+	       j, no_st_index); 
+	Yap_Error(SYSTEM_ERROR, TermNil, "Found a non integer dimension.");
+      }
       // t must be an int otherwise system must give error (to be updated)
       no_st_index = no_st_index * TabEnt_dim_array(tab_ent, i) + IntOfTerm(t);
     } else /* supporting modes (sm) -> first | last | min | max | sum */ {
@@ -1170,7 +1189,7 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
       subs_arity++; 
     }
   }
-    
+  
   /*  SYSTEM MUST ENSURE THAT no_st_index IS ALWAYS >= 0 
       if (no_st_index < 0 || no_st_index >= 16000000) {
      printf("pred_arity %d subs_arity %d args %d %d %d j %d i %d\n",pred_arity, subs_arity, 
@@ -1182,6 +1201,8 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     }
   */
 
+
+    
   no_subgoal_trie_pos_ptr no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
 
 
@@ -1253,8 +1274,10 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
     SgFr_next_wid(sg_fr) = NULL;
     if (!BOOL_CAS(&(SgNoTrie_sg_fr(no_st_pos)), NULL, sg_fr)) { 
       sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
+#ifdef LINEAR_TABLING
       free(SgFr_loop_alts(sg_fr));
       SgFr_loop_alts(sg_fr) = SgFr_loop_alts(sg_fr_aux);      
+#endif /* LINEAR_TABLING */
       do {
 	sg_fr_aux = SgNoTrie_sg_fr(no_st_pos);
 	SgFr_next_wid(sg_fr) = sg_fr_aux;	
@@ -1394,8 +1417,9 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
 	SgFr_wid(sg_fr) == worker_id)
       return sg_fr;
 
-
+#ifdef LINEAR_TABLING
     loop_alternatives = SgFr_loop_alts(sg_fr);
+#endif
     mode_directed = SgFr_mode_directed(sg_fr);
     sg_fr = SgFr_next_wid(sg_fr);
     while(sg_fr) {
@@ -1431,8 +1455,10 @@ sg_fr_ptr subgoal_search(yamop *preg, CELL **Yaddr USES_REGS)  {
   SgFr_next_wid(sg_fr) = NULL;
   if (!BOOL_CAS(&(TrNode_sg_fr(current_sg_node)), sg_fr_aux, ((CELL) sg_fr | 0x1))) {
     sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
+#ifdef LINEAR_TABLING
     SgFr_loop_alts(sg_fr) = SgFr_loop_alts(sg_fr_aux);
     free(loop_alternatives);
+#endif /* LINEAR_TABLING */
     do {
       sg_fr_aux = (sg_fr_ptr) TrNode_sg_fr(current_sg_node);  
       SgFr_next_wid(sg_fr) = (sg_fr_ptr) UNTAG_SUBGOAL_NODE(sg_fr_aux);
