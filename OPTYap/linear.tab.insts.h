@@ -385,7 +385,7 @@ void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,
 
 
 
- void table_try_with_looping_ready(sg_fr_ptr sg_fr){
+void table_try_with_looping_ready(sg_fr_ptr sg_fr){
 #ifdef DUMMY_PRINT
   LOCAL_nr_consumed_alternatives++;
   INFO_LINEAR_TABLING("i3: LOCAL_nr_consumed_alternatives=%d",LOCAL_nr_consumed_alternatives);
@@ -414,7 +414,7 @@ void table_try_with_ready(sg_fr_ptr sg_fr, yamop* PREG_CI, yamop* PREG_NI,
 }
 
 
- void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
+void table_try_with_completed(sg_fr_ptr sg_fr, ans_node_ptr ans_node,
 				     tab_ent_ptr tab_ent) {
     /* answers -> get first answer */
     if (IsMode_LoadAnswers(TabEnt_mode(tab_ent))) {

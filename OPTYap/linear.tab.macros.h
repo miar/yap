@@ -167,7 +167,6 @@
 
 /*------------------------------------------------LINEAR TABLING------------------------------*/
 
-
 #define fail_or_yes_answer(tab_ent,sg_fr)		      \
       ans_node_ptr ans_node;                                  \
       ans_node = SgFr_first_answer(sg_fr);                    \
@@ -268,6 +267,37 @@
 	SgFr_init_dra_fields(SG_FR);                         \
 }
 
+#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
+#define SgFr_consume_answers_no_trie(sg_fr) {                                           \
+  no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);	                        \
+  if (no_st_pos != NULL) {                                                              \
+    if (SgNoTrie_answer(no_st_pos) == NULL)                                             \
+      /* no answers --> fail */                                                         \
+      goto fail;                                                                        \
+    else /* load answer */ {                                                            \
+      PREG = (yamop *) CPREG;                                                           \
+      PREFETCH_OP(PREG);	                                                        \
+      if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER) {           \
+	Bind((CELL *) YENV[1],                                                          \
+	     NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));             \
+      }                                                                                 \
+      else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT) {        \
+	Bind((CELL *) YENV[1],                                                          \
+	     NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));                 \
+      }                                                                                 \
+      else { /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ \
+	Bind((CELL *) YENV[1],                                                          \
+	     NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));      \
+      }                                                                                 \
+      YENV = ENV;                                                                       \
+      GONext();								                \
+    }                                                                                   \
+  }                                                                                     \
+}
+
+#else /* !THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+#define SgFr_consume_answers_no_trie(sg_fr)
+#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
 
 #endif /*LINEAR_TAB_MACROS_H */
 

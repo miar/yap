@@ -105,32 +105,13 @@
     } else if (SgFr_state(sg_fr) == evaluating || 
                SgFr_state(sg_fr) == looping_evaluating){ 
       propagate_dependencies(sg_fr);
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       consume_all_answers_on_trie(tab_ent,ans_node,sg_fr);
       GONext();
     } else {
       /* subgoal completed */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
-      if (no_st_pos != NULL) {
-	if (SgNoTrie_answer(no_st_pos) == NULL)
-	  /* no answers --> fail */
-	  goto fail;
-	else /* load answer */ {
-          PREG = (yamop *) CPREG;
-          PREFETCH_OP(PREG);	  
-	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
-          //load_answer(ans_node, YENV PASS_REGS);
-	  YENV = ENV;
-          GONext();
-        } 
-      }
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
@@ -151,38 +132,20 @@
     } else if (SgFr_state(sg_fr) == evaluating) {
       propagate_dependencies(sg_fr);
       DRE_table_try_with_evaluating(sg_fr);
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       consume_all_answers_on_trie(tab_ent,ans_node,sg_fr);      
       GONext();
     } else if (SgFr_state(sg_fr) == looping_evaluating) {
       propagate_dependencies(sg_fr);
       DRE_table_try_with_looping_evaluating(sg_fr);
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       consume_all_answers_on_trie(tab_ent,ans_node,sg_fr);      
       GONext();
     } else {
       /* subgoal completed */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
-      if (no_st_pos != NULL) {
-	if (SgNoTrie_answer(no_st_pos) == NULL)
-	  /* no answers --> fail */
-	  goto fail;
-	else /* load answer */ {
-          PREG = (yamop *) CPREG;
-          PREFETCH_OP(PREG);	  
-	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
-          //load_answer(ans_node, YENV PASS_REGS);
-	  YENV = ENV;
-          GONext();
-        } 
-      }
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
@@ -203,38 +166,20 @@
     } else if (SgFr_state(sg_fr) == evaluating) {
       propagate_dependencies(sg_fr);
       DRE_table_try_with_evaluating(sg_fr);      
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       consume_all_answers_on_trie(tab_ent,ans_node,sg_fr);      
       GONext();
     } else if (SgFr_state(sg_fr) == looping_evaluating) {
       propagate_dependencies(sg_fr);
       DRE_table_try_with_looping_evaluating(sg_fr);
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       consume_all_answers_on_trie(tab_ent,ans_node,sg_fr);      
       GONext();
     } else {
       /* subgoal completed */
-#ifdef THREADS_NO_SUBGOAL_TRIE_MIN_MAX
-      no_subgoal_trie_pos_ptr no_st_pos = SgFr_no_sg_pos(sg_fr);
-      if (no_st_pos != NULL) {
-	if (SgNoTrie_answer(no_st_pos) == NULL) {
-	  /* no answers --> fail */
-	  goto fail;
-	} else /* load answer */ {
-          PREG = (yamop *) CPREG;
-          PREFETCH_OP(PREG);	  
-	  if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_INTEGER)
-	    { Bind((CELL *) YENV[1], NoTrie_LoadIntegerTerm((SgNoTrie_answer_integer(no_st_pos))));}
-	  else if (SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_FLOAT)
-	    {Bind((CELL *) YENV[1], NoTrie_LoadFloatTerm((SgNoTrie_answer_float(no_st_pos))));}
-	  else  /* SgFr_mode_directed_term_type(sg_fr) == MODE_DIRECTED_DIM_BIG_INTEGER */ 
-	    {Bind((CELL *) YENV[1], NoTrie_LoadBigIntegerTerm((SgNoTrie_answer_big_integer(no_st_pos))));}
-          //load_answer(ans_node, YENV PASS_REGS);
-	  YENV = ENV;
-          GONext();
-        } 
-      }
-#endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+      SgFr_consume_answers_no_trie(sg_fr);
       fail_or_yes_answer(tab_ent,sg_fr);
       table_try_with_completed(sg_fr,ans_node,tab_ent);
       GONext();
