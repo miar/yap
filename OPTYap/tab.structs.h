@@ -65,10 +65,11 @@ typedef struct table_entry {
 #endif /* MODE_DIRECTED_TABLING */
 #ifdef THREADS_NO_SUBGOAL_TRIE
   int* dimension_array;
+  int dimension_array_length;
   int* sg_fr_mode_directed_array; 
   struct no_subgoal_trie_pos *no_subgoal_trie;
   short no_subgoal_trie_term_type;
-  int no_subgoal_trie_size;
+
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 #ifdef THREADS_NO_SHARING
   struct subgoal_trie_node *subgoal_trie[THREADS_NUM_BUCKETS];
@@ -95,7 +96,7 @@ typedef struct table_entry {
 #define TabEnt_hash_chain(X)                   ((X)->hash_chain)
 #define TabEnt_next(X)                         ((X)->next)
 #define TabEnt_sg_fr_mode_directed(X)          ((X)->sg_fr_mode_directed_array)
-#define TabEnt_no_subgoal_trie_size(X)         ((X)->no_subgoal_trie_size) 
+#define TabEnt_dimension_array_length(X)       ((X)->dimension_array_length)
 
 /***********************************************************************
 **      subgoal_trie_node, answer_trie_node and global_trie_node      **

@@ -2915,6 +2915,16 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 
 
 void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
+  int i;
+
+  int *dim_array = TabEnt_dimension_array(tab_ent);
+  int dim_array_len = TabEnt_dimension_array_length(tab_ent);
+
+  for (i = 0; i < dim_array_len; i++) {
+    break;
+
+  }
+
   
   return;
   
