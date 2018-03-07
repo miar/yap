@@ -218,6 +218,7 @@
  PBOp(table_try_answer, Otapl)
    try_answer:
    {
+
      INFO_LINEAR_TABLING("table_try_answer");
      sg_fr_ptr sg_fr = GEN_CP(B)->cp_sg_fr;
      if (SgFr_current_batched_answer(LOCAL_top_sg_fr)){
@@ -362,6 +363,7 @@ ENDPBOp();
 #endif /* LINEAR_TABLING_DRS */
   answer_resolution:
     {
+
       INFO_LINEAR_TABLING("--------------------- goto answer_resolution ---------------\n");
       /* consume all */
       sg_fr_ptr sg_fr;
@@ -410,6 +412,7 @@ ENDPBOp();
 	  } 
 	}
 #endif /* THREADS_NO_SUBGOAL_TRIE_MIN_MAX */
+
 /* if THREADS_NO_SUBGOAL_TRIE_MIN_MAX defined then worker is where when no_st_pos == NULL */
 	ans_node_ptr ans_node = SgFr_first_answer(sg_fr);
 	if (ans_node == NULL) {
@@ -459,6 +462,7 @@ ENDBOp();
 
 BOp(table_completion, Otapl)
    INFO_LINEAR_TABLING("-------------------------table_completion ---------------");
+
    sg_fr_ptr sg_fr = GEN_CP(B)->cp_sg_fr;       
    INFO_LINEAR_TABLING("sg_fr=%p state=%d",sg_fr, SgFr_state(sg_fr));
 #ifdef LINEAR_TABLING_DRE

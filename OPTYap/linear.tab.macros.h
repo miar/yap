@@ -193,7 +193,7 @@
 #define remove_next(SG_FR) {                                  \
      if(B == SgFr_gen_cp(LOCAL_top_sg_fr)){	              \
        LOCAL_top_sg_fr= SgFr_next(LOCAL_top_sg_fr);	      \
-     }else{						      \     
+     }else{						      \
         printf("nao pode acontecer\n"); 		      \
      }							      \
 }

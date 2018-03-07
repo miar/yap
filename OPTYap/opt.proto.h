@@ -70,6 +70,7 @@ void free_answer_trie(ans_node_ptr, int, int USES_REGS);
 void free_answer_hash_chain(ans_hash_ptr USES_REGS);
 void abolish_table(tab_ent_ptr USES_REGS);
 void show_table(tab_ent_ptr, int, IOSTREAM *);
+void show_table_no_trie(tab_ent_ptr, int, IOSTREAM *);
 void show_global_trie(int, IOSTREAM *);
 #endif /* TABLING */
 

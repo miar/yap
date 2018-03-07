@@ -797,7 +797,13 @@ static Int p_show_all_tables( USES_REGS1 ) {
     return FALSE;
   tab_ent = GLOBAL_root_tab_ent;
   while(tab_ent) {
-    show_table(tab_ent, SHOW_MODE_STRUCTURE, out);
+#ifdef THREADS_NO_SUBGOAL_TRIE
+    if (TabEnt_no_subgoal_trie(tab_ent) != NULL)
+      show_table_no_trie(tab_ent, SHOW_MODE_STRUCTURE, out);
+    else
+#endif /* THREADS_NO_SUBGOAL_TRIE */
+      show_table(tab_ent, SHOW_MODE_STRUCTURE, out);
+
     tab_ent = TabEnt_next(tab_ent);
   }
   PL_release_stream(out);
