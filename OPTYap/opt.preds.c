@@ -312,6 +312,7 @@ static Int p_table( USES_REGS1 ) {
   int *sg_fr_mode_directed = NULL;
   struct no_subgoal_trie_pos *no_subgoal_trie = NULL;
   short no_subgoal_trie_term_type = MODE_DIRECTED_DIM_FLOAT;
+  int no_subgoal_trie_size = 1;
 
 #endif /* THREADS_NO_SUBGOAL_TRIE */
 
@@ -382,7 +383,6 @@ static Int p_table( USES_REGS1 ) {
       ALLOC_BLOCK(dim_array, dim_array_size * sizeof(int), int); 
     }
 
-    int no_subgoal_trie_size = 1;
     aux_mode_directed = malloc(arity * sizeof(int));
 
     /* traverse all arguments again to construct mode / dim arrays */
@@ -556,7 +556,7 @@ static Int p_table( USES_REGS1 ) {
   pe->PredFlags |= TabledPredFlag;
   
 #ifdef THREADS_NO_SUBGOAL_TRIE
-  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie, no_subgoal_trie_term_type);
+  new_table_entry(tab_ent, pe, at, arity, mode_directed, dim_array, sg_fr_mode_directed, no_subgoal_trie, no_subgoal_trie_term_type, no_subgoal_trie_size);
 #else  /* !THREADS_NO_SUBGOAL_TRIE */
   new_table_entry(tab_ent, pe, at, arity, mode_directed);
 #endif /* THREADS_NO_SUBGOAL_TRIE */

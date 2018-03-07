@@ -2911,6 +2911,18 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 }
 
 
+
+
+
+void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
+  
+  return;
+  
+}
+
+
+
+
 void show_table(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
   CACHE_REGS
 
