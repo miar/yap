@@ -2915,17 +2915,48 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 
 
 void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
-  int i;
-
+  CACHE_REGS
   int *dim_array = TabEnt_dimension_array(tab_ent);
   int dim_array_len = TabEnt_dimension_array_length(tab_ent);
+  
+  // HERE
+  sg_node_ptr sg_node;
+  TrStat_out = out;
+  Sfprintf(TrStat_out, "Table structure for predicate '%s", AtomName(TabEnt_atom(tab_ent)));
+  int i, *mode_directed = TabEnt_mode_directed(tab_ent);
+  Sfprintf(TrStat_out, "(");
+  int dim_i = 0;
+  for (i = 0; i < TabEnt_arity(tab_ent); i++) {
+    int mode = MODE_DIRECTED_GET_MODE(mode_directed[i]);
+    if (mode == MODE_DIRECTED_INDEX) {
+      Sfprintf(TrStat_out, "index");
+    } else if (mode == MODE_DIRECTED_FIRST) {
+      Sfprintf(TrStat_out, "first");
+    } else if (mode == MODE_DIRECTED_ALL) {
+      Sfprintf(TrStat_out, "all");
+    } else if (mode == MODE_DIRECTED_MAX) {
+      Sfprintf(TrStat_out, "max");
+    } else if (mode == MODE_DIRECTED_MIN) {
+      Sfprintf(TrStat_out, "min");
+    } else if (mode == MODE_DIRECTED_LAST) {
+      Sfprintf(TrStat_out, "last");
+    } else if (mode == MODE_DIRECTED_DIM) {
+      Sfprintf(TrStat_out, "dim(%d)", TabEnt_dim_array(tab_ent, dim_i++));
+    } else /* MODE_DIRECTED_SUM */ {
+      Sfprintf(TrStat_out, "sum");     
+    }
+
+    if (i != MODE_DIRECTED_GET_ARG(mode_directed[i]))
+      Sfprintf(TrStat_out, "(ARG%d)", MODE_DIRECTED_GET_ARG(mode_directed[i]) + 1);
+    if (i + 1 != TabEnt_arity(tab_ent))
+      Sfprintf(TrStat_out, ", ");
+  }
+  Sfprintf(TrStat_out, ")'\n");
 
   for (i = 0; i < dim_array_len; i++) {
     break;
-
   }
-
-  
+    
   return;
   
 }
