@@ -2912,6 +2912,11 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 
 
 
+void print_dimensions(int dim, int dim_array_len, int *dim_array) {
+    // HERE
+  return;
+}
+
 
 
 void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
@@ -2919,7 +2924,6 @@ void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
   int *dim_array = TabEnt_dimension_array(tab_ent);
   int dim_array_len = TabEnt_dimension_array_length(tab_ent);
   
-  // HERE
   sg_node_ptr sg_node;
   TrStat_out = out;
   Sfprintf(TrStat_out, "Table structure for predicate '%s", AtomName(TabEnt_atom(tab_ent)));
@@ -2953,10 +2957,23 @@ void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
   }
   Sfprintf(TrStat_out, ")'\n");
 
-  for (i = 0; i < dim_array_len; i++) {
-    break;
-  }
+  // HERE
     
+  print_dimensions(0, dim_array_len, dim_array);
+
+  /*
+  int dim_0;  
+  for (dim_0 = 0 ; dim_0 < TabEnt_dim_array(tab_ent, 0); dim_0++) {
+
+
+
+    int dims;
+    for (dims = 1; dims < dim_array_len; dims++) {
+      int *dim_pos = dim_array[dims];
+      
+    }
+
+  */
   return;
   
 }
