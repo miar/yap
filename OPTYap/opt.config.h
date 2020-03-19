@@ -437,17 +437,6 @@
 #endif /* THREADS_FULL_SHARING */
 
 
-#ifndef THREADS
-#undef THREADS_FULL_SHARING
-#undef THREADS_SUBGOAL_SHARING
-#undef THREADS_NO_SHARING
-#undef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
-#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
-#undef THREADS_SUBGOAL_FRAME_BY_WID
-#undef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
-#endif
-
-
 /****************************************** YAP ISSUES ***********************/
 /* CHECK miguel tag on C/index.c file */
 
