@@ -99,7 +99,7 @@ void Yap_init_global_optyap_data(int max_table_size, int n_workers, int sch_loop
 #if defined(THREADS_FULL_SHARING)
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_ans_ref_node, struct answer_ref_node);
 #endif
-#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) 
+#if defined(SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04) || defined(ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04)
   INIT_GLOBAL_PAGE_ENTRY(GLOBAL_pages_trie_hash_buckets, union trie_hash_buckets);
 #endif
 #if defined(THREADS_FULL_SHARING_FTNA_3)

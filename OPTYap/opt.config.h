@@ -81,15 +81,16 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
-#define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
-#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 /* only one min/max
-					     int/float term. Do not
-					     try with more terms. more
-					     terms would give error in
-					     DepFr_init_sg_trie_min_max_field
-					     macro for
-					     example. Activate
-					     THREADS_NO_SUBGOAL_TRIE.*/
+//#define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
+//#define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1
+/* THREADS_NO_SUBGOAL_TRIE_MIN_MAX only one min/max
+   int/float term. Do not
+   try with more terms. more
+   terms would give error in
+   DepFr_init_sg_trie_min_max_field
+   macro for
+   example. Activate
+   THREADS_NO_SUBGOAL_TRIE.*/
 
 //#define THREADS_FULL_SHARING_FTNA  1    /*  fast table_new_answer (SgFr_last_answer private) - use only with local scheduling. check first for mode_direct_tabling */
 
@@ -434,7 +435,17 @@
 #undef THREADS_FULL_SHARING_FTNA
 #endif /* THREADS_FULL_SHARING_FTNA */
 #endif /* THREADS_FULL_SHARING */
-          
+
+
+#ifndef THREADS
+#undef THREADS_FULL_SHARING
+#undef THREADS_SUBGOAL_SHARING
+#undef THREADS_NO_SHARING
+#undef SUBGOAL_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+#undef ANSWER_TRIE_LOCK_AT_ATOMIC_LEVEL_V04
+#undef THREADS_SUBGOAL_FRAME_BY_WID
+#undef THREADS_SUBGOAL_FRAME_BY_WID_SHARE_COMPLETE
+#endif
 
 
 /****************************************** YAP ISSUES ***********************/
