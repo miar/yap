@@ -1200,8 +1200,6 @@ static inline void traverse_update_arity(char *str, int *str_index_ptr, int *ari
      exit(1);
     }
   */
-
-
     
   no_subgoal_trie_pos_ptr no_st_pos = &(TabEnt_no_subgoal_trie_pos(tab_ent, no_st_index));
 
@@ -2911,18 +2909,32 @@ void abolish_table(tab_ent_ptr tab_ent USES_REGS) {
 }
 
 
-
-void print_dimensions(int dim, int dim_array_len, int *dim_array) {
+/*
+ void print_dimensions(int dim, int dim_array_len, int *dim_array, char *dim_args) {
     // HERE
-  return;
-}
+  if (dim == dim_array_len)
+    return;
+  
+  print_dimensions(dim + 1, dim_array_len, dim_array);
 
+  int i;
+  for (i = 0; i < dim_array[dim]; i++) {
+    
+  }
+    
+
+
+}
+*/
 
 
 void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
   CACHE_REGS
-  int *dim_array = TabEnt_dimension_array(tab_ent);
-  int dim_array_len = TabEnt_dimension_array_length(tab_ent);
+
+  Sfprintf(TrStat_out, "not implemented yet\n");
+  return ;
+
+  int *dim_array = TabEnt_dimension_array(tab_ent);   //
   
   sg_node_ptr sg_node;
   TrStat_out = out;
@@ -2959,7 +2971,8 @@ void show_table_no_trie(tab_ent_ptr tab_ent, int show_mode, IOSTREAM *out) {
 
   // HERE
     
-  print_dimensions(0, dim_array_len, dim_array);
+  char *dim_args = (char *) malloc(sizeof(char) * SHOW_TABLE_STR_ARRAY_SIZE);
+  //print_dimensions(0, dim_i, dim_array, dim_args);
 
   /*
   int dim_0;  
