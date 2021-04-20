@@ -81,6 +81,7 @@
 //#define EXTRA_STATISTICS_CHOICE_POINTS   1
 //#define EXTRA_STATISTICS_SUBGOAL_SHARING_COMPLETE 1
 
+
 #define THREADS_NO_SUBGOAL_TRIE 1  /* activate THREADS_SUBGOAL_SHARING */
 #define THREADS_NO_SUBGOAL_TRIE_MIN_MAX 1 
 /* only one min/max
@@ -435,7 +436,6 @@
 #undef THREADS_FULL_SHARING_FTNA
 #endif /* THREADS_FULL_SHARING_FTNA */
 #endif /* THREADS_FULL_SHARING */
-          
 
 
 /****************************************** YAP ISSUES ***********************/

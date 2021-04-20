@@ -24,7 +24,7 @@ YAP_EXTRAS=@YAP_EXTRAS@ -D_YAP_NOT_INSTALLED_=1  -D__YAP_PROLOG__=1
 #
 CC=@CC@
 CFLAGS= @SHLIB_CFLAGS@ $(YAP_EXTRAS) $(DEFS) -I$(srcdir) -I../../../.. -I$(srcdir)/../../../../include -I$(srcdir)/../../../../H -I$(srcdir)/../../../../library/dialect/bprolog/fli
-LDFLAGS=@LDFLAGS@
+LDFLAGS=@LDFLAGS@ -zmuldefs
 #
 #
 # You shouldn't need to change what follows.
