@@ -146,6 +146,9 @@ public:
     void         strengthen  (Lit p);
 };
 
+template<class V>
+Clause* Clause_new(const V& ps, bool learnt = false);
+
 
 /*_________________________________________________________________________________________________
 |
